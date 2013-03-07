@@ -46,39 +46,9 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Encryption() { }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption (constructor)
-        /// 
-        /// <summary>
-        /// ファイルパスを指定して Encryption クラスを初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Encryption(string path)
-        {
-            _path = path;
-        }
-
         #endregion
 
         #region Properties
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// 該当する暗号化が設定されるファイルへのパスを取得、または設定
-        /// します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -148,7 +118,6 @@ namespace CubePdf.Data
         #endregion
 
         #region Variables
-        private string _path = string.Empty;
         private string _owner = string.Empty;
         private string _user = string.Empty;
         private EncryptionMethod _method = EncryptionMethod.Standard40;

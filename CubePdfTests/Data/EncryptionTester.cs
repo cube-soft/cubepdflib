@@ -47,21 +47,20 @@ namespace CubePdfTests.Data
         [Test]
         public void TestConstruct()
         {
-            var crypt = new CubePdf.Data.Encryption();
-            Assert.AreEqual(0, crypt.FilePath.Length);
-            Assert.AreEqual(0, crypt.OwnerPassword.Length);
-            Assert.AreEqual(0, crypt.UserPassword.Length);
-            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard40, crypt.Method);
-            Assert.IsFalse(crypt.Permission.Printing);
-            Assert.IsFalse(crypt.Permission.Assembly);
-            Assert.IsFalse(crypt.Permission.ModifyContents);
-            Assert.IsFalse(crypt.Permission.CopyContents);
-            Assert.IsFalse(crypt.Permission.Accessibility);
-            Assert.IsFalse(crypt.Permission.ExtractPage);
-            Assert.IsFalse(crypt.Permission.ModifyAnnotations);
-            Assert.IsFalse(crypt.Permission.InputFormFields);
-            Assert.IsFalse(crypt.Permission.Signature);
-            Assert.IsFalse(crypt.Permission.TemplatePage);
+            var encrypt = new CubePdf.Data.Encryption();
+            Assert.AreEqual(0, encrypt.OwnerPassword.Length);
+            Assert.AreEqual(0, encrypt.UserPassword.Length);
+            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard40, encrypt.Method);
+            Assert.IsFalse(encrypt.Permission.Printing);
+            Assert.IsFalse(encrypt.Permission.Assembly);
+            Assert.IsFalse(encrypt.Permission.ModifyContents);
+            Assert.IsFalse(encrypt.Permission.CopyContents);
+            Assert.IsFalse(encrypt.Permission.Accessibility);
+            Assert.IsFalse(encrypt.Permission.ExtractPage);
+            Assert.IsFalse(encrypt.Permission.ModifyAnnotations);
+            Assert.IsFalse(encrypt.Permission.InputFormFields);
+            Assert.IsFalse(encrypt.Permission.Signature);
+            Assert.IsFalse(encrypt.Permission.TemplatePage);
         }
 
         /* ----------------------------------------------------------------- */
@@ -76,13 +75,12 @@ namespace CubePdfTests.Data
         [Test]
         public void TestReadOnlyCast()
         {
-            var crypt = new CubePdf.Data.Encryption("example.pdf");
+            var crypt = new CubePdf.Data.Encryption();
             crypt.OwnerPassword = "owner";
             crypt.UserPassword = "user";
             crypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
             crypt.Permission.Printing = true;
             crypt.Permission.Accessibility = true;
-            Assert.AreEqual("example.pdf", crypt.FilePath);
             Assert.AreEqual("owner", crypt.OwnerPassword);
             Assert.AreEqual("user", crypt.UserPassword);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, crypt.Method);
@@ -98,7 +96,6 @@ namespace CubePdfTests.Data
             Assert.IsFalse(crypt.Permission.TemplatePage);
 
             var readable = crypt as CubePdf.Data.IReadOnlyEncryption;
-            Assert.AreEqual("example.pdf", readable.FilePath);
             Assert.AreEqual("owner", readable.OwnerPassword);
             Assert.AreEqual("user", readable.UserPassword);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, readable.Method);

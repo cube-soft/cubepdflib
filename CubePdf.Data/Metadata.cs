@@ -49,39 +49,9 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Metadata() { }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Metadata (constructor)
-        /// 
-        /// <summary>
-        /// ファイルパスを指定して Metadata クラスを初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Metadata(string path)
-        {
-            _path = path;
-        }
-
         #endregion
 
         #region Properties
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FilePath
-        ///
-        /// <summary>
-        /// 該当するメタデータが設定されるファイルへのパスを取得、または
-        /// 設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -189,7 +159,6 @@ namespace CubePdf.Data
         #endregion
 
         #region Variables
-        private string _path = string.Empty;
         private string _author = string.Empty;
         private string _title = string.Empty;
         private string _subtitle = string.Empty;

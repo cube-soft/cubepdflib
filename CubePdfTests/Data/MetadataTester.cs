@@ -48,7 +48,6 @@ namespace CubePdfTests.Data
         public void TestConstruct()
         {
             var meta = new CubePdf.Data.Metadata();
-            Assert.AreEqual(0, meta.FilePath.Length);
             Assert.AreEqual(0, meta.Author.Length);
             Assert.AreEqual(0, meta.Title.Length);
             Assert.AreEqual(0, meta.Subtitle.Length);
