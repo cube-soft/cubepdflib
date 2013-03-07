@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\PageTester.cs" />
-    <Compile Include="Drawing\CoreEngineTester.cs" />
+    <Compile Include="Drawing\BitmapEngineTester.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

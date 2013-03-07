@@ -91,8 +91,8 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         private void InitializeComponent()
         {
-            _core = new PDFLibNet.PDFWrapper();
-            _core.UseMuPDF = true;
+            _pages.Clear();
+            _creating.Clear();
 
             // for CreateImageAsync() method
             _creator.WorkerSupportsCancellation = true;
@@ -133,18 +133,7 @@ namespace CubePdf.Drawing
             {
                 if (_disposed) return;
                 _disposed = true;
-
-                if (disposing)
-                {
-                    lock (_creating)
-                    {
-                        _creating.Clear();
-                    }
-                    if (_creator.IsBusy) _creator.CancelAsync();
-                    _core.Dispose();
-                    _core = null;
-
-                }
+                if (disposing) this.Close();
             }
         }
 
@@ -165,6 +154,10 @@ namespace CubePdf.Drawing
         {
             lock (_lock)
             {
+                if (_core != null) this.Close();
+                _core = new PDFLibNet.PDFWrapper();
+                _core.UseMuPDF = true;
+
                 if (password.Length > 0)
                 {
                     _core.UserPassword = password;
@@ -175,7 +168,33 @@ namespace CubePdf.Drawing
 
                 _core.CurrentPage = 1;
                 _path = path;
-                this.ExtractPageProperties();
+            }
+
+            this.ExtractPageProperties();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Close
+        /// 
+        /// <summary>
+        /// 現在、開いているファイルを閉じます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Close()
+        {
+            lock (_creating) _creating.Clear();
+            if (_creator.IsBusy) _creator.CancelAsync();
+
+            lock (_lock)
+            {
+                if (_core != null)
+                {
+                    _core.Dispose();
+                    _core = null;
+                }
+                _pages.Clear();
             }
         }
 
@@ -190,15 +209,11 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            lock (_creating)
-            {
-                _creating.Clear();
-            }
-
-            lock (_core)
+            lock (_creating) _creating.Clear();
+            if (_creator.IsBusy) _creator.CancelAsync();
+            lock (_lock)
             {
                 _core.CurrentPage = 1;
-                if (_creator.IsBusy) _creator.CancelAsync();
             }
         }
 
@@ -266,15 +281,8 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void CancelImageCreation()
         {
-            lock (_creating)
-            {
-                _creating.Clear();
-            }
-
-            lock (_lock)
-            {
-                if (_creator.IsBusy) _creator.CancelAsync();
-            }
+            lock (_creating) _creating.Clear();
+            if (_creator.IsBusy) _creator.CancelAsync();
         }
 
         #endregion
@@ -322,10 +330,7 @@ namespace CubePdf.Drawing
         {
             get
             {
-                lock (_creating)
-                {
-                    return _creating.Count > 0 || _creator.IsBusy;
-                }
+                lock (_creating) return _creating.Count > 0 || _creator.IsBusy;
             }
         }
 
@@ -370,6 +375,7 @@ namespace CubePdf.Drawing
                 task = _creating.Dequeue();
             }
 
+            if (_creator.CancellationPending) return;
             lock (_lock)
             {
                 if (_creator.CancellationPending) return;
@@ -391,7 +397,6 @@ namespace CubePdf.Drawing
         private void CreateImageAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (_creator.CancellationPending) return;
-
             lock (_creating)
             {
                 if (_creating.Count > 0) _creator.RunWorkerAsync();

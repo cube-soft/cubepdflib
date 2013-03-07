@@ -316,7 +316,7 @@ namespace CubePdfTests.Drawing
         /// 非同期でイメージを作成中にキャンセルするテストです。
         /// 
         /// TODO: タイミングの問題か、savepoint と created の値が 1 ずれる
-        /// 事がある。テスト方法（もしくは実装）を再考する。
+        /// 事がある。実装、もしくはテスト方法を再考する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -343,6 +343,56 @@ namespace CubePdfTests.Drawing
                 var savepoint = created;
                 while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
                 Assert.AreEqual(savepoint, created);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestReOpen
+        /// 
+        /// <summary>
+        /// 単一の BitmapEngine でいったん何らかの PDF ファイルを開いて
+        /// 閉じた後に、別の PDF ファイルを開くテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestReOpen()
+        {
+            using (var engine = new CubePdf.Drawing.BitmapEngine())
+            {
+                try
+                {
+                    var filename = System.IO.Path.Combine(_src, "rotated.pdf");
+                    Assert.AreEqual(0, engine.Pages.Count);
+                    Assert.IsFalse(engine.UnderImageCreation);
+
+                    engine.Open(filename);
+                    Assert.AreEqual(9, engine.Pages.Count);
+                    engine.ImageCreated += delegate(object sender, CubePdf.Drawing.ImageEventArgs e)
+                    {
+                        Assert.NotNull(e.Image);
+                        Assert.AreEqual(e.Page.ViewSize.Width, e.Image.Width);
+                        Assert.AreEqual(e.Page.ViewSize.Height, e.Image.Height);
+                        e.Image.Dispose();
+                    };
+                    for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+                    engine.CancelImageCreation();
+                    engine.Close();
+                    Assert.AreEqual(0, engine.Pages.Count);
+                    while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
+
+                    // 別のファイルを開いてみる
+                    filename = System.IO.Path.Combine(_src, "password.pdf");
+                    var password = "view"; // UserPassword
+                    engine.Open(filename, password);
+                    Assert.AreEqual(2, engine.Pages.Count);
+                    Assert.IsFalse(engine.UnderImageCreation);
+                }
+                catch (Exception err)
+                {
+                    Assert.Fail(err.ToString());
+                }
             }
         }
 
