@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// Metadata.cs
+/// Permission.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -24,178 +24,134 @@ namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// Metadata
+    /// Permission
     /// 
     /// <summary>
-    /// PDF ファイルに保持可能なメタデータを表すクラスです。
-    /// Metadata クラスでは、標準的なメタデータのみを扱います。
-    /// eXtensible Metadata Platform (XMP) 領域に保持されているメタデータ
-    /// は扱いません。
+    /// 暗号化されている PDF ファイルで許可されている権限を表すクラスです。
+    /// 
+    /// NOTE: iTextSharp の現在のバージョンでは、ExtractPage, Signature,
+    /// TemplatePage プロパティに相当するパーミッション設定が存在しません。
+    /// そのため、これらのプロパティの値は無視される可能性が高いです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Metadata
+    public class Permission
     {
-        #region Initialization and Termination
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Printing
+        ///
+        /// <summary>
+        /// 印刷操作が許可されているかどうかを取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool Printing { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Metadata (constructor)
+        /// Assembly
         /// 
         /// <summary>
-        /// 規定の値で Metadata クラスを初期化します。
+        /// 文書アセンブリ（ページの挿入・削除・回転、しおりとサムネイルの
+        /// 作成）操作が許可されているかどうかを取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Metadata() { }
+        public bool Assembly { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Metadata (constructor)
+        /// ModifyContents
         /// 
         /// <summary>
-        /// ファイルパスを指定して Metadata クラスを初期化します。
+        /// 内容の編集操作が許可されているかどうかを取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Metadata(string path)
-        {
-            _path = path;
-        }
-
-        #endregion
-
-        #region Properties
+        public bool ModifyContents { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FilePath
-        ///
-        /// <summary>
-        /// 該当するメタデータが設定されるファイルへのパスを取得、または
-        /// 設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Author
-        ///
-        /// <summary>
-        /// 著者を取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Author
-        {
-            get { return _author; }
-            set { _author = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Title
-        ///
-        /// <summary>
-        /// タイトルを取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Title
-        {
-            get { return _title; }
-            set { _title = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Subtitle
-        ///
-        /// <summary>
-        /// サブタイトルを取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Subtitle
-        {
-            get { return _subtitle; }
-            set { _subtitle = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Keywords
+        /// CopyContents
         /// 
         /// <summary>
-        /// キーワードを取得、または設定します。
+        /// 内容の選択/コピー操作が許可されているかどうかを取得、または設定
+        /// します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Keywords
-        {
-            get { return _keywords; }
-            set { _keywords = value; }
-        }
+        public bool CopyContents { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Creator
-        ///
+        /// Accessibility
+        /// 
         /// <summary>
-        /// PDF の作成・編集を行うアプリケーション名を取得、または設定します。
+        /// アクセシビリティ（視覚に障害を持つユーザに対して、読み上げ機能
+        /// を提供する）のための内容の抽出操作が許可されているかどうかを
+        /// 取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Creator
-        {
-            get { return _creator; }
-            set { _creator = value; }
-        }
+        public bool Accessibility { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Producer
-        ///
+        /// ExtractPage
+        /// 
         /// <summary>
-        /// PDF の作成・編集を行う際に使用したプリンタドライバ、ライブラリ等
-        /// の名前を取得、または設定します。
+        /// ページの抽出操作が許可されているかどうかを取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Producer
-        {
-            get { return _producer; }
-            set { _producer = value; }
-        }
-
-        #endregion
-
-        #region Public Methods
+        public bool ExtractPage { get; set; }
 
         /* ----------------------------------------------------------------- */
-        /// ToString
+        ///
+        /// ModifyAnnotations
+        /// 
+        /// <summary>
+        /// 注釈の追加・編集操作が許可されているかを取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public override string ToString()
-        {
-            return String.Format("{0}({1})", _title, _author);
-        }
+        public bool ModifyAnnotations { get; set; }
 
-        #endregion
+        /* ----------------------------------------------------------------- */
+        ///
+        /// InputFormFields
+        /// 
+        /// <summary>
+        /// フォームフィールドへの入力操作が許可されているかどうかを取得、
+        /// または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool InputFormFields { get; set; }
 
-        #region Variables
-        private string _path = string.Empty;
-        private string _author = string.Empty;
-        private string _title = string.Empty;
-        private string _subtitle = string.Empty;
-        private string _keywords = string.Empty;
-        private string _creator = "CubePDF";
-        private string _producer = string.Empty;
-        #endregion
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Signature
+        /// 
+        /// <summary>
+        /// 既存の署名フィールドへの署名が許可されているかどうかを取得、
+        /// または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool Signature { get; set; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TemplatePage
+        /// 
+        /// <summary>
+        /// コンテンツの動的な作成等に利用するテンプレートページの作成が
+        /// 許可されているかどうかを取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool TemplatePage { get; set; }
     }
 }

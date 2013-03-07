@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// Metadata.cs
+/// Encryption.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -24,41 +24,38 @@ namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// Metadata
+    /// Encryption
     /// 
     /// <summary>
-    /// PDF ファイルに保持可能なメタデータを表すクラスです。
-    /// Metadata クラスでは、標準的なメタデータのみを扱います。
-    /// eXtensible Metadata Platform (XMP) 領域に保持されているメタデータ
-    /// は扱いません。
+    /// PDF の暗号化に関するデータを表すクラスです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Metadata
+    public class Encryption
     {
         #region Initialization and Termination
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Metadata (constructor)
+        /// Encryption (constructor)
         /// 
         /// <summary>
-        /// 規定の値で Metadata クラスを初期化します。
+        /// 規定の値で Encryption クラスを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Metadata() { }
+        public Encryption() { }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Metadata (constructor)
+        /// Encryption (constructor)
         /// 
         /// <summary>
-        /// ファイルパスを指定して Metadata クラスを初期化します。
+        /// ファイルパスを指定して Encryption クラスを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Metadata(string path)
+        public Encryption(string path)
         {
             _path = path;
         }
@@ -70,10 +67,10 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         ///
         /// FilePath
-        ///
+        /// 
         /// <summary>
-        /// 該当するメタデータが設定されるファイルへのパスを取得、または
-        /// 設定します。
+        /// 該当する暗号化が設定されるファイルへのパスを取得、または設定
+        /// します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -85,117 +82,77 @@ namespace CubePdf.Data
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Author
-        ///
-        /// <summary>
-        /// 著者を取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Author
-        {
-            get { return _author; }
-            set { _author = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Title
-        ///
-        /// <summary>
-        /// タイトルを取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Title
-        {
-            get { return _title; }
-            set { _title = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Subtitle
-        ///
-        /// <summary>
-        /// サブタイトルを取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Subtitle
-        {
-            get { return _subtitle; }
-            set { _subtitle = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Keywords
+        /// OwnerPassword
         /// 
         /// <summary>
-        /// キーワードを取得、または設定します。
+        /// 所有者パスワードを取得、または設定します。所有者パスワードとは
+        /// PDF ファイルに設定されているマスターパスワードを表し、この
+        /// パスワードによって再暗号化や各種権限の変更等すべての操作が可能
+        /// となります。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Keywords
+        public string OwnerPassword
         {
-            get { return _keywords; }
-            set { _keywords = value; }
+            get { return _owner; }
+            set { _owner = value; }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Creator
-        ///
+        /// UserPassword
+        /// 
         /// <summary>
-        /// PDF の作成・編集を行うアプリケーション名を取得、または設定します。
+        /// ユーザパスワードを取得、または設定します。ユーザパスワードとは
+        /// PDF ファイルを開く際に必要となるパスワードを表します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Creator
+        public string UserPassword
         {
-            get { return _creator; }
-            set { _creator = value; }
+            get { return _user; }
+            set { _user = value; }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Producer
-        ///
+        /// Method
+        /// 
         /// <summary>
-        /// PDF の作成・編集を行う際に使用したプリンタドライバ、ライブラリ等
-        /// の名前を取得、または設定します。
+        /// 適用する暗号化方式を取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Producer
+        public EncryptionMethod Method
         {
-            get { return _producer; }
-            set { _producer = value; }
+            get { return _method; }
+            set { _method = value; }
         }
 
-        #endregion
-
-        #region Public Methods
-
         /* ----------------------------------------------------------------- */
-        /// ToString
+        ///
+        /// Permission
+        /// 
+        /// <summary>
+        /// 暗号化された PDF に設定されている各種権限の状態を取得、または
+        /// 設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public override string ToString()
+        public Permission Permission
         {
-            return String.Format("{0}({1})", _title, _author);
+            get { return _permission; }
+            set { _permission = value; }
         }
 
         #endregion
 
         #region Variables
         private string _path = string.Empty;
-        private string _author = string.Empty;
-        private string _title = string.Empty;
-        private string _subtitle = string.Empty;
-        private string _keywords = string.Empty;
-        private string _creator = "CubePDF";
-        private string _producer = string.Empty;
+        private string _owner = string.Empty;
+        private string _user = string.Empty;
+        private EncryptionMethod _method = EncryptionMethod.Standard40;
+        private Permission _permission = new Permission();
         #endregion
     }
 }
