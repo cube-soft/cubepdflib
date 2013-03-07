@@ -285,6 +285,20 @@ namespace CubePdf.Drawing
             if (_creator.IsBusy) _creator.CancelAsync();
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ToString
+        ///
+        /// <summary>
+        /// 現在のオブジェクトの状態を表す文字列を返します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public override string ToString()
+        {
+            return (_core != null) ? String.Format("{0}({1})", _path, _pages.Count) : "(empty)";
+        }
+
         #endregion
 
         #region Properties
