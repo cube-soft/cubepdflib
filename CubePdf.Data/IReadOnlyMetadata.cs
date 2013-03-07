@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// Encryption.cs
+/// IReadOnlyMetadata.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -24,135 +24,92 @@ namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// Encryption
+    /// IReadOnlyMetadata
     /// 
     /// <summary>
-    /// PDF の暗号化に関するデータを表すクラスです。
+    /// PDF ファイルに保持可能なメタデータを読み取り専用で提供するための
+    /// インターフェースです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Encryption : IReadOnlyEncryption
+    public interface IReadOnlyMetadata
     {
-        #region Initialization and Termination
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption (constructor)
-        /// 
-        /// <summary>
-        /// 規定の値で Encryption クラスを初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Encryption() { }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption (constructor)
-        /// 
-        /// <summary>
-        /// ファイルパスを指定して Encryption クラスを初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Encryption(string path)
-        {
-            _path = path;
-        }
-
-        #endregion
-
-        #region Properties
-
         /* ----------------------------------------------------------------- */
         ///
         /// FilePath
         /// 
         /// <summary>
-        /// 該当する暗号化が設定されるファイルへのパスを取得、または設定
-        /// します。
+        /// 該当ページのファイルパスを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
+        string FilePath { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// OwnerPassword
+        /// Author
+        ///
+        /// <summary>
+        /// 著者を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Author { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Title
+        ///
+        /// <summary>
+        /// タイトルを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Title { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Subtitle
+        ///
+        /// <summary>
+        /// サブタイトルを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Subtitle { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Keywords
         /// 
         /// <summary>
-        /// 所有者パスワードを取得、または設定します。所有者パスワードとは
-        /// PDF ファイルに設定されているマスターパスワードを表し、この
-        /// パスワードによって再暗号化や各種権限の変更等すべての操作が可能
-        /// となります。
+        /// キーワードを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string OwnerPassword
-        {
-            get { return _owner; }
-            set { _owner = value; }
-        }
+        string Keywords { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// UserPassword
-        /// 
+        /// Creator
+        ///
         /// <summary>
-        /// ユーザパスワードを取得、または設定します。ユーザパスワードとは
-        /// PDF ファイルを開く際に必要となるパスワードを表します。
+        /// PDF の作成・編集を行うアプリケーション名を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string UserPassword
-        {
-            get { return _user; }
-            set { _user = value; }
-        }
+        string Creator { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Method
-        /// 
+        /// Producer
+        ///
         /// <summary>
-        /// 適用する暗号化方式を取得、または設定します。
+        /// PDF の作成・編集を行う際に使用したプリンタドライバ、ライブラリ等
+        /// の名前を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public EncryptionMethod Method
-        {
-            get { return _method; }
-            set { _method = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Permission
-        /// 
-        /// <summary>
-        /// 暗号化された PDF に設定されている各種権限の状態を取得、または
-        /// 設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Permission Permission
-        {
-            get { return _permission; }
-            set { _permission = value; }
-        }
-
-        #endregion
-
-        #region Variables
-        private string _path = string.Empty;
-        private string _owner = string.Empty;
-        private string _user = string.Empty;
-        private EncryptionMethod _method = EncryptionMethod.Standard40;
-        private Permission _permission = new Permission();
-        #endregion
+        string Producer { get; }
     }
 }

@@ -34,7 +34,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Metadata
+    public class Metadata : IReadOnlyMetadata
     {
         #region Initialization and Termination
 
