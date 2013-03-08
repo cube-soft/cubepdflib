@@ -129,10 +129,39 @@ namespace CubePdf.Editing
 
             var metadata = new CubePdf.Data.Metadata();
             var encrypt = new CubePdf.Data.Encryption();
-            
+            SortedDictionary<int, CubePdf.Data.IReadOnlyPage> pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
+
+            metadata.Author = _core.Info.ContainsKey("Author") ? _core.Info["Author"] : "";
+            metadata.Title = _core.Info.ContainsKey("Title") ? _core.Info["Title"] : "";
+            metadata.Subtitle = _core.Info.ContainsKey("Subject") ? _core.Info["Subject"] : "";
+            metadata.Keywords = _core.Info.ContainsKey("Keywords") ? _core.Info["Keywords"] : "";
+            metadata.Creator = _core.Info.ContainsKey("Creator") ? _core.Info["Creator"] : "";
+            metadata.Producer = _core.Info.ContainsKey("Producer") ? _core.Info["Producer"] : "";
+
+            // とりあえず、開いたファイルは暗号化されていないものとします。
+            encrypt.OwnerPassword = "";
+            encrypt.UserPassword = "";
+            encrypt.Method = Data.EncryptionMethod.Aes256;
+            encrypt.Permission = null;
+
+            for (int i = 1; i <= _core.NumberOfPages; i++)
+            {
+                var pageinfo = new CubePdf.Data.Page();
+                var pagesize = new System.Drawing.Size();
+                pageinfo.FilePath = path;
+                pageinfo.PageNumber = i;
+                pagesize.Height = (int)_core.GetPageSize(i).Height;
+                pagesize.Width = (int)_core.GetPageSize(i).Width;
+                pageinfo.OriginalSize = pagesize;
+                pageinfo.Rotation = _core.GetPageRotation(i);
+                pageinfo.Power = 1.0;
+                pages.Add(i, pageinfo);
+            }
+
             _path = path;
             _metadata = metadata;
             _encrypt = encrypt;
+            _pages = pages;
         }
 
         /* ----------------------------------------------------------------- */
