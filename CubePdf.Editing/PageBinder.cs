@@ -81,7 +81,40 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
-            // TODO: implementation
+            var doc = new iTextSharp.text.Document();
+            var copy = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
+
+            copy.Open();
+            var per = new CubePdf.Data.Permission();
+            int p = per.ConvertPermissionToInt(_encrypt.Permission);
+            int m = 0;
+            switch (_encrypt.Method)
+            {
+                case Data.EncryptionMethod.Standard40:
+                    m = iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_40; break;
+                case Data.EncryptionMethod.Standard128:
+                    m = iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_128; break;
+                case Data.EncryptionMethod.Aes128:
+                    m = iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_128; break;
+                case Data.EncryptionMethod.Aes256:
+                    m = iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_256; break;
+            }
+            copy.SetEncryption(m, _encrypt.UserPassword, _encrypt.OwnerPassword, p);
+
+            doc.Open();
+            foreach (var i in _pages)
+            {
+                var reader = new iTextSharp.text.pdf.PdfReader(i.FilePath);
+                copy.AddPage(copy.GetImportedPage(reader, i.PageNumber));
+                reader.Close();
+            }
+            doc.AddAuthor(_metadata.Author);
+            doc.AddTitle(_metadata.Title);
+            doc.AddSubject(_metadata.Subtitle);
+            doc.AddKeywords(_metadata.Keywords);
+            doc.AddCreator(_metadata.Creator);
+            doc.AddProducer();
+            doc.Close();
         }
 
         #endregion

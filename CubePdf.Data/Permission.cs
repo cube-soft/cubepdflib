@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using iTextPdf = iTextSharp.text.pdf;
 
 namespace CubePdf.Data
 {
@@ -194,6 +195,34 @@ namespace CubePdf.Data
         ///
         /* ----------------------------------------------------------------- */
         public bool TemplatePage { get; set; }
+
+        #endregion
+
+        #region Public Methods
+
+        public int ConvertPermissionToInt(Permission permission)
+        {
+            // Permission propertyをint型に変換
+            return 0;
+        }
+
+        public Permission ConvertIntToPermission(int i)
+        {
+            // int型をPermission propertyに変換
+            Permission dest = new Permission();
+            dest.Printing = true;
+            dest.Assembly = true;
+            dest.ModifyContents = true;
+            dest.CopyContents = true;
+            dest.Accessibility = true;
+            dest.ExtractPage = true;
+            dest.ModifyAnnotations = true;
+            dest.InputFormFields = true;
+            dest.Signature = true;
+            dest.TemplatePage = true;
+
+            return dest;
+        }
 
         #endregion
     }

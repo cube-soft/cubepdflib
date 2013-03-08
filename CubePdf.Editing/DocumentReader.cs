@@ -129,6 +129,7 @@ namespace CubePdf.Editing
 
             var metadata = new CubePdf.Data.Metadata();
             var encrypt = new CubePdf.Data.Encryption();
+            var per = new CubePdf.Data.Permission();
             SortedDictionary<int, CubePdf.Data.IReadOnlyPage> pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
 
             metadata.Author = _core.Info.ContainsKey("Author") ? _core.Info["Author"] : "";
@@ -142,7 +143,7 @@ namespace CubePdf.Editing
             encrypt.OwnerPassword = "";
             encrypt.UserPassword = "";
             encrypt.Method = Data.EncryptionMethod.Aes256;
-            encrypt.Permission = null;
+            encrypt.Permission = per.ConvertIntToPermission(_core.Permissions);
 
             for (int i = 1; i <= _core.NumberOfPages; i++)
             {
