@@ -85,27 +85,15 @@ namespace CubePdf.Editing
             var copy = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
 
             copy.Open();
-            var per = new CubePdf.Data.Permission();
-            int p = per.ConvertPermissionToInt(_encrypt.Permission);
-            int m = 0;
-            switch (_encrypt.Method)
-            {
-                case Data.EncryptionMethod.Standard40:
-                    m = iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_40; break;
-                case Data.EncryptionMethod.Standard128:
-                    m = iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_128; break;
-                case Data.EncryptionMethod.Aes128:
-                    m = iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_128; break;
-                case Data.EncryptionMethod.Aes256:
-                    m = iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_256; break;
-            }
-            copy.SetEncryption(m, _encrypt.UserPassword, _encrypt.OwnerPassword, p);
+            var permission = Translator.ToIText(_encrypt.Permission);
+            var method = Translator.ToIText(_encrypt.Method);
+            copy.SetEncryption(method, _encrypt.UserPassword, _encrypt.OwnerPassword, permission);
 
             doc.Open();
-            foreach (var i in _pages)
+            foreach (var page in _pages)
             {
-                var reader = new iTextSharp.text.pdf.PdfReader(i.FilePath);
-                copy.AddPage(copy.GetImportedPage(reader, i.PageNumber));
+                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath);
+                copy.AddPage(copy.GetImportedPage(reader, page.PageNumber));
                 reader.Close();
             }
             doc.AddAuthor(_metadata.Author);

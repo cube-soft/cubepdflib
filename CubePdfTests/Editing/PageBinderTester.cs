@@ -161,7 +161,7 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
                 binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
             }
-
+            
             var dest = System.IO.Path.Combine(_dest, "TestPartMerge.pdf");
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));

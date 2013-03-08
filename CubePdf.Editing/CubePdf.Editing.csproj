@@ -65,6 +65,7 @@
     <Compile Include="DocumentReader.cs" />
     <Compile Include="PageBinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Translator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CubePdf.Data\CubePdf.Data.csproj">

@@ -19,7 +19,6 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
-using iTextPdf = iTextSharp.text.pdf;
 
 namespace CubePdf.Data
 {
@@ -195,62 +194,6 @@ namespace CubePdf.Data
         ///
         /* ----------------------------------------------------------------- */
         public bool TemplatePage { get; set; }
-
-        #endregion
-
-        #region Public Methods
-
-        public int ConvertPermissionToInt(Permission permission)
-        {
-            // Permission propertyをint型に変換
-            int dest =
-                iTextPdf.PdfWriter.AllowPrinting |
-                iTextPdf.PdfWriter.AllowAssembly |
-                iTextPdf.PdfWriter.AllowModifyContents |
-                iTextPdf.PdfWriter.AllowCopy |
-                iTextPdf.PdfWriter.AllowModifyAnnotations;
-            if (!permission.Printing)
-            {
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowPrinting;
-            }
-
-            if (!permission.CopyContents)
-            {
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowCopy;
-            }
-
-            if (!permission.InputFormFields)
-            {
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowFillIn;
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowModifyAnnotations;
-            }
-
-            if (!permission.ModifyContents)
-            {
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowModifyContents;
-                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowScreenReaders;
-            }
-
-            return dest;
-        }
-
-        public Permission ConvertIntToPermission(int i)
-        {
-            // int型をPermission propertyに変換
-            Permission dest = new Permission();
-            dest.Printing = true;
-            dest.Assembly = true;
-            dest.ModifyContents = true;
-            dest.CopyContents = true;
-            dest.Accessibility = true;
-            dest.ExtractPage = true;
-            dest.ModifyAnnotations = true;
-            dest.InputFormFields = true;
-            dest.Signature = true;
-            dest.TemplatePage = true;
-
-            return dest;
-        }
 
         #endregion
     }
