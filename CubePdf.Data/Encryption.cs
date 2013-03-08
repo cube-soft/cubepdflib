@@ -46,6 +46,24 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Encryption() { }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Encryption (constructor)
+        /// 
+        /// <summary>
+        /// コピー元となる IReadOnlyEncryption オブジェクトを指定して
+        /// Encryption クラスを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Encryption(IReadOnlyEncryption cp)
+        {
+            this.OwnerPassword = cp.OwnerPassword;
+            this.UserPassword = cp.UserPassword;
+            this.Method = cp.Method;
+            this.Permission = new Permission(cp.Permission);
+        }
+
         #endregion
 
         #region Properties

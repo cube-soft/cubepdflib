@@ -54,6 +54,8 @@
     <Compile Include="Data\MetadataTester.cs" />
     <Compile Include="Data\PageTester.cs" />
     <Compile Include="Drawing\BitmapEngineTester.cs" />
+    <Compile Include="Editing\DocumentReaderTester.cs" />
+    <Compile Include="Editing\PageBinderTester.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +66,10 @@
     <ProjectReference Include="..\CubePdf.Drawing\CubePdf.Drawing.csproj">
       <Project>{FDC7F8BE-E421-45F9-9544-FFFC7A0CC2AE}</Project>
       <Name>CubePdf.Drawing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CubePdf.Editing\CubePdf.Editing.csproj">
+      <Project>{6E397197-250C-404A-9FE9-BA8397C518C1}</Project>
+      <Name>CubePdf.Editing</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

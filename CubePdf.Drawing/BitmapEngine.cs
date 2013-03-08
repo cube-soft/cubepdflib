@@ -49,19 +49,40 @@ namespace CubePdf.Drawing
         #region Initialization and Termination
 
         /* ----------------------------------------------------------------- */
-        /// constructor
+        ///
+        /// BitmapEngine (constructor)
+        /// 
+        /// <summary>
+        /// 既定の値で BitmapEngine クラスを初期化します。
+        /// </summary>
+        /// 
         /* ----------------------------------------------------------------- */
         public BitmapEngine()
         {
-            this.InitializeComponent();
+            _pages.Clear();
+            _creating.Clear();
+
+            // for CreateImageAsync() method
+            _creator.WorkerSupportsCancellation = true;
+            _creator.DoWork -= new DoWorkEventHandler(CreateImageAsync_DoWork);
+            _creator.DoWork += new DoWorkEventHandler(CreateImageAsync_DoWork);
+            _creator.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
+            _creator.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
         }
 
         /* ----------------------------------------------------------------- */
-        /// constructor
+        ///
+        /// BitmapEngine (constructor)
+        ///
+        /// <summary>
+        /// 対象となる PDF ファイルへのパス、およびパスワードを指定して
+        /// BitmapEngine クラスを初期化します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
         public BitmapEngine(string path, string password = "")
+            : this()
         {
-            this.InitializeComponent();
             this.Open(path, password);
         }
 
@@ -78,28 +99,6 @@ namespace CubePdf.Drawing
         ~BitmapEngine()
         {
             this.Dispose(false);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// InitializeCompnent
-        /// 
-        /// <summary>
-        /// 全てのコンストラクタで必要な初期化を行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void InitializeComponent()
-        {
-            _pages.Clear();
-            _creating.Clear();
-
-            // for CreateImageAsync() method
-            _creator.WorkerSupportsCancellation = true;
-            _creator.DoWork -= new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.DoWork += new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
-            _creator.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
         }
 
         /* ----------------------------------------------------------------- */
@@ -146,7 +145,7 @@ namespace CubePdf.Drawing
         /// Open
         /// 
         /// <summary>
-        /// ファイルを開きます。
+        /// PDF ファイルを開きます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -178,7 +177,7 @@ namespace CubePdf.Drawing
         /// Close
         /// 
         /// <summary>
-        /// 現在、開いているファイルを閉じます。
+        /// 現在、開いている PDF ファイルを閉じます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -203,7 +202,7 @@ namespace CubePdf.Drawing
         /// Reset
         /// 
         /// <summary>
-        /// CoreEngine を Open() メソッド実行直後の状態にリセットします。
+        /// BitmapEngine を Open() メソッド実行直後の状態にリセットします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -342,10 +341,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public bool UnderImageCreation
         {
-            get
-            {
-                lock (_creating) return _creating.Count > 0 || _creator.IsBusy;
-            }
+            get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
 
         #endregion
@@ -435,7 +431,7 @@ namespace CubePdf.Drawing
         /// をロックしなければならず、非同期でイメージを作成している時
         /// などはページ情報の取得に予想外の時間を要する事もあるため、
         /// ファイルから情報をロードした段階で予め全てのページの情報を
-        /// 取得しておく。
+        /// 取得しておきます。
         /// 
         /// TODO: PDF ファイルのページ数が増えると、この処理にかなりの
         /// 時間を要するようになる事が考えられる。テスト結果次第では、

@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// BitmapEngineTester.cs
+/// Drawing/BitmapEngineTester.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -30,7 +30,7 @@ namespace CubePdfTests.Drawing
     /// BitmapEngineTester
     ///
     /// <summary>
-    /// CoreEngine クラスのテストをするためのクラスです。
+    /// BitmapEngine クラスのテストをするためのクラスです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
@@ -45,7 +45,7 @@ namespace CubePdfTests.Drawing
         /// 
         /// <summary>
         /// NOTE: テストに使用するサンプルファイル群は、テスト用プロジェクト
-        /// フォルダ直下にある examples と言うフォルダに存在します。
+        /// フォルダ直下にある Examples と言うフォルダに存在します。
         /// テストを実行する際には、実行ファイルをテスト用プロジェクトに
         /// コピーしてから行う必要があります（ビルド後イベントで、自動的に
         /// コピーされるように設定されてある）。

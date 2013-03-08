@@ -37,6 +37,47 @@ namespace CubePdf.Data
     /* --------------------------------------------------------------------- */
     public class Permission : IReadOnlyPermission
     {
+        #region Initialization and Termination
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission (constructor)
+        ///
+        /// <summary>
+        /// 規定の値で Permission クラスを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Permission() { }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission (constructor)
+        /// 
+        /// <summary>
+        /// コピー元となる IReadOnlyPermission オブジェクトを指定して
+        /// Permission クラスを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Permission(IReadOnlyPermission cp)
+        {
+            this.Printing = cp.Printing;
+            this.Assembly = cp.Assembly;
+            this.ModifyContents = cp.ModifyContents;
+            this.CopyContents = cp.CopyContents;
+            this.Accessibility = cp.Accessibility;
+            this.ExtractPage = cp.ExtractPage;
+            this.ModifyAnnotations = cp.ModifyAnnotations;
+            this.InputFormFields = cp.InputFormFields;
+            this.Signature = cp.Signature;
+            this.TemplatePage = cp.TemplatePage;
+        }
+
+        #endregion
+
+        #region Properties
+
         /* ----------------------------------------------------------------- */
         ///
         /// Printing
@@ -153,5 +194,7 @@ namespace CubePdf.Data
         ///
         /* ----------------------------------------------------------------- */
         public bool TemplatePage { get; set; }
+
+        #endregion
     }
 }

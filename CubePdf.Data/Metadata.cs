@@ -49,6 +49,26 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Metadata() { }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata (constructor)
+        /// 
+        /// <summary>
+        /// コピー元となる IReadOnlyMetadata オブジェクトを指定して
+        /// Metadata クラスを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Metadata(IReadOnlyMetadata cp)
+        {
+            this.Author = cp.Author;
+            this.Title = cp.Title;
+            this.Subtitle = cp.Subtitle;
+            this.Keywords = cp.Keywords;
+            this.Creator = cp.Creator;
+            this.Producer = cp.Producer;
+        }
+
         #endregion
 
         #region Properties
