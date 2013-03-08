@@ -203,7 +203,35 @@ namespace CubePdf.Data
         public int ConvertPermissionToInt(Permission permission)
         {
             // Permission propertyをint型に変換
-            return 0;
+            int dest =
+                iTextPdf.PdfWriter.AllowPrinting |
+                iTextPdf.PdfWriter.AllowAssembly |
+                iTextPdf.PdfWriter.AllowModifyContents |
+                iTextPdf.PdfWriter.AllowCopy |
+                iTextPdf.PdfWriter.AllowModifyAnnotations;
+            if (!permission.Printing)
+            {
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowPrinting;
+            }
+
+            if (!permission.CopyContents)
+            {
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowCopy;
+            }
+
+            if (!permission.InputFormFields)
+            {
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowFillIn;
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowModifyAnnotations;
+            }
+
+            if (!permission.ModifyContents)
+            {
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowModifyContents;
+                dest &= ~iTextSharp.text.pdf.PdfWriter.AllowScreenReaders;
+            }
+
+            return dest;
         }
 
         public Permission ConvertIntToPermission(int i)
