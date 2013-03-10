@@ -138,26 +138,17 @@ namespace CubePdf.Editing
             metadata.Producer = _core.Info.ContainsKey("Producer") ? _core.Info["Producer"] : "";
             _metadata = metadata;
 
-            // NOTE: とりあえず、開いたファイルは暗号化されていないものとします。
-            var encrypt = new CubePdf.Data.Encryption();
-            encrypt.OwnerPassword = "";
-            encrypt.UserPassword = "";
-            encrypt.Method = Data.EncryptionMethod.Aes256;
-            encrypt.Permission = Translator.ToPermission(_core.Permissions);
-            _encrypt = encrypt;
+            _permission = Translator.ToPermission(_core.Permissions);
 
-            for (int i = 1; i <= _core.NumberOfPages; i++)
+            for (int i = 0; i < _core.NumberOfPages; ++i)
             {
-                var pageinfo = new CubePdf.Data.Page();
-                var pagesize = new System.Drawing.Size();
-                pageinfo.FilePath = path;
-                pageinfo.PageNumber = i;
-                pagesize.Height = (int)_core.GetPageSize(i).Height;
-                pagesize.Width = (int)_core.GetPageSize(i).Width;
-                pageinfo.OriginalSize = pagesize;
-                pageinfo.Rotation = _core.GetPageRotation(i);
-                pageinfo.Power = 1.0;
-                _pages.Add(i, pageinfo);
+                var page = new CubePdf.Data.Page();
+                page.FilePath = path;
+                page.PageNumber = i + 1;
+                page.OriginalSize = Translator.ToSize(_core.GetPageSize(i + 1));
+                page.Rotation = _core.GetPageRotation(i + 1);
+                page.Power = 1.0;
+                _pages.Add(i + 1, page);
             }            
         }
 
@@ -177,7 +168,7 @@ namespace CubePdf.Editing
             _core.Close();
             _core = null;
             _metadata = null;
-            _encrypt = null;
+            _permission = null;
             _path = string.Empty;
             _pages.Clear();
         }
@@ -216,16 +207,45 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Encryption
+        /// EncryptionStatus
         /// 
         /// <summary>
-        /// PDF ファイルの暗号化に関する情報を取得します。
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IReadOnlyEncryption Encryption
+        public CubePdf.Data.EncryptionStatus EncryptionStatus
         {
-            get { return _encrypt; }
+            get { return _status; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionMethod
+        /// 
+        /// <summary>
+        /// 暗号化方式を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionMethod EncryptionMethod
+        {
+            get { return _method; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission
+        /// 
+        /// <summary>
+        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IReadOnlyPermission Permission
+        {
+            get { return _permission; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -249,7 +269,9 @@ namespace CubePdf.Editing
         private iTextSharp.text.pdf.PdfReader _core = null;
         private string _path = string.Empty;
         private CubePdf.Data.IReadOnlyMetadata _metadata = null;
-        private CubePdf.Data.IReadOnlyEncryption _encrypt = null;
+        private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
+        private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
+        private CubePdf.Data.IReadOnlyPermission _permission = null;
         private SortedDictionary<int, CubePdf.Data.IReadOnlyPage> _pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
         #endregion
     }

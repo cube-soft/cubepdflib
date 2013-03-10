@@ -81,7 +81,6 @@ namespace CubePdfTests.Editing
             {
                 var binder = new CubePdf.Editing.PageBinder();
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
-                binder.Encryption = new CubePdf.Data.Encryption(reader.Encryption);
                 foreach (var page in reader.Pages)
                 {
                     binder.Pages.Add(new CubePdf.Data.Page(page.Value));

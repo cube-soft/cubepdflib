@@ -86,7 +86,8 @@ namespace CubePdfTests.Editing
             var doc = new CubePdf.Editing.DocumentReader();
             Assert.AreEqual(0, doc.FilePath.Length);
             Assert.IsNull(doc.Metadata);
-            Assert.IsNull(doc.Encryption);
+            Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
+            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
             Assert.NotNull(doc.Pages);
             Assert.AreEqual(0, doc.Pages.Count);
         }
@@ -116,11 +117,10 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual("CubeSoft", doc.Metadata.Author);
                     Assert.AreEqual("CubePdfTests", doc.Metadata.Title);
                     Assert.AreEqual("rotated example", doc.Metadata.Subtitle);
-                    //Assert.AreEqual("CubeSoft,PDF,Tests", doc.Metadata.Keywords);
+                    Assert.AreEqual("CubeSoft,PDF,Test", doc.Metadata.Keywords);
 
-                    Assert.NotNull(doc.Encryption);
-                    Assert.AreEqual(0, doc.Encryption.OwnerPassword.Length);
-                    Assert.AreEqual(0, doc.Encryption.UserPassword.Length);
+                    Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
 
                     Assert.AreEqual(9, doc.Pages.Count);
                     var page = doc.Pages[1];
@@ -181,6 +181,68 @@ namespace CubePdfTests.Editing
                     Assert.IsTrue(page.ViewSize.Height > 0);
                     Assert.AreEqual(0, page.Rotation);
                     Assert.AreEqual(1.0, page.Power);
+                }
+            }
+            catch (Exception err)
+            {
+                Assert.Fail(err.ToString());
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestPassword
+        /// 
+        /// <summary>
+        /// パスワードの設定されているファイルを開くテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestPassword()
+        {
+            try
+            {
+                var filename = System.IO.Path.Combine(_src, "password.pdf");
+                var password = "password"; // OwnerPassword
+
+                using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
+                {
+                    Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, doc.EncryptionStatus);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
+
+                    Assert.IsFalse(doc.Permission.Accessibility);
+                    Assert.IsTrue(doc.Permission.Assembly);
+                    Assert.IsFalse(doc.Permission.CopyContents);
+                    Assert.IsTrue(doc.Permission.DegradedPrinting);
+                    Assert.IsFalse(doc.Permission.InputFormFields);
+                    Assert.IsFalse(doc.Permission.ModifyAnnotations);
+                    Assert.IsFalse(doc.Permission.ModifyContents);
+                    Assert.IsTrue(doc.Permission.Printing);
+
+                    // NOTE: 以下の 3 項目は、iTextSharp に該当項目がないため未設定
+                    // Assert.IsTrue(doc.Permission.ExtractPage);
+                    // Assert.IsTrue(doc.Permission.Signature);
+                    // Assert.IsTrue(doc.Permission.TemplatePage);
+                }
+
+                password = "view"; // UserPassword
+                using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
+                {
+                    Assert.AreEqual(CubePdf.Data.EncryptionStatus.RestrictedAccess, doc.EncryptionStatus);
+                }
+
+                password = "bad-password";
+                try
+                {
+                    using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
+                    {
+                        Assert.Fail("never reached");
+                    }
+                }
+                catch (Exception /* err */)
+                {
+                    Assert.Pass();
                 }
             }
             catch (Exception err)

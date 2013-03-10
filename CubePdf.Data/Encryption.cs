@@ -138,7 +138,7 @@ namespace CubePdf.Data
         #region Variables
         private string _owner = string.Empty;
         private string _user = string.Empty;
-        private EncryptionMethod _method = EncryptionMethod.Standard40;
+        private EncryptionMethod _method = EncryptionMethod.Unknown;
         private Permission _permission = new Permission();
         #endregion
     }

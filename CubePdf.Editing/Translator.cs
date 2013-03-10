@@ -19,6 +19,9 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Drawing;
+using CubePdf.Data;
+using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
 {
@@ -38,6 +41,21 @@ namespace CubePdf.Editing
     {
         /* ----------------------------------------------------------------- */
         ///
+        /// ToSize
+        /// 
+        /// <summary>
+        /// 引数に指定された iTextSharp の Rectangle オブジェクトから PDF
+        /// のサイズ情報を抽出して返します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public static Size ToSize(iTextSharp.text.Rectangle rect)
+        {
+            return new Size((int)rect.Width, (int)rect.Height);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ToIText
         /// 
         /// <summary>
@@ -46,22 +64,17 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static int ToIText(CubePdf.Data.EncryptionMethod value)
+        public static int ToIText(EncryptionMethod value)
         {
             switch (value)
             {
-                case Data.EncryptionMethod.Standard40:
-                    return iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_40;
-                case Data.EncryptionMethod.Standard128:
-                    return iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_128;
-                case Data.EncryptionMethod.Aes128:
-                    return iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_128;
-                case Data.EncryptionMethod.Aes256:
-                    return iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_256;
-                default:
-                    break;
+                case EncryptionMethod.Standard40:  return PdfWriter.STANDARD_ENCRYPTION_40;
+                case EncryptionMethod.Standard128: return PdfWriter.STANDARD_ENCRYPTION_128;
+                case EncryptionMethod.Aes128:      return PdfWriter.ENCRYPTION_AES_128;
+                case EncryptionMethod.Aes256:      return PdfWriter.ENCRYPTION_AES_256;
+                default: break;
             }
-            return iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_40;
+            return -1;
         }
 
         /* ----------------------------------------------------------------- */
@@ -74,22 +87,17 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static CubePdf.Data.EncryptionMethod ToEncryptionMethod(int value)
+        public static EncryptionMethod ToEncryptionMethod(int value)
         {
             switch (value)
             {
-                case iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_40:
-                    return CubePdf.Data.EncryptionMethod.Standard40;
-                case iTextSharp.text.pdf.PdfWriter.STANDARD_ENCRYPTION_128:
-                    return CubePdf.Data.EncryptionMethod.Standard128;
-                case iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_128:
-                    return CubePdf.Data.EncryptionMethod.Aes128;
-                case iTextSharp.text.pdf.PdfWriter.ENCRYPTION_AES_256:
-                    return CubePdf.Data.EncryptionMethod.Aes256;
-                default:
-                    break;
+                case PdfWriter.STANDARD_ENCRYPTION_40:  return EncryptionMethod.Standard40;
+                case PdfWriter.STANDARD_ENCRYPTION_128: return EncryptionMethod.Standard128;
+                case PdfWriter.ENCRYPTION_AES_128:      return EncryptionMethod.Aes128;
+                case PdfWriter.ENCRYPTION_AES_256:      return EncryptionMethod.Aes256;
+                default: break;
             }
-            return Data.EncryptionMethod.Standard40;
+            return EncryptionMethod.Unknown;
         }
 
         /* ----------------------------------------------------------------- */
@@ -99,12 +107,27 @@ namespace CubePdf.Editing
         /// <summary>
         /// 引数に指定された CubePdf.Data.Permission オブジェクトをに対応
         /// する（iTextSharp で定義されている）値を返します。
+        /// 
+        /// NOTE: Signature, TemplatePage のパーミッションに関しては、
+        /// iTextSharp が未実装なので無視します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static int ToIText(CubePdf.Data.Permission value)
+        public static int ToIText(Permission value)
         {
-            // TODO: implementation
+            int dest = 0;
+
+            if (value.Printing)          dest |= PdfWriter.AllowPrinting;
+            if (value.DegradedPrinting)  dest |= PdfWriter.AllowDegradedPrinting;
+            if (value.Assembly)          dest |= PdfWriter.AllowAssembly;
+            if (value.ModifyContents)    dest |= PdfWriter.AllowModifyContents;
+            if (value.CopyContents)      dest |= PdfWriter.AllowCopy;
+            if (value.InputFormFields)   dest |= PdfWriter.AllowFillIn;
+            if (value.ModifyAnnotations) dest |= PdfWriter.AllowModifyAnnotations;
+            if (value.Accessibility)     dest |= PdfWriter.AllowScreenReaders;
+            // if (value.Signature) dest |= ???
+            // if (value.TemplatePage) dest |= ???
+
             return 0;
         }
 
@@ -118,9 +141,21 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static CubePdf.Data.Permission ToPermission(int value)
+        public static Permission ToPermission(int value)
         {
-            // TODO: implementation
+            var dest = new Permission();
+
+            if ((value & PdfWriter.AllowPrinting) != 0)          dest.Printing = true;
+            if ((value & PdfWriter.AllowDegradedPrinting) != 0)  dest.DegradedPrinting = true;
+            if ((value & PdfWriter.AllowAssembly) != 0)          dest.Assembly = true;
+            if ((value & PdfWriter.AllowModifyContents) != 0)    dest.ModifyContents = true;
+            if ((value & PdfWriter.AllowCopy) != 0)              dest.CopyContents = true;
+            if ((value & PdfWriter.AllowFillIn) != 0)            dest.InputFormFields = true;
+            if ((value & PdfWriter.AllowModifyAnnotations) != 0) dest.ModifyAnnotations = true;
+            if ((value & PdfWriter.AllowScreenReaders) != 0)     dest.Accessibility = true;
+            // if ((value & ???) != 0) dest.Signature = true;
+            // if ((value & ???) != 0) dest.TemplatePage = true;
+            
             return new CubePdf.Data.Permission();
         }
     }

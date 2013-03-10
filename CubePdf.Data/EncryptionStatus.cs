@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// EncryptionMethod.cs
+/// EncryptionStatus.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -24,25 +24,22 @@ namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// EncryptionMethod
+    /// EncryptionStatus
     /// 
     /// <summary>
-    /// PDF の暗号化の際に使用可能な暗号化方式を定義した列挙型です。
-    /// 現在のところ、以下の暗号化方式を使用する事ができます（括弧内の値は、
-    /// 最初にサポートされた PDF バージョンを表します）。
-    /// -  40bit RC4 (PDF 1.1)
-    /// - 128bit RC4 (PDF 1.4)
-    /// - 128bit AES (PDF 1.5)
-    /// - 256bit AES (PDF 1.7 ExtensionLevel 3)
+    /// 暗号化されている PDF ファイルへのアクセス（許可）状態を定義した
+    /// 列挙型です。各値の意味は以下の通りです。
+    /// 
+    /// NotEncrypted     : このファイルは暗号化されていません
+    /// RestrictedAccess : ユーザパスワードで開いています
+    /// FullAccess       : オーナパスワードで開いています
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public enum EncryptionMethod
+    public enum EncryptionStatus
     {
-        Standard40,     //  40bit RC4
-        Standard128,    // 128bit RC4
-        Aes128,         // 128bit AES
-        Aes256,         // 256bit AES
-        Unknown = -1,
+        NotEncrypted,
+        RestrictedAccess,
+        FullAccess,
     }
 }
