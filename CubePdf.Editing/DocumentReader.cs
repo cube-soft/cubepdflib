@@ -126,7 +126,9 @@ namespace CubePdf.Editing
         public void Open(string path, string password = "")
         {
             if (_core != null) this.Close();
-            _core = new iTextSharp.text.pdf.PdfReader(path);
+            _core = password.Length > 0 ?
+                new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
+                new iTextSharp.text.pdf.PdfReader(path);
             _path = path;
 
             var metadata = new CubePdf.Data.Metadata(); 
@@ -138,6 +140,9 @@ namespace CubePdf.Editing
             metadata.Producer = _core.Info.ContainsKey("Producer") ? _core.Info["Producer"] : "";
             _metadata = metadata;
 
+            if (!_core.IsOpenedWithFullPermissions) _status = Data.EncryptionStatus.RestrictedAccess;
+            else if (password.Length == 0) _status = Data.EncryptionStatus.NotEncrypted;
+            else _status = Data.EncryptionStatus.FullAccess;
             _permission = Translator.ToPermission(_core.Permissions);
 
             for (int i = 0; i < _core.NumberOfPages; ++i)

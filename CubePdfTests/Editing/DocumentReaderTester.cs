@@ -240,9 +240,9 @@ namespace CubePdfTests.Editing
                         Assert.Fail("never reached");
                     }
                 }
-                catch (Exception /* err */)
+                catch (iTextSharp.text.pdf.BadPasswordException /* err */)
                 {
-                    Assert.Pass();
+                    //Assert.Pass(err.ToString());
                 }
             }
             catch (Exception err)
