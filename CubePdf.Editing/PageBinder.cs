@@ -85,9 +85,12 @@ namespace CubePdf.Editing
             var writer = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
 
             writer.Open();
-            var method = Translator.ToIText(_encrypt.Method);
-            var permission = Translator.ToIText(_encrypt.Permission);
-            writer.SetEncryption(method, _encrypt.UserPassword, _encrypt.OwnerPassword, permission);
+            if (_encrypt.OwnerPassword.Length > 0)
+            {
+                var method = Translator.ToIText(_encrypt.Method);
+                var permission = Translator.ToIText(_encrypt.Permission);
+                writer.SetEncryption(method, _encrypt.UserPassword, _encrypt.OwnerPassword, permission);
+            }
 
             doc.Open();
             foreach (var page in _pages)
