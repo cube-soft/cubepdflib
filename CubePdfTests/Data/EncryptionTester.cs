@@ -50,7 +50,7 @@ namespace CubePdfTests.Data
             var encrypt = new CubePdf.Data.Encryption();
             Assert.AreEqual(0, encrypt.OwnerPassword.Length);
             Assert.AreEqual(0, encrypt.UserPassword.Length);
-            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard40, encrypt.Method);
+            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, encrypt.Method);
             Assert.IsFalse(encrypt.Permission.Printing);
             Assert.IsFalse(encrypt.Permission.Assembly);
             Assert.IsFalse(encrypt.Permission.ModifyContents);

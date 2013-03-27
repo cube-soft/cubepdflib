@@ -164,6 +164,60 @@ namespace CubePdfTests.Editing
             var dest = System.IO.Path.Combine(_dest, "TestPartMerge.pdf");
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(6, reader.Pages.Count);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestRotate
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いてページ回転のテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRotate()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                Assert.AreEqual(9, reader.Pages.Count);
+
+                var page = new CubePdf.Data.Page(reader.Pages[1]);
+                Assert.AreEqual(0, page.Rotation);
+                page.Rotation += 90;
+                binder.Pages.Add(page);
+
+                page = new CubePdf.Data.Page(reader.Pages[2]);
+                Assert.AreEqual(90, page.Rotation);
+                page.Rotation += 180;
+                binder.Pages.Add(page);
+
+                page = new CubePdf.Data.Page(reader.Pages[3]);
+                Assert.AreEqual(180, page.Rotation);
+                page.Rotation = 0;
+                binder.Pages.Add(page);
+            }
+
+            var dest = System.IO.Path.Combine(_dest, "TestRotate.pdf");
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(3, reader.Pages.Count);
+                Assert.AreEqual(90, reader.Pages[1].Rotation);
+                Assert.AreEqual(270, reader.Pages[2].Rotation);
+                Assert.AreEqual(0, reader.Pages[0].Rotation);
+            }
         }
 
         #endregion
