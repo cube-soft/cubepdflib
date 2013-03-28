@@ -65,13 +65,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IItemsProvider.cs" />
-    <Compile Include="ImageContainer.cs" />
+    <Compile Include="IListViewModel.cs" />
     <Compile Include="ImageView.cs" />
+    <Compile Include="ListViewCommands.cs" />
+    <Compile Include="ListViewModel.cs" />
+    <Compile Include="MultipleLoadException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThumbnailCommands.cs">
-      <SubType>Code</SubType>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ThumbnailViewModel.cs" />
     <Compile Include="VirtualizingListProxy.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -87,6 +91,12 @@
       <Project>{6E397197-250C-404A-9FE9-BA8397C518C1}</Project>
       <Name>CubePdf.Editing</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

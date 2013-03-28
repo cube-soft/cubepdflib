@@ -25,6 +25,16 @@ using NUnit.Framework;
 
 namespace CubePdfTests.Editing
 {
+    /* --------------------------------------------------------------------- */
+    ///
+    /// PageBinderTester
+    /// 
+    /// <summary>
+    /// PageBinder クラスのテストをするためのクラスです。
+    /// </summary>
+    ///
+    /* --------------------------------------------------------------------- */
+    [TestFixture]
     public class PageBinderTester
     {
         #region Setup and TearDown

@@ -47,8 +47,8 @@ namespace CubePdf.Wpf
         public VirtualizingListProxy(IItemsProvider<T> provider)
         {
             _provider = provider;
-            _provider.CollectionChanged -= new NotifyCollectionChangedEventHandler(CollectionChangedProxy);
-            _provider.CollectionChanged += new NotifyCollectionChangedEventHandler(CollectionChangedProxy);
+            // _provider.CollectionChanged -= new NotifyCollectionChangedEventHandler(CollectionChangedProxy);
+            // _provider.CollectionChanged += new NotifyCollectionChangedEventHandler(CollectionChangedProxy);
         }
 
         #endregion
@@ -157,6 +157,8 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// リストの要素に何らかの変更が生じた場合に発生するイベントです。
+        /// IItemsProvider インターフェースを継承したクラスで発生した
+        /// CollectionChanged イベントをそのまま伝播します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
