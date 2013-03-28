@@ -61,6 +61,34 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルの文書プロパティを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.Metadata Metadata
+        {
+            get { return _meta; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Encryption
+        /// 
+        /// <summary>
+        /// PDF ファイルのセキュリティに関する情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.Encryption Encryption
+        {
+            get { return _crypt; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ItemWidth
         /// 
         /// <summary>
@@ -207,7 +235,15 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Save(string path) { throw new NotImplementedException(); }
+        public void Save(string path = null)
+        {
+            var dest = String.IsNullOrEmpty(path) ? _path : path;
+            var binder = new CubePdf.Editing.PageBinder();
+            foreach (var page in _pages) binder.Pages.Add(page);
+            binder.Metadata = Metadata;
+            binder.Encryption = Encryption;
+            binder.Save(dest);
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -273,14 +309,45 @@ namespace CubePdf.Wpf
         /// Insert
         /// 
         /// <summary>
+        /// 引数に指定された PDF ページオブジェクトを index の位置に挿入
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Insert(int index, CubePdf.Data.Page item)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Insert
+        /// 
+        /// <summary>
         /// 引数に指定された PDF ファイルの各ページを index の位置に挿入
         /// します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Insert(int index, CubePdf.Data.Page item) { throw new NotImplementedException(); }
-        public void Insert(int index, string path, string password = "") { throw new NotImplementedException(); }
-        public void InsertAsync(int index, string path, string password = "") { throw new NotImplementedException(); }
+        public void Insert(int index, string path, string password = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// InsertAsync
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルの各ページを index の位置に非同期で
+        /// 挿入します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void InsertAsync(int index, string path, string password = "")
+        {
+            throw new NotImplementedException();
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -589,7 +656,9 @@ namespace CubePdf.Wpf
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
-                    if (value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber) continue;
+                    if (key < 0 || key >= _pages.Count ||
+                        value.FilePath != _pages[key].FilePath ||
+                        value.PageNumber != _pages[key].PageNumber) continue;
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
                 }
@@ -602,6 +671,8 @@ namespace CubePdf.Wpf
         private int _width = 0;
         private int _maxundo = 0;
         private string _path = string.Empty;
+        private CubePdf.Data.Metadata _meta = new CubePdf.Data.Metadata();
+        private CubePdf.Data.Encryption _crypt = new CubePdf.Data.Encryption();
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
         private ObservableCollection<ImageSource> _images = new ObservableCollection<ImageSource>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();

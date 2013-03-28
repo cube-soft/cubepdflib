@@ -90,9 +90,36 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var viewmodel = new CubePdf.Wpf.ListViewModel();
-            viewmodel.ItemWidth = 150;
+            viewmodel.ItemWidth = 64;
             viewmodel.Open(src);
             Assert.AreEqual(9, viewmodel.ItemCount);
+            viewmodel.Close();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestSaveAs
+        /// 
+        /// <summary>
+        /// PDF ファイルを開いて、そのままの内容で別名で保存するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestSaveAs()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.Open(src);
+
+            var dest = System.IO.Path.Combine(_dest, "TestSaveAs.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            viewmodel.Close();
         }
 
         #endregion
