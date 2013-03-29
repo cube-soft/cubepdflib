@@ -207,6 +207,40 @@ namespace CubePdf.Data
 
         #endregion
 
+        #region Implementations for IEquatable<IReadOnlyPage>
+
+        /* ----------------------------------------------------------------- */
+        /// Equals
+        /* ----------------------------------------------------------------- */
+        public bool Equals(IReadOnlyPage other)
+        {
+            return FilePath == other.FilePath && PageNumber == other.PageNumber;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /// Equals
+        /* ----------------------------------------------------------------- */
+        public override bool Equals(object obj)
+        {
+            if (object.ReferenceEquals(obj, null)) return false;
+            if (object.ReferenceEquals(this, obj)) return true;
+
+            var other = obj as IReadOnlyPage;
+            if (other == null) return false;
+
+            return this.Equals(other);
+        }
+
+        /* ----------------------------------------------------------------- */
+        /// GetHashCode
+        /* ----------------------------------------------------------------- */
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        #endregion
+
         #region Variables
         private string _path = string.Empty;
         private int _pagenum = 1;

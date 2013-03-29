@@ -33,7 +33,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IReadOnlyPage
+    public interface IReadOnlyPage : IEquatable<IReadOnlyPage>
     {
         /* ----------------------------------------------------------------- */
         ///

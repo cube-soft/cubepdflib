@@ -214,21 +214,21 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Extract(IList<CubePdf.Data.Page> pages, string path);
-        void Extract(IList<T> items, string path);
         void Extract(IList items, string path);
+        void Extract(IList<T> items, string path);        
 
         /* ----------------------------------------------------------------- */
         ///
         /// Remove
         /// 
         /// <summary>
-        /// 引数に指定されたものに相当する PDF ページを削除します。
+        /// 引数に指定されたオブジェクトに対応する PDF ページを削除します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Remove(CubePdf.Data.Page item);
-        void Remove(T item);
         void Remove(object item);
+        void Remove(T item);
+        void Remove(CubePdf.Data.Page item);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -244,6 +244,34 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Rotate
+        /// 
+        /// <summary>
+        /// 引数に指定されたオブジェクトに対応する PDF ページを degree 度
+        /// 回転させます。角度は、現在表示されている画像に対する相対度数で
+        /// 指定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        void Rotate(object item, int degree);
+        void Rotate(T item, int degree);
+        void Rotate(CubePdf.Data.Page item, int degree);
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Rotate
+        /// 
+        /// <summary>
+        /// ListView に表示されている index 番目のサムネイルに相当する
+        /// PDF ページを degree 度回転させます。角度は、現在表示されている
+        /// 画像に対する相対度数で指定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        void RotateAt(int index, int degree);
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Move
         /// 
         /// <summary>
@@ -253,19 +281,6 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Move(int oldindex, int newindex);
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Rotate
-        /// 
-        /// <summary>
-        /// ListView に表示されている index 番目のサムネイル画像を degree 度
-        /// 回転させます。角度は、現在表示されている画像に対する相対度数で
-        /// 指定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        void Rotate(int index, int degree);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -283,12 +298,13 @@ namespace CubePdf.Wpf
         /// ToPage
         /// 
         /// <summary>
-        /// ListView で表示されている画像に対応するページ情報を取得します。
+        /// ListView で表示されているサムネイルに対応する PDF ページの情報を
+        /// 取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.Page ToPage(T item);
         CubePdf.Data.Page ToPage(object item);
+        CubePdf.Data.Page ToPage(T item);
 
         #endregion
     }

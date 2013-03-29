@@ -115,11 +115,225 @@ namespace CubePdfTests.Wpf
             viewmodel.ItemWidth = 64;
             viewmodel.Open(src);
 
-            var dest = System.IO.Path.Combine(_dest, "TestSaveAs.pdf");
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelSaveAs.pdf");
             System.IO.File.Delete(dest);
             viewmodel.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
             viewmodel.Close();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestAdd
+        /// 
+        /// <summary>
+        /// PDF ファイルを追加するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestAdd()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.Open(src);
+            Assert.AreEqual(9, viewmodel.ItemCount);
+
+            src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Add(src);
+            Assert.AreEqual(11, viewmodel.ItemCount);
+
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            try
+            {
+                viewmodel.Add(src);
+                Assert.Fail("never reached");
+            }
+            catch (CubePdf.Wpf.MultipleLoadException /* err */)
+            {
+                Assert.Pass();
+            }
+            finally
+            {
+                viewmodel.Close();
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestAdd
+        /// 
+        /// <summary>
+        /// PDF ファイルを挿入するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestInsert()
+        {
+            // TODO: テストを書く。
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestAdd
+        /// 
+        /// <summary>
+        /// PDF ページを削除するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRemoveAt()
+        {
+            // TODO: テストを書く。
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestExtract
+        /// 
+        /// <summary>
+        /// PDF ファイルの一部を抽出するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestExtract()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.Open(src);
+
+            // TODO: Items に対して各種操作が効かないため、テスト方法を検討する。
+            var images = new List<ImageSource>();
+            images.Add(viewmodel.Items[0]);
+            images.Add(viewmodel.Items[2]);
+            images.Add(viewmodel.Items[1]);
+            images.Add(viewmodel.Items[4]);
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelExtract.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Extract(images as IList<ImageSource>, dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            viewmodel.Close();
+
+            using (var doc = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(4,   doc.Pages.Count);
+                Assert.AreEqual(0,   doc.Pages[1].Rotation);
+                Assert.AreEqual(180, doc.Pages[2].Rotation);
+                Assert.AreEqual(90,  doc.Pages[3].Rotation);
+                Assert.AreEqual(0,   doc.Pages[4].Rotation);
+            }
+        }
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestMove
+        /// 
+        /// <summary>
+        /// PDF ぺーじの移動をテストします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestMove()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.Open(src);
+
+            viewmodel.Move(1, 0);
+            viewmodel.Move(1, 3);
+            viewmodel.Move(2, viewmodel.ItemCount - 1);
+
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelMove.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            viewmodel.Close();
+
+            using (var doc = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(9,   doc.Pages.Count);
+                Assert.AreEqual(90,  doc.Pages[1].Rotation);
+                Assert.AreEqual(180, doc.Pages[2].Rotation);
+                Assert.AreEqual(0,   doc.Pages[3].Rotation);
+                Assert.AreEqual(0,   doc.Pages[4].Rotation);
+                Assert.AreEqual(270, doc.Pages[9].Rotation);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestRotateAt
+        /// 
+        /// <summary>
+        /// PDF ページを回転するテストです。
+        /// 
+        /// NOTE: PageBinder クラスの回転処理が実装されていないので、
+        /// テストに失敗します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRotateAt()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.Open(src);
+
+            viewmodel.RotateAt(0, 90);  //   0 ->  90
+            viewmodel.RotateAt(1, 180); //  90 -> 270
+            viewmodel.RotateAt(2, 270); // 180 ->  90
+            viewmodel.RotateAt(3, -90); // 270 -> 180
+
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelRotate.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            viewmodel.Close();
+
+            using (var doc = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(3,   doc.Pages.Count);
+                Assert.AreEqual(90,  doc.Pages[1].Rotation);
+                Assert.AreEqual(270, doc.Pages[2].Rotation);
+                Assert.AreEqual(90,  doc.Pages[3].Rotation);
+                Assert.AreEqual(180, doc.Pages[4].Rotation);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestUndo
+        /// 
+        /// <summary>
+        /// やり直し（直前の操作を取り消す）のテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestUndo()
+        {
+            // TODO: テストを書く。
         }
 
         #endregion

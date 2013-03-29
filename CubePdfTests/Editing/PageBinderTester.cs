@@ -97,6 +97,7 @@ namespace CubePdfTests.Editing
                 }
                 
                 var dest = System.IO.Path.Combine(_dest, "TestCopy.pdf");
+                System.IO.File.Delete(dest);
                 binder.Save(dest);
                 Assert.IsTrue(System.IO.File.Exists(dest));
             }
@@ -132,6 +133,7 @@ namespace CubePdfTests.Editing
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestFullMerge.pdf");
+            System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
         }
@@ -172,6 +174,7 @@ namespace CubePdfTests.Editing
             }
             
             var dest = System.IO.Path.Combine(_dest, "TestPartMerge.pdf");
+            System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
 
@@ -218,6 +221,7 @@ namespace CubePdfTests.Editing
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestRotate.pdf");
+            System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
 

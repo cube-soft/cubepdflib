@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace CubePdfTests.Data
@@ -89,6 +90,47 @@ namespace CubePdfTests.Data
             Assert.AreEqual(20, copied.PageNumber);
             Assert.AreEqual(45, copied.Rotation);
             Assert.AreEqual(2.5, copied.Power);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestEquals
+        /// 
+        /// <summary>
+        /// Equals メソッドのテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestEquals()
+        {
+            var page1 = new CubePdf.Data.Page("foo.pdf", 1);
+            var page2 = new CubePdf.Data.Page("foo.pdf", 1);
+            var page3 = new CubePdf.Data.Page("foo.pdf", 2);
+            var page4 = new CubePdf.Data.Page("bas.pdf", 3);
+
+            Assert.IsTrue(page1.Equals(page1));
+            Assert.IsFalse(page1 == page2);
+            Assert.IsTrue(page1.Equals(page2));
+            Assert.IsFalse(page1.Equals(page3));
+            Assert.IsFalse(page1.Equals(page4));
+
+            var page5 = page2 as CubePdf.Data.IReadOnlyPage;
+            Assert.IsTrue(page1.Equals(page5));
+            Assert.IsTrue(page5.Equals(page1));
+
+            var page6 = page3 as CubePdf.Data.IReadOnlyPage;
+            Assert.IsFalse(page1.Equals(page6));
+            Assert.IsFalse(page6.Equals(page1));
+
+            var list = new List<CubePdf.Data.IReadOnlyPage>();
+            list.Add(page1);
+            list.Add(page3);
+            list.Add(page4);
+            Assert.IsTrue(list.Contains(new CubePdf.Data.Page("foo.pdf", 1)));
+            Assert.AreEqual(0, list.IndexOf(new CubePdf.Data.Page("foo.pdf", 1)));
+            Assert.IsFalse(list.Contains(new CubePdf.Data.Page("notfound.pdf", 1)));
+            Assert.AreEqual(-1, list.IndexOf(new CubePdf.Data.Page("notfound.pdf", 1)));
         }
 
         /* ----------------------------------------------------------------- */

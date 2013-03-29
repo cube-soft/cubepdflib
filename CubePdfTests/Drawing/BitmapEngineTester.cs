@@ -267,7 +267,10 @@ namespace CubePdfTests.Drawing
                         Assert.AreEqual((int)(page.Value.ViewSize.Width * _power), image.Width);
                         Assert.AreEqual((int)(page.Value.ViewSize.Height * _power), image.Height);
                         var filename = String.Format("TestCreateImage-{0}.png", page.Key);
-                        image.Save(System.IO.Path.Combine(_dest, filename));
+                        var dest = System.IO.Path.Combine(_dest, filename);
+                        System.IO.File.Delete(dest);
+                        image.Save(dest);
+                        Assert.IsTrue(System.IO.File.Exists(dest));
                     }
                 }
             }
