@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CubePdf.Drawing</RootNamespace>
-    <AssemblyName>cubepdf.drawing</AssemblyName>
+    <AssemblyName>CubePdf.Drawing</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

@@ -201,8 +201,8 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Insert(int index, CubePdf.Data.Page item);
-        void Insert(int index, string path, string password);
-        void InsertAsync(int index, string path, string password);
+        void Insert(int index, string path, string password = "");
+        void InsertAsync(int index, string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///
