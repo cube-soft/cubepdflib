@@ -22,6 +22,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows.Media;
 
 namespace CubePdf.Wpf
 {
@@ -37,7 +38,7 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel<T> : IItemsProvider<T>
+    public interface IListViewModel : IItemsProvider<ImageSource>
     {
         #region Properties
 
@@ -109,7 +110,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<T> Items { get; }
+        ObservableCollection<ImageSource> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -149,8 +150,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Open(string path, string password);
-        void OpenAsync(string path, string password);
+        void Open(string path, string password = "");
+        void OpenAsync(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///
@@ -186,8 +187,8 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Add(CubePdf.Data.Page item);
-        void Add(string path, string password);
-        void AddAsync(string path, string password);
+        void Add(string path, string password = "");
+        void AddAsync(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///
@@ -215,7 +216,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         void Extract(IList<CubePdf.Data.Page> pages, string path);
         void Extract(IList items, string path);
-        void Extract(IList<T> items, string path);        
 
         /* ----------------------------------------------------------------- */
         ///
@@ -226,9 +226,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Remove(object item);
-        void Remove(T item);
         void Remove(CubePdf.Data.Page item);
+        void Remove(object item);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -253,9 +252,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Rotate(object item, int degree);
-        void Rotate(T item, int degree);
         void Rotate(CubePdf.Data.Page item, int degree);
+        void Rotate(object item, int degree);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -304,7 +302,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         CubePdf.Data.Page ToPage(object item);
-        CubePdf.Data.Page ToPage(T item);
+        CubePdf.Data.Page ToPage(ImageSource item);
 
         #endregion
     }
