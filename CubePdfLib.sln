@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubePdf.Editing", "CubePdf.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubePdf.Wpf", "CubePdf.Wpf\CubePdf.Wpf.csproj", "{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubePdfUtility2", "..\CubePdfUtility2\CubePdfUtility2.csproj", "{26886375-32AF-4008-9A48-B14E5DEB7DDE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,16 +79,6 @@ Global
 		{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}.Release|x86.ActiveCfg = Release|x86
 		{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}.Release|x86.Build.0 = Release|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Debug|x86.ActiveCfg = Debug|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Debug|x86.Build.0 = Debug|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Release|Any CPU.ActiveCfg = Release|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Release|Mixed Platforms.Build.0 = Release|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Release|x86.ActiveCfg = Release|x86
-		{26886375-32AF-4008-9A48-B14E5DEB7DDE}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
