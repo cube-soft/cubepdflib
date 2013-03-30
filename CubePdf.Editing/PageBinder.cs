@@ -81,10 +81,14 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
+
             var doc = new iTextSharp.text.Document();
-            var writer = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
+            //var writer = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
+            var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
 
             writer.Open();
+            doc.Open();
+            var wdc = writer.DirectContent;
             if (_encrypt.OwnerPassword.Length > 0)
             {
                 var method = Translator.ToIText(_encrypt.Method);
@@ -92,11 +96,42 @@ namespace CubePdf.Editing
                 writer.SetEncryption(method, _encrypt.UserPassword, _encrypt.OwnerPassword, permission);
             }
 
-            doc.Open();
             foreach (var page in _pages)
             {
                 var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath);
-                writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
+                switch (page.Rotation)
+                {
+                    case 0:
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber));//WithRotation
+                        break;
+                    case 90:
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate());//WithRotation
+                        break;
+                    case 180:
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate());//WithRotation
+                        break;
+                    case 270:
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate().Rotate());//WithRotation
+                        break;
+                }
+                doc.NewPage();
+
+                switch (page.Rotation)
+                {
+                    case 0:
+                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 1f, 0f, 0f, 1f, 0f, 0f);
+                        break;
+                    case 90:
+                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, -1f, 1f, 0f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Width);
+                        break;
+                    case 180:
+                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), -1f, 0f, 0f, -1f, reader.GetPageSizeWithRotation(page.PageNumber).Width, reader.GetPageSizeWithRotation(page.PageNumber).Height);
+                        break;
+                    case 270:
+                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, 1f, -1f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Width, 0f);
+                        break;
+                }
+                //writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 reader.Close();
             }
             doc.AddAuthor(_metadata.Author);
@@ -107,6 +142,7 @@ namespace CubePdf.Editing
             doc.AddProducer();
 
             doc.Close();
+            writer.Close();
         }
 
         #endregion
