@@ -255,7 +255,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, CubePdf.Data.Page item)
         {
-            throw new NotImplementedException();
+            lock (_pages) _pages.Insert(index, item);
+            lock (_images) _images.Insert(index, GetDummyItem(item));
+            lock (_requests)
+            {
+                UpdateRequest(index, item);
+                FetchRequest();
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -278,17 +284,8 @@ namespace CubePdf.Wpf
             foreach (var page in engine.Pages.Values)
             {
                 var item = new CubePdf.Data.Page(page);
-
-                lock (_pages)
-                lock (_images)
-                lock (_requests)
-                {
-                    _pages.Insert(index, item);
-                    _images.Insert(index, GetDummyItem(item));
-                    UpdateRequest(index, item);
-                    FetchRequest();
-                    ++index;
-                }
+                Insert(index, item);
+                ++index;
             }
         }
 
