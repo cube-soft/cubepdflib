@@ -361,7 +361,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(3,   doc.Pages.Count);
+                Assert.AreEqual(9,   doc.Pages.Count);
                 Assert.AreEqual(90,  doc.Pages[1].Rotation);
                 Assert.AreEqual(270, doc.Pages[2].Rotation);
                 Assert.AreEqual(90,  doc.Pages[3].Rotation);

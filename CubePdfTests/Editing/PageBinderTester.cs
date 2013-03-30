@@ -227,10 +227,10 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(3, reader.Pages.Count);
-                Assert.AreEqual(90, reader.Pages[1].Rotation);
+                Assert.AreEqual(3,   reader.Pages.Count);
+                Assert.AreEqual(90,  reader.Pages[1].Rotation);
                 Assert.AreEqual(270, reader.Pages[2].Rotation);
-                Assert.AreEqual(0, reader.Pages[0].Rotation);
+                Assert.AreEqual(0,   reader.Pages[3].Rotation);
             }
         }
 
