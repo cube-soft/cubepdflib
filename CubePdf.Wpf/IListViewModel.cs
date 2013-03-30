@@ -151,7 +151,6 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Open(string path, string password = "");
-        void OpenAsync(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///
@@ -188,7 +187,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         void Add(CubePdf.Data.Page item);
         void Add(string path, string password = "");
-        void AddAsync(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///
@@ -202,7 +200,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         void Insert(int index, CubePdf.Data.Page item);
         void Insert(int index, string path, string password = "");
-        void InsertAsync(int index, string path, string password = "");
 
         /* ----------------------------------------------------------------- */
         ///

@@ -188,22 +188,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Open
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルを非同期で開きます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void OpenAsync(string path, string password = "")
-        {
-            if (_pages.Count > 0) Close();
-            AddAsync(path, password);
-            _path = path;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Close
         /// 
         /// <summary>
@@ -258,7 +242,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Add(CubePdf.Data.Page item) { Insert(_pages.Count, item); }
         public void Add(string path, string password = "") { Insert(_pages.Count, path, password); }
-        public void AddAsync(string path, string password = "") { InsertAsync(_pages.Count, path, password); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -307,21 +290,6 @@ namespace CubePdf.Wpf
                     ++index;
                 }
             }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// InsertAsync
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルの各ページを index の位置に非同期で
-        /// 挿入します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void InsertAsync(int index, string path, string password = "")
-        {
-            throw new NotImplementedException();
         }
 
         /* ----------------------------------------------------------------- */
