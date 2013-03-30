@@ -294,8 +294,7 @@ namespace CubePdfTests.Drawing
             int created = 0;
             using (var engine = new CubePdf.Drawing.BitmapEngine(src))
             {
-                engine.ImageCreated += delegate(object sender, CubePdf.Drawing.ImageEventArgs e)
-                {
+                engine.ImageCreated += (sender, e) => {
                     Assert.NotNull(e.Image);
                     Assert.AreEqual(e.Page.ViewSize.Width, e.Image.Width);
                     Assert.AreEqual(e.Page.ViewSize.Height, e.Image.Height);
@@ -332,8 +331,7 @@ namespace CubePdfTests.Drawing
             int created = 0;
             using (var engine = new CubePdf.Drawing.BitmapEngine(src))
             {
-                engine.ImageCreated += delegate(object sender, CubePdf.Drawing.ImageEventArgs e)
-                {
+                engine.ImageCreated += (sender, e) => {
                     Assert.NotNull(e.Image);
                     created += 1;
                     var filename = String.Format("TestCancelImageCreation-{0}.png", e.Page.PageNumber);
@@ -372,8 +370,7 @@ namespace CubePdfTests.Drawing
 
                     engine.Open(filename);
                     Assert.AreEqual(9, engine.Pages.Count);
-                    engine.ImageCreated += delegate(object sender, CubePdf.Drawing.ImageEventArgs e)
-                    {
+                    engine.ImageCreated += (sender, e) => {
                         Assert.NotNull(e.Image);
                         Assert.AreEqual(e.Page.ViewSize.Width, e.Image.Width);
                         Assert.AreEqual(e.Page.ViewSize.Height, e.Image.Height);

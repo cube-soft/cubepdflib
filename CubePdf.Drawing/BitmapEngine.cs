@@ -169,7 +169,7 @@ namespace CubePdf.Drawing
                 _path = path;
             }
 
-            this.ExtractPageProperties();
+            this.ExtractPages();
         }
 
         /* ----------------------------------------------------------------- */
@@ -439,7 +439,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void ExtractPageProperties()
+        private void ExtractPages()
         {
             _pages.Clear();
             for (int i = 0; i < _core.PageCount; ++i)
