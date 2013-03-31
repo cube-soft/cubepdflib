@@ -95,12 +95,64 @@ namespace CubePdfTests.Editing
                 {
                     binder.Pages.Add(new CubePdf.Data.Page(page.Value));
                 }
-                
-                var dest = System.IO.Path.Combine(_dest, "TestCopy.pdf");
+
+                var dest = System.IO.Path.Combine(_dest, "TestPageBinderCopy.pdf");
                 System.IO.File.Delete(dest);
                 binder.Save(dest);
                 Assert.IsTrue(System.IO.File.Exists(dest));
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestOverwrite
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いて、ソースファイルへの上書きをテスト
+        /// します。処理としては、いったん一時ファイルへ保存した後に
+        /// 移動しています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestOverwrite()
+        {
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderOverwrite.pdf");
+            System.IO.File.Delete(dest);
+
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                var binder = new CubePdf.Editing.PageBinder();
+                binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
+                foreach (var page in reader.Pages)
+                {
+                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                }
+                binder.Save(dest);
+                Assert.IsTrue(System.IO.File.Exists(dest));
+            }
+
+            var tmp = System.IO.Path.GetTempFileName();
+            System.IO.File.Delete(tmp);
+
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                var binder = new CubePdf.Editing.PageBinder();
+                binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
+                foreach (var page in reader.Pages)
+                {
+                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                }
+                binder.Save(tmp);
+                Assert.IsTrue(System.IO.File.Exists(tmp));
+            }
+
+            System.IO.File.Delete(dest);
+            System.IO.File.Move(tmp, dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
         }
 
         /* ----------------------------------------------------------------- */
@@ -132,7 +184,7 @@ namespace CubePdfTests.Editing
                 foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page.Value));
             }
 
-            var dest = System.IO.Path.Combine(_dest, "TestFullMerge.pdf");
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderFullMerge.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
@@ -172,8 +224,8 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
                 binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
             }
-            
-            var dest = System.IO.Path.Combine(_dest, "TestPartMerge.pdf");
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderPartMerge.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
@@ -230,7 +282,7 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(page);
             }
 
-            var dest = System.IO.Path.Combine(_dest, "TestRotate.pdf");
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderRotate.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));

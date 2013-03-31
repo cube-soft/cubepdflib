@@ -50,6 +50,7 @@
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -59,6 +60,7 @@
     <Compile Include="Encryption.cs" />
     <Compile Include="EncryptionMethod.cs" />
     <Compile Include="EncryptionStatus.cs" />
+    <Compile Include="FileIOWrapper.cs" />
     <Compile Include="IReadOnlyEncryption.cs" />
     <Compile Include="IReadOnlyMetadata.cs" />
     <Compile Include="IReadOnlyPage.cs" />

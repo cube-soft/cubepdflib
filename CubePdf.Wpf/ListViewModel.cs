@@ -222,12 +222,29 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Save(string path = null)
         {
-            var dest = String.IsNullOrEmpty(path) ? _path : path;
-            var binder = new CubePdf.Editing.PageBinder();
-            foreach (var page in _pages) binder.Pages.Add(page);
-            binder.Metadata = Metadata;
-            binder.Encryption = Encryption;
-            binder.Save(dest);
+            lock (_engines)
+            lock (_pages)
+            lock (_requests)
+            {
+                var binder = new CubePdf.Editing.PageBinder();
+                foreach (var page in _pages) binder.Pages.Add(page);
+                binder.Metadata = Metadata;
+                binder.Encryption = Encryption;
+
+                _requests.Clear();
+                _pages.Clear();
+                foreach (var engine in _engines.Values) engine.Dispose();
+                _engines.Clear();
+
+                var dest = String.IsNullOrEmpty(path) ? _path : path;
+                var tmp  = System.IO.Path.GetTempFileName();
+                binder.Save(tmp);
+                CubePdf.Data.FileIOWrapper.Move(tmp, dest);
+
+                _path = dest;
+                var newengine = CreateEngine(dest, "");
+                foreach (var page in newengine.Pages.Values) _pages.Add(new CubePdf.Data.Page(page));
+            }
         }
 
         /* ----------------------------------------------------------------- */

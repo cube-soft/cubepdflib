@@ -194,6 +194,7 @@ namespace CubePdf.Drawing
                     _core = null;
                 }
                 _pages.Clear();
+                _path = string.Empty;
             }
         }
 

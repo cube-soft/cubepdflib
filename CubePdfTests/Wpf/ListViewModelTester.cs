@@ -113,6 +113,44 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestSaveAs
+        /// 
+        /// <summary>
+        /// 上書き保存のテストです。
+        /// 
+        /// NOTE: 保留
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        //[Test]
+        //public void TestOverwrite()
+        //{
+        //    var dest = System.IO.Path.Combine(_dest, "TestListViewModelSave.pdf");
+        //    {
+        //        var viewmodel = CreateViewModel();
+        //        System.IO.File.Delete(dest);
+        //        viewmodel.Save(dest);
+        //        Assert.IsTrue(System.IO.File.Exists(dest));
+        //        viewmodel.Close();
+        //    }
+
+        //    {
+        //        var viewmodel = CreateViewModel(dest);
+        //        viewmodel.RemoveAt(0);
+        //        viewmodel.Save();
+        //        Assert.IsTrue(System.IO.File.Exists(dest));
+        //        viewmodel.Close();
+        //    }
+
+        //    using (var doc = new CubePdf.Editing.DocumentReader(dest))
+        //    {
+        //        Assert.AreEqual(8, doc.Pages.Count);
+        //    }
+
+        //}
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestInsert
         /// 
         /// <summary>
@@ -146,8 +184,28 @@ namespace CubePdfTests.Wpf
                 Assert.AreEqual(0,   doc.Pages[7].Rotation);
             }
 
+            viewmodel.Close();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestMultipleLoadException
+        /// 
+        /// <summary>
+        /// 同じファイルを 2 回読み込むテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestMultipleLoadException()
+        {
+            var viewmodel = CreateViewModel();
             try
             {
+                var src = System.IO.Path.Combine(_src, "readme.pdf");
+                Assert.IsTrue(System.IO.File.Exists(src));
+                viewmodel.Insert(2, src);
+                Assert.AreEqual(11, viewmodel.ItemCount);
                 viewmodel.Add(src);
                 Assert.Fail("never reached");
             }
@@ -433,9 +491,9 @@ namespace CubePdfTests.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Wpf.ListViewModel CreateViewModel()
+        private CubePdf.Wpf.ListViewModel CreateViewModel(string alternate = null)
         {
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            var src = String.IsNullOrEmpty(alternate) ? System.IO.Path.Combine(_src, "rotated.pdf") : alternate;
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var dest = new CubePdf.Wpf.ListViewModel();
