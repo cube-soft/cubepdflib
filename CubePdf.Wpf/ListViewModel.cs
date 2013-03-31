@@ -329,6 +329,32 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Split
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルの各ページを direcotry 下に
+        /// 1 ページずつ別ファイルとして保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public  void Split(IList<CubePdf.Data.Page> pages, string directory) { foreach (var page in pages) Split(_pages.IndexOf(page), directory); }
+        public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as ImageSource), directory); }
+        private void Split(int index, string directory)
+        {
+            if (index < 0 || index >= _pages.Count) return;
+
+            var page = _pages[index];
+            var binder = new CubePdf.Editing.PageBinder();
+            binder.Pages.Add(page);
+
+            var format = String.Format("{{0}}-{{1:D{0}}}.pdf", _pages.Count.ToString().Length);
+            var filename = String.Format(format, System.IO.Path.GetFileNameWithoutExtension(_path), index + 1);
+            var dest = System.IO.Path.Combine(directory, filename);
+            binder.Save(dest);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Remove
         /// 
         /// <summary>

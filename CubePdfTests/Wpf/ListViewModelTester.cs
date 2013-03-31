@@ -296,6 +296,41 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestExtract
+        /// 
+        /// <summary>
+        /// PDF ファイルの一部を抽出して、別々のファイルに保存するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestSplit()
+        {
+            var viewmodel = CreateViewModel();
+            var src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Add(src);
+            Assert.AreEqual(11, viewmodel.ItemCount);
+
+            var images = new ArrayList();
+            images.Add(viewmodel.Items[0]);
+            images.Add(viewmodel.Items[2]);
+            images.Add(viewmodel.Items[1]);
+            images.Add(viewmodel.Items[10]);
+            images.Add(viewmodel.Items[9]);
+
+            viewmodel.Split(images, _dest);
+            viewmodel.Close();
+
+            Assert.IsTrue(System.IO.File.Exists(System.IO.Path.Combine(_dest, "rotated-01.pdf")));
+            Assert.IsTrue(System.IO.File.Exists(System.IO.Path.Combine(_dest, "rotated-03.pdf")));
+            Assert.IsTrue(System.IO.File.Exists(System.IO.Path.Combine(_dest, "rotated-02.pdf")));
+            Assert.IsTrue(System.IO.File.Exists(System.IO.Path.Combine(_dest, "rotated-11.pdf")));
+            Assert.IsTrue(System.IO.File.Exists(System.IO.Path.Combine(_dest, "rotated-10.pdf")));
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestMove
         /// 
         /// <summary>

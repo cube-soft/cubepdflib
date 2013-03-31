@@ -216,6 +216,19 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Split
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルの各ページを direcotry 下に
+        /// 1 ページずつ別ファイルとして保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        void Split(IList<CubePdf.Data.Page> pages, string directory);
+        void Split(IList items, string directory);
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Remove
         /// 
         /// <summary>
