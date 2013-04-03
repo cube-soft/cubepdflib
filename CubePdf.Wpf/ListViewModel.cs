@@ -182,8 +182,16 @@ namespace CubePdf.Wpf
         public void Open(string path, string password = "")
         {
             if (_pages.Count > 0) Close();
-            Add(path, password);
-            _path = path;
+            using (var reader = new CubePdf.Editing.DocumentReader(path, password))
+            {
+                var engine = CreateEngine(reader);
+                foreach (var page in engine.Pages.Values) Add(new CubePdf.Data.Page(page));
+                _meta  = new Data.Metadata(reader.Metadata);
+                _crypt = new Data.Encryption();
+                _crypt.Method = reader.EncryptionMethod;
+                _crypt.Permission = new Data.Permission(reader.Permission);
+                _path = path;
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -197,7 +205,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Close()
         {
-            _path = string.Empty;
+            _path  = string.Empty;
+            _meta  = null;
+            _crypt = null;
 
             lock (_pages) _pages.Clear();
             lock (_engines)
@@ -667,6 +677,38 @@ namespace CubePdf.Wpf
             if (_engines.ContainsKey(path)) return _engines[path];
             var engine = new CubePdf.Drawing.BitmapEngine();
             engine.Open(path, password);
+            return RegisterEngine(path, engine);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateEngine
+        /// 
+        /// <summary>
+        /// 新しい BitmapEngine オブジェクトを生成してエンジン一覧に登録
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private CubePdf.Drawing.BitmapEngine CreateEngine(CubePdf.Data.IDocumentReader reader)
+        {
+            if (_engines.ContainsKey(reader.FilePath)) return _engines[reader.FilePath];
+            var engine = new CubePdf.Drawing.BitmapEngine();
+            engine.Open(reader);
+            return RegisterEngine(reader.FilePath, engine);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateEngine
+        /// 
+        /// <summary>
+        /// 新しい BitmapEngine オブジェクトをエンジン一覧に登録します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private CubePdf.Drawing.BitmapEngine RegisterEngine(string path, CubePdf.Drawing.BitmapEngine engine)
+        {
             engine.ImageCreated -= new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
             engine.ImageCreated += new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
             lock (_engines) _engines.Add(path, engine);
@@ -756,8 +798,8 @@ namespace CubePdf.Wpf
         private int _width = 0;
         private int _maxundo = 0;
         private string _path = string.Empty;
-        private CubePdf.Data.Metadata _meta = new CubePdf.Data.Metadata();
-        private CubePdf.Data.Encryption _crypt = new CubePdf.Data.Encryption();
+        private CubePdf.Data.Metadata _meta = null;
+        private CubePdf.Data.Encryption _crypt = null;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
         private ObservableCollection<ImageSource> _images = new ObservableCollection<ImageSource>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();

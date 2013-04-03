@@ -113,7 +113,22 @@ namespace CubePdfTests.Editing
                 {
                     Assert.AreEqual(filename, doc.FilePath);
 
+                    Assert.AreEqual(64877, doc.FileSize);
+                    
+                    Assert.AreEqual(2013, doc.CreationTime.Year);
+                    Assert.AreEqual(3, doc.CreationTime.Month);
+                    Assert.AreEqual(6, doc.CreationTime.Day);
+
+                    Assert.AreEqual(2013, doc.UpdateTime.Year);
+                    Assert.AreEqual(3, doc.UpdateTime.Month);
+                    Assert.AreEqual(8, doc.UpdateTime.Day);
+
                     Assert.NotNull(doc.Metadata);
+                    Assert.NotNull(doc.Metadata.Version);
+                    Assert.AreEqual(1, doc.Metadata.Version.Major);
+                    Assert.AreEqual(7, doc.Metadata.Version.Minor);
+                    Assert.AreEqual(0, doc.Metadata.Version.Build);
+                    Assert.AreEqual(0, doc.Metadata.Version.Revision);
                     Assert.AreEqual("CubeSoft", doc.Metadata.Author);
                     Assert.AreEqual("CubePdfTests", doc.Metadata.Title);
                     Assert.AreEqual("rotated example", doc.Metadata.Subtitle);

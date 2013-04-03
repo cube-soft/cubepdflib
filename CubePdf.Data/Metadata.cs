@@ -61,17 +61,37 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Metadata(IReadOnlyMetadata cp)
         {
-            this.Author = cp.Author;
-            this.Title = cp.Title;
-            this.Subtitle = cp.Subtitle;
-            this.Keywords = cp.Keywords;
-            this.Creator = cp.Creator;
-            this.Producer = cp.Producer;
+            Version = cp.Version;
+            Author = cp.Author;
+            Title = cp.Title;
+            Subtitle = cp.Subtitle;
+            Keywords = cp.Keywords;
+            Creator = cp.Creator;
+            Producer = cp.Producer;
         }
 
         #endregion
 
         #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Version
+        /// 
+        /// <summary>
+        /// PDF ファイルのバージョンを取得します。現時点で有効な
+        /// PDF バージョンは 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7,
+        /// 1.7 Adobe Extension Level 3, 1.7 Adobe Extension Level 5 の
+        /// 10 種類です。Adobe Extension Level の値は Build プロパティで
+        /// 保持する事とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Version Version
+        {
+            get { return _version; }
+            set { _version = value; }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -179,6 +199,7 @@ namespace CubePdf.Data
         #endregion
 
         #region Variables
+        private Version _version = null;
         private string _author = string.Empty;
         private string _title = string.Empty;
         private string _subtitle = string.Empty;

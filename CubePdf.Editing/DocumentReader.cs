@@ -130,10 +130,11 @@ namespace CubePdf.Editing
                 new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
                 new iTextSharp.text.pdf.PdfReader(path);
             _path = path;
+            _password = password;
 
             ExtractPages(_core, _path);
-            ExtractMetadata(_core);
-            ExtractEncryption(_core, password);
+            ExtractMetadata(_core, _path);
+            ExtractEncryption(_core, _password);
         }
 
         /* ----------------------------------------------------------------- */
@@ -142,6 +143,9 @@ namespace CubePdf.Editing
         /// 
         /// <summary>
         /// 現在、開いている PDF ファイルを閉じます。
+        /// 
+        /// TODO: DateTime オブジェクトは null 非許容なので、どういった値で
+        /// リセットするか検討する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -154,6 +158,7 @@ namespace CubePdf.Editing
             _metadata = null;
             _permission = null;
             _path = string.Empty;
+            _size = 0;
             _pages.Clear();
         }
 
@@ -173,6 +178,78 @@ namespace CubePdf.Editing
         public string FilePath
         {
             get { return _path; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Password
+        /// 
+        /// <summary>
+        /// PDF ファイルを開く際に指定されたパスワードを取得します。
+        /// 指定されたパスワードがオーナパスワードなのかユーザパスワード
+        /// なのかの判断については、EncryptionStatus の情報から判断します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string Password
+        {
+            get { return _password; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// FileSize
+        /// 
+        /// <summary>
+        /// PDF ファイルのファイルサイズを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public long FileSize
+        {
+            get { return _size; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreationTime
+        /// 
+        /// <summary>
+        /// PDF ファイルの作成日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime CreationTime
+        {
+            get { return _create; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateTime
+        /// 
+        /// <summary>
+        /// PDF ファイルの更新日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime UpdateTime
+        {
+            get { return _update; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AccessTime
+        /// 
+        /// <summary>
+        /// PDF ファイルへのアクセス日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime AccessTime
+        {
+            get { return _access; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -282,17 +359,22 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void ExtractMetadata(iTextSharp.text.pdf.PdfReader reader)
+        private void ExtractMetadata(iTextSharp.text.pdf.PdfReader reader, string path)
         {
-            var metadata = new CubePdf.Data.Metadata();
+            var info = new System.IO.FileInfo(path);
+            _size   = info.Length;
+            _create = info.CreationTime;
+            _update = info.LastWriteTime;
+            _access = info.LastAccessTime;
 
+            var metadata = new CubePdf.Data.Metadata();
+            metadata.Version  = new Version(1, Int32.Parse(reader.PdfVersion.ToString()), 0, 0);
             metadata.Author   = reader.Info.ContainsKey("Author")   ? reader.Info["Author"] : "";
             metadata.Title    = reader.Info.ContainsKey("Title")    ? reader.Info["Title"] : "";
             metadata.Subtitle = reader.Info.ContainsKey("Subject")  ? reader.Info["Subject"] : "";
             metadata.Keywords = reader.Info.ContainsKey("Keywords") ? reader.Info["Keywords"] : "";
             metadata.Creator  = reader.Info.ContainsKey("Creator")  ? reader.Info["Creator"] : "";
             metadata.Producer = reader.Info.ContainsKey("Producer") ? reader.Info["Producer"] : "";
-
             _metadata = metadata;
         }
 
@@ -319,6 +401,11 @@ namespace CubePdf.Editing
         private bool _disposed = false;
         private iTextSharp.text.pdf.PdfReader _core = null;
         private string _path = string.Empty;
+        private string _password = string.Empty;
+        private long _size = 0;
+        private DateTime _create = new DateTime();
+        private DateTime _update = new DateTime();
+        private DateTime _access = new DateTime();
         private CubePdf.Data.IReadOnlyMetadata _metadata = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;

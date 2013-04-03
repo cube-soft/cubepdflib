@@ -83,7 +83,23 @@ namespace CubePdf.Drawing
         public BitmapEngine(string path, string password = "")
             : this()
         {
-            this.Open(path, password);
+            Open(path, password);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Open
+        /// 
+        /// <summary>
+        /// IDocumentReader の情報を利用して、BitmapEngine クラスを初期化
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public BitmapEngine(CubePdf.Data.IDocumentReader reader)
+            : this()
+        {
+            Open(reader);
         }
 
         /* ----------------------------------------------------------------- */
@@ -98,7 +114,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         ~BitmapEngine()
         {
-            this.Dispose(false);
+            Dispose(false);
         }
 
         /* ----------------------------------------------------------------- */
@@ -113,7 +129,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -151,25 +167,24 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Open(string path, string password = "")
         {
-            lock (_lock)
-            {
-                if (_core != null) this.Close();
-                _core = new PDFLibNet.PDFWrapper();
-                _core.UseMuPDF = true;
+            OpenFile(path, password);
+            ExtractPages();
+        }
 
-                if (password.Length > 0)
-                {
-                    _core.UserPassword = password;
-                    _core.OwnerPassword = password;
-                }
-
-                if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
-
-                _core.CurrentPage = 1;
-                _path = path;
-            }
-
-            this.ExtractPages();
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Open
+        /// 
+        /// <summary>
+        /// IDocumentReader の情報を利用して、PDF ファイルの各ページに対応
+        /// するイメージを生成可能な状態にします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Open(CubePdf.Data.IDocumentReader reader)
+        {
+            OpenFile(reader.FilePath, reader.Password);
+            foreach (var page in reader.Pages) _pages.Add(page.Key, page.Value);
         }
 
         /* ----------------------------------------------------------------- */
@@ -420,6 +435,37 @@ namespace CubePdf.Drawing
         #endregion
 
         #region Other Methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OpenFile
+        /// 
+        /// <summary>
+        /// PDF ファイルを開いて、各ページに対するイメージを生成可能な状態に
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OpenFile(string path, string password)
+        {
+            lock (_lock)
+            {
+                if (_core != null) Close();
+                _core = new PDFLibNet.PDFWrapper();
+                _core.UseMuPDF = true;
+
+                if (password.Length > 0)
+                {
+                    _core.UserPassword = password;
+                    _core.OwnerPassword = password;
+                }
+
+                if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
+
+                _core.CurrentPage = 1;
+                _path = path;
+            }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
