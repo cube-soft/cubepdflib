@@ -46,6 +46,7 @@ namespace CubePdf.Wpf
         public static ICommand Move    { get { return _move; } }
         public static ICommand Rotate  { get { return _rotate; } }
         public static ICommand Undo    { get { return _undo; } }
+        public static ICommand Redo    { get { return _redo; } }
         #endregion
 
         #region Variables
@@ -57,6 +58,7 @@ namespace CubePdf.Wpf
         private static readonly ICommand _move    = new RoutedCommand("Move",    typeof(ListViewCommands));
         private static readonly ICommand _rotate  = new RoutedCommand("Rotate",  typeof(ListViewCommands));
         private static readonly ICommand _undo    = new RoutedCommand("Undo",    typeof(ListViewCommands));
+        private static readonly ICommand _redo    = new RoutedCommand("Redo",    typeof(ListViewCommands));
         #endregion
     }
 }

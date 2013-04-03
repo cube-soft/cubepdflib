@@ -61,6 +61,7 @@
     <Compile Include="EncryptionMethod.cs" />
     <Compile Include="EncryptionStatus.cs" />
     <Compile Include="FileIOWrapper.cs" />
+    <Compile Include="IDocumentReader.cs" />
     <Compile Include="IReadOnlyEncryption.cs" />
     <Compile Include="IReadOnlyMetadata.cs" />
     <Compile Include="IReadOnlyPage.cs" />

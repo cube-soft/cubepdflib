@@ -33,7 +33,7 @@ namespace CubePdf.Editing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class DocumentReader : IDisposable
+    public class DocumentReader : CubePdf.Data.IDocumentReader
     {
         #region Initialization and Termination
 
@@ -131,30 +131,9 @@ namespace CubePdf.Editing
                 new iTextSharp.text.pdf.PdfReader(path);
             _path = path;
 
-            var metadata = new CubePdf.Data.Metadata(); 
-            metadata.Author   = _core.Info.ContainsKey("Author")   ? _core.Info["Author"]   : "";
-            metadata.Title    = _core.Info.ContainsKey("Title")    ? _core.Info["Title"]    : "";
-            metadata.Subtitle = _core.Info.ContainsKey("Subject")  ? _core.Info["Subject"]  : "";
-            metadata.Keywords = _core.Info.ContainsKey("Keywords") ? _core.Info["Keywords"] : "";
-            metadata.Creator  = _core.Info.ContainsKey("Creator")  ? _core.Info["Creator"]  : "";
-            metadata.Producer = _core.Info.ContainsKey("Producer") ? _core.Info["Producer"] : "";
-            _metadata = metadata;
-
-            if (!_core.IsOpenedWithFullPermissions) _status = Data.EncryptionStatus.RestrictedAccess;
-            else if (password.Length == 0) _status = Data.EncryptionStatus.NotEncrypted;
-            else _status = Data.EncryptionStatus.FullAccess;
-            _permission = Translator.ToPermission(_core.Permissions);
-
-            for (int i = 0; i < _core.NumberOfPages; ++i)
-            {
-                var page = new CubePdf.Data.Page();
-                page.FilePath = path;
-                page.PageNumber = i + 1;
-                page.OriginalSize = Translator.ToSize(_core.GetPageSize(i + 1));
-                page.Rotation = _core.GetPageRotation(i + 1);
-                page.Power = 1.0;
-                _pages.Add(i + 1, page);
-            }            
+            ExtractPages(_core, _path);
+            ExtractMetadata(_core);
+            ExtractEncryption(_core, password);
         }
 
         /* ----------------------------------------------------------------- */
@@ -265,6 +244,73 @@ namespace CubePdf.Editing
         public SortedDictionary<int, CubePdf.Data.IReadOnlyPage> Pages
         {
             get { return _pages; }
+        }
+
+        #endregion
+
+        #region Other methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ExtractPages
+        /// 
+        /// <summary>
+        /// PDF ファイルのページ情報を抽出します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path)
+        {
+            for (int i = 0; i < reader.NumberOfPages; ++i)
+            {
+                var page = new CubePdf.Data.Page();
+                page.FilePath = path;
+                page.PageNumber = i + 1;
+                page.OriginalSize = Translator.ToSize(reader.GetPageSize(i + 1));
+                page.Rotation = reader.GetPageRotation(i + 1);
+                page.Power = 1.0;
+                _pages.Add(i + 1, page);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ExtractMetadata
+        /// 
+        /// <summary>
+        /// PDF ファイルのメタデータを抽出します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ExtractMetadata(iTextSharp.text.pdf.PdfReader reader)
+        {
+            var metadata = new CubePdf.Data.Metadata();
+
+            metadata.Author   = reader.Info.ContainsKey("Author")   ? reader.Info["Author"] : "";
+            metadata.Title    = reader.Info.ContainsKey("Title")    ? reader.Info["Title"] : "";
+            metadata.Subtitle = reader.Info.ContainsKey("Subject")  ? reader.Info["Subject"] : "";
+            metadata.Keywords = reader.Info.ContainsKey("Keywords") ? reader.Info["Keywords"] : "";
+            metadata.Creator  = reader.Info.ContainsKey("Creator")  ? reader.Info["Creator"] : "";
+            metadata.Producer = reader.Info.ContainsKey("Producer") ? reader.Info["Producer"] : "";
+
+            _metadata = metadata;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ExtractEncryption
+        /// 
+        /// <summary>
+        /// PDF ファイルの暗号化に関わる情報を抽出します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ExtractEncryption(iTextSharp.text.pdf.PdfReader reader, string password)
+        {
+            if (!reader.IsOpenedWithFullPermissions) _status = Data.EncryptionStatus.RestrictedAccess;
+            else if (password.Length == 0) _status = Data.EncryptionStatus.NotEncrypted;
+            else _status = Data.EncryptionStatus.FullAccess;
+            _permission = Translator.ToPermission(reader.Permissions);
         }
 
         #endregion
