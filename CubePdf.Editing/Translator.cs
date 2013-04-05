@@ -128,7 +128,7 @@ namespace CubePdf.Editing
             // if (value.Signature) dest |= ???
             // if (value.TemplatePage) dest |= ???
 
-            return 0;
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */

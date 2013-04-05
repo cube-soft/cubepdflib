@@ -48,6 +48,7 @@ namespace CubePdfTests.Data
         public void TestConstruct()
         {
             var encrypt = new CubePdf.Data.Encryption();
+            Assert.IsFalse(encrypt.IsEnabled);
             Assert.AreEqual(0, encrypt.OwnerPassword.Length);
             Assert.AreEqual(0, encrypt.UserPassword.Length);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, encrypt.Method);
@@ -76,11 +77,15 @@ namespace CubePdfTests.Data
         public void TestReadOnlyCast()
         {
             var crypt = new CubePdf.Data.Encryption();
+            crypt.IsEnabled = true;
+            crypt.IsUserPasswordEnabled = true;
             crypt.OwnerPassword = "owner";
             crypt.UserPassword = "user";
             crypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
             crypt.Permission.Printing = true;
             crypt.Permission.Accessibility = true;
+            Assert.IsTrue(crypt.IsEnabled);
+            Assert.IsTrue(crypt.IsUserPasswordEnabled);
             Assert.AreEqual("owner", crypt.OwnerPassword);
             Assert.AreEqual("user", crypt.UserPassword);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, crypt.Method);
@@ -96,6 +101,8 @@ namespace CubePdfTests.Data
             Assert.IsFalse(crypt.Permission.TemplatePage);
 
             var readable = crypt as CubePdf.Data.IReadOnlyEncryption;
+            Assert.IsTrue(readable.IsEnabled);
+            Assert.IsTrue(readable.IsUserPasswordEnabled);
             Assert.AreEqual("owner", readable.OwnerPassword);
             Assert.AreEqual("user", readable.UserPassword);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, readable.Method);

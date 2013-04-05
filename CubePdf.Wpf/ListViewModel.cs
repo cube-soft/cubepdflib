@@ -57,7 +57,66 @@ namespace CubePdf.Wpf
         public string FilePath
         {
             get { return _path; }
-            protected set { _path = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// FilePath
+        /// 
+        /// <summary>
+        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
+        /// ファイルサイズを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public long FileSize
+        {
+            get { return _size; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreationTime
+        /// 
+        /// <summary>
+        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
+        /// 作成日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime CreationTime
+        {
+            get { return _create; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateTime
+        /// 
+        /// <summary>
+        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
+        /// 更新日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime UpdateTime
+        {
+            get { return _update; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AccessTime
+        /// 
+        /// <summary>
+        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
+        /// アクセス日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime AccessTime
+        {
+            get { return _access; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -72,6 +131,7 @@ namespace CubePdf.Wpf
         public CubePdf.Data.Metadata Metadata
         {
             get { return _meta; }
+            set { _meta = value; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -86,6 +146,7 @@ namespace CubePdf.Wpf
         public CubePdf.Data.Encryption Encryption
         {
             get { return _crypt; }
+            set { _crypt = value; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -186,11 +247,15 @@ namespace CubePdf.Wpf
             {
                 var engine = CreateEngine(reader);
                 foreach (var page in engine.Pages.Values) Add(new CubePdf.Data.Page(page));
-                _meta  = new Data.Metadata(reader.Metadata);
-                _crypt = new Data.Encryption();
+                _path   = path;
+                _size   = reader.FileSize;
+                _create = reader.CreationTime;
+                _update = reader.UpdateTime;
+                _access = reader.AccessTime;
+                _meta   = new Data.Metadata(reader.Metadata);
+                _crypt  = new Data.Encryption();
                 _crypt.Method = reader.EncryptionMethod;
                 _crypt.Permission = new Data.Permission(reader.Permission);
-                _path = path;
             }
         }
 
@@ -206,6 +271,7 @@ namespace CubePdf.Wpf
         public void Close()
         {
             _path  = string.Empty;
+            _size  = 0;
             _meta  = null;
             _crypt = null;
 
@@ -798,6 +864,10 @@ namespace CubePdf.Wpf
         private int _width = 0;
         private int _maxundo = 0;
         private string _path = string.Empty;
+        private long _size = 0;
+        private DateTime _create = new DateTime();
+        private DateTime _update = new DateTime();
+        private DateTime _access = new DateTime();
         private CubePdf.Data.Metadata _meta = null;
         private CubePdf.Data.Encryption _crypt = null;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();

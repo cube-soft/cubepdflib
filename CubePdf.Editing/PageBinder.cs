@@ -83,19 +83,20 @@ namespace CubePdf.Editing
         {
 
             var doc = new iTextSharp.text.Document();
-            //var writer = new iTextSharp.text.pdf.PdfCopy(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
             var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
 
             writer.Open();
-            doc.Open();
-            var wdc = writer.DirectContent;
-            if (_encrypt.OwnerPassword.Length > 0)
+            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
+            if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
             {
                 var method = Translator.ToIText(_encrypt.Method);
                 var permission = Translator.ToIText(_encrypt.Permission);
-                writer.SetEncryption(method, _encrypt.UserPassword, _encrypt.OwnerPassword, permission);
+                var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
+                writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
             }
 
+            doc.Open();
+            var wdc = writer.DirectContent;
             foreach (var page in _pages)
             {
                 var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath);
@@ -134,6 +135,7 @@ namespace CubePdf.Editing
                 //writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 reader.Close();
             }
+
             doc.AddAuthor(_metadata.Author);
             doc.AddTitle(_metadata.Title);
             doc.AddSubject(_metadata.Subtitle);

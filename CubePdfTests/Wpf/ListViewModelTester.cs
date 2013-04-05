@@ -87,6 +87,24 @@ namespace CubePdfTests.Wpf
         public void TestOpen()
         {
             var viewmodel = CreateViewModel();
+            Assert.AreEqual(System.IO.Path.Combine(_src, "rotated.pdf"), viewmodel.FilePath);
+            Assert.AreEqual(64877, viewmodel.FileSize);
+            Assert.AreEqual(2013, viewmodel.CreationTime.Year);
+            Assert.AreEqual(3, viewmodel.CreationTime.Month);
+            Assert.AreEqual(6, viewmodel.CreationTime.Day);
+            Assert.AreEqual(2013, viewmodel.UpdateTime.Year);
+            Assert.AreEqual(3, viewmodel.UpdateTime.Month);
+            Assert.AreEqual(8, viewmodel.UpdateTime.Day);
+            Assert.NotNull(viewmodel.Metadata);
+            Assert.NotNull(viewmodel.Metadata.Version);
+            Assert.AreEqual(1, viewmodel.Metadata.Version.Major);
+            Assert.AreEqual(7, viewmodel.Metadata.Version.Minor);
+            Assert.AreEqual(0, viewmodel.Metadata.Version.Build);
+            Assert.AreEqual(0, viewmodel.Metadata.Version.Revision);
+            Assert.AreEqual("CubeSoft", viewmodel.Metadata.Author);
+            Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
+            Assert.AreEqual("rotated example", viewmodel.Metadata.Subtitle);
+            Assert.AreEqual("CubeSoft,PDF,Test", viewmodel.Metadata.Keywords);
             Assert.AreEqual(9, viewmodel.ItemCount);
             viewmodel.Close();
         }

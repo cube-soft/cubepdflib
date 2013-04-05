@@ -298,6 +298,255 @@ namespace CubePdfTests.Editing
             }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestMetadata
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いて文書プロパティの設定・消去テストを
+        /// 行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestMetadata()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+            }
+
+            // 新しい情報の設定テスト
+            binder.Metadata.Version = new Version("1.7");
+            binder.Metadata.Title = "TestPageBinderMetadata";
+            binder.Metadata.Author = "キューブ・ソフト";
+            binder.Metadata.Subtitle = "文書プロパティ編集テスト";
+            binder.Metadata.Keywords = "Cube,PDF,編集";
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderMetadata.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(7, reader.Metadata.Version.Minor);
+                Assert.AreEqual("TestPageBinderMetadata", reader.Metadata.Title);
+                Assert.AreEqual("キューブ・ソフト", reader.Metadata.Author);
+                Assert.AreEqual("文書プロパティ編集テスト", reader.Metadata.Subtitle);
+                Assert.AreEqual("Cube,PDF,編集", reader.Metadata.Keywords);
+            }
+
+            // 情報の消去テスト
+            binder.Metadata.Version = new Version("1.5");
+            binder.Metadata.Title = "";
+            binder.Metadata.Author = "";
+            binder.Metadata.Subtitle = "";
+            binder.Metadata.Keywords = "";
+
+            dest = System.IO.Path.Combine(_dest, "TestPageBinderMetadataDeleted.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(5, reader.Metadata.Version.Minor);
+                Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Title));
+                Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Author));
+                Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Subtitle));
+                Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Keywords));
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestEncryption
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いて暗号化に関する情報を設定するテストを
+        /// 行います。
+        /// 
+        /// NOTE: EncryptionMethod, および Permission の各値のテストに
+        /// ついては DocumentReader の実装がまだのため、コメントアウトして
+        /// います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestEncryption()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+            }
+
+            binder.Encryption.IsEnabled = true;
+            binder.Encryption.OwnerPassword = "password";
+            binder.Encryption.IsUserPasswordEnabled = true;
+            binder.Encryption.UserPassword = "view";
+            binder.Encryption.Method = CubePdf.Data.EncryptionMethod.Aes128;
+            binder.Encryption.Permission.Printing = true;
+            binder.Encryption.Permission.DegradedPrinting = true;
+            binder.Encryption.Permission.ModifyContents = true;
+            binder.Encryption.Permission.Assembly = true;
+            binder.Encryption.Permission.CopyContents = true;
+            binder.Encryption.Permission.ExtractPage = true;
+            binder.Encryption.Permission.Accessibility = true;
+            binder.Encryption.Permission.ModifyAnnotations = true;
+            binder.Encryption.Permission.InputFormFields = true;
+            binder.Encryption.Permission.Signature = true;
+            binder.Encryption.Permission.TemplatePage = true;
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderEncryption.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
+            {
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
+                //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
+                //Assert.IsTrue(reader.Permission.Printing);
+                //Assert.IsTrue(reader.Permission.DegradedPrinting);
+                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                //Assert.IsTrue(reader.Permission.Assembly);
+                //Assert.IsTrue(reader.Permission.CopyContents);
+                //Assert.IsTrue(reader.Permission.ExtractPage);
+                //Assert.IsTrue(reader.Permission.Accessibility);
+                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                //Assert.IsTrue(reader.Permission.InputFormFields);
+
+                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsTrue(reader.Permission.Signature);
+                // Assert.IsTrue(reader.Permission.TemplatePage);
+            }
+
+            binder.Encryption.Permission.Printing = false;
+            binder.Encryption.Permission.DegradedPrinting = false;
+            binder.Encryption.Permission.ModifyContents = false;
+            binder.Encryption.Permission.Assembly = false;
+            binder.Encryption.Permission.CopyContents = false;
+            binder.Encryption.Permission.ExtractPage = false;
+            binder.Encryption.Permission.Accessibility = false;
+            binder.Encryption.Permission.ModifyAnnotations = false;
+            binder.Encryption.Permission.InputFormFields = false;
+            binder.Encryption.Permission.Signature = false;
+            binder.Encryption.Permission.TemplatePage = false;
+
+            dest = System.IO.Path.Combine(_dest, "TestPageBinderNoPermission.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
+            {
+                //Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
+                //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
+                //Assert.IsFalse(reader.Permission.Printing);
+                //Assert.IsFalse(reader.Permission.DegradedPrinting);
+                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                //Assert.IsFalse(reader.Permission.Assembly);
+                //Assert.IsFalse(reader.Permission.CopyContents);
+                //Assert.IsFalse(reader.Permission.ExtractPage);
+                //Assert.IsFalse(reader.Permission.Accessibility);
+                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                //Assert.IsFalse(reader.Permission.InputFormFields);
+
+                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsTrue(reader.Permission.Signature);
+                // Assert.IsTrue(reader.Permission.TemplatePage);
+            }
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest, "view"))
+            {
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.RestrictedAccess, reader.EncryptionStatus);
+            }
+
+            try
+            {
+                new CubePdf.Editing.DocumentReader(dest, "invalid");
+                Assert.Fail();
+            }
+            catch (Exception /* err */) { Assert.Pass(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestNoEncryption
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いて暗号化に関する情報を設定するテストを
+        /// 行います。暗号化、および閲覧時のパスワードを設定するかどうかは
+        /// それぞれ IsEnabled, IsUserPasswordEnabled プロパティで判断
+        /// します。このテストでは、それぞの値を False に設定し、他の暗号化
+        /// に関する設定が無効になっている事を確認します。
+        /// 
+        /// NOTE: EncryptionMethod, および Permission の各値のテストに
+        /// ついては DocumentReader の実装がまだのため、コメントアウトして
+        /// います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestNoEncryption()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+            }
+
+            binder.Encryption.IsEnabled = false;
+            binder.Encryption.OwnerPassword = "password";
+            binder.Encryption.IsUserPasswordEnabled = true;
+            binder.Encryption.UserPassword = "view";
+            binder.Encryption.Method = CubePdf.Data.EncryptionMethod.Aes128;
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderNoEncryption.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, reader.EncryptionStatus);
+            }
+
+            binder.Encryption.IsEnabled = true;
+            binder.Encryption.IsUserPasswordEnabled = false;
+
+            dest = System.IO.Path.Combine(_dest, "TestPageBinderNoEncryptionUserPassword.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
+            {
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
+            }
+
+            try
+            {
+                new CubePdf.Editing.DocumentReader(dest, "view");
+                Assert.Fail();
+            }
+            catch (Exception /* err */) { Assert.Pass(); }
+        }
+
         #endregion
 
         #region Variables
