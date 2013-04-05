@@ -86,6 +86,7 @@ namespace CubePdf.Data
                     }
                     else dest.Add(int.Parse(value));
                 }
+                dest.Sort();
 
                 return dest;
             }
