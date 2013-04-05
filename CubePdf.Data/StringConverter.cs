@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -51,6 +52,47 @@ namespace CubePdf.Data
             var buffer = new StringBuilder(capacity);
             Win32Api.StrFormatByteSize(filesize, buffer, capacity);
             return buffer.ToString();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ParseRange
+        /// 
+        /// <summary>
+        /// 範囲を表す文字列を解析し、対応する範囲の配列に変換します。
+        /// 範囲を表す文字列は以下の規則に従う事とします。
+        /// 
+        /// range  = value , [ { "," value } ]
+        /// value  = number | number , "-" , number
+        /// number = digit , [ { digit } ]
+        /// digit  = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public static IList<int> ParseRange(string str)
+        {
+            try
+            {
+                var dest = new List<int>();
+
+                var range = str.Split(',');
+                foreach (var value in range)
+                {
+                    if (value.IndexOf('-') != -1)
+                    {
+                        var numbers = value.Split('-');
+                        if (numbers.Length != 2) throw new ArgumentException();
+                        for (int i = int.Parse(numbers[0]); i <= int.Parse(numbers[1]); ++i) dest.Add(i);
+                    }
+                    else dest.Add(int.Parse(value));
+                }
+
+                return dest;
+            }
+            catch (Exception /* err */)
+            {
+                throw new ArgumentException(Properties.Resources.ParseRangeException);
+            }
         }
 
         #region Win32 APIs

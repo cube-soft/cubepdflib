@@ -59,6 +59,7 @@
     <Compile Include="Data\EncryptionTester.cs" />
     <Compile Include="Data\MetadataTester.cs" />
     <Compile Include="Data\PageTester.cs" />
+    <Compile Include="Data\StringConverterTester.cs" />
     <Compile Include="Drawing\BitmapEngineTester.cs" />
     <Compile Include="Editing\DocumentReaderTester.cs" />
     <Compile Include="Editing\PageBinderTester.cs" />
