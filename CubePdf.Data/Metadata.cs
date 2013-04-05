@@ -199,7 +199,7 @@ namespace CubePdf.Data
         #endregion
 
         #region Variables
-        private Version _version = null;
+        private Version _version = new Version("1.7");
         private string _author = string.Empty;
         private string _title = string.Empty;
         private string _subtitle = string.Empty;

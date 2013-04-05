@@ -81,9 +81,9 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
-
             var doc = new iTextSharp.text.Document();
             var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
+            if (writer == null) return;
 
             writer.Open();
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
