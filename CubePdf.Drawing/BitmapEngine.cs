@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -149,6 +150,17 @@ namespace CubePdf.Drawing
                 if (_disposed) return;
                 _disposed = true;
                 if (disposing) this.Close();
+
+                for (int i = _garbage.Count - 1; i >= 0; --i)
+                {
+                    try
+                    {
+                        System.IO.File.Delete(_garbage[i]);
+                        _garbage.RemoveAt(i);
+                    }
+                    catch (Exception /* err */) { }
+                }
+                _disposed_unmanaged = (_garbage.Count == 0);
             }
         }
 
@@ -193,6 +205,9 @@ namespace CubePdf.Drawing
         /// 
         /// <summary>
         /// 現在、開いている PDF ファイルを閉じます。
+        /// NOTE: PDFWrapper クラスのファイルハンドラの解法タイミングの関係
+        /// で、一時ファイルの削除に失敗する事があります。削除に失敗した
+        /// 一時ファイルは GC のタイミングで再度削除を試します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -210,6 +225,9 @@ namespace CubePdf.Drawing
                 }
                 _pages.Clear();
                 _path = string.Empty;
+
+                try { System.IO.File.Delete(_tmp); }
+                catch (Exception /* err */) { _garbage.Add(_tmp); }
             }
         }
 
@@ -460,7 +478,11 @@ namespace CubePdf.Drawing
                     _core.OwnerPassword = password;
                 }
 
-                if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
+                _tmp = System.IO.Path.GetTempFileName();
+                System.IO.File.Delete(_tmp);
+                System.IO.File.Copy(path, _tmp, false);
+
+                if (!_core.LoadPDF(_tmp)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
 
                 _core.CurrentPage = 1;
                 _path = path;
@@ -508,12 +530,15 @@ namespace CubePdf.Drawing
 
         #region Variables
         private bool _disposed = false;
+        private bool _disposed_unmanaged = false;
         private object _lock = new object();
         private string _path = string.Empty;
+        private string _tmp = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
         private SortedDictionary<int, CubePdf.Data.IReadOnlyPage> _pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
+        private List<string> _garbage = new List<string>();
         #endregion
 
     }
