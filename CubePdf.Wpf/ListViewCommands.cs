@@ -38,27 +38,31 @@ namespace CubePdf.Wpf
     public static class ListViewCommands
     {
         #region Properties
-        public static ICommand Add     { get { return _add; } }
-        public static ICommand Insert  { get { return _insert; } }
-        public static ICommand Extract { get { return _extract; } }
-        public static ICommand Split   { get { return _split; } }
-        public static ICommand Remove  { get { return _remove; } }
-        public static ICommand Move    { get { return _move; } }
-        public static ICommand Rotate  { get { return _rotate; } }
-        public static ICommand Undo    { get { return _undo; } }
-        public static ICommand Redo    { get { return _redo; } }
+        public static ICommand Add        { get { return _add; } }
+        public static ICommand Insert     { get { return _insert; } }
+        public static ICommand Extract    { get { return _extract; } }
+        public static ICommand Split      { get { return _split; } }
+        public static ICommand Remove     { get { return _remove; } }
+        public static ICommand Move       { get { return _move; } }
+        public static ICommand Rotate     { get { return _rotate; } }
+        public static ICommand Undo       { get { return _undo; } }
+        public static ICommand Redo       { get { return _redo; } }
+        public static ICommand Metadata   { get { return _meta; } }
+        public static ICommand Encryption { get { return _encrypt; } }
         #endregion
 
         #region Variables
-        private static readonly ICommand _add     = new RoutedCommand("Add",     typeof(ListViewCommands));
-        private static readonly ICommand _insert  = new RoutedCommand("Insert",  typeof(ListViewCommands));
-        private static readonly ICommand _extract = new RoutedCommand("Extract", typeof(ListViewCommands));
-        private static readonly ICommand _split   = new RoutedCommand("Split",   typeof(ListViewCommands));
-        private static readonly ICommand _remove  = new RoutedCommand("Remove",  typeof(ListViewCommands));
-        private static readonly ICommand _move    = new RoutedCommand("Move",    typeof(ListViewCommands));
-        private static readonly ICommand _rotate  = new RoutedCommand("Rotate",  typeof(ListViewCommands));
-        private static readonly ICommand _undo    = new RoutedCommand("Undo",    typeof(ListViewCommands));
-        private static readonly ICommand _redo    = new RoutedCommand("Redo",    typeof(ListViewCommands));
+        private static readonly ICommand _add     = new RoutedCommand("Add",        typeof(ListViewCommands));
+        private static readonly ICommand _insert  = new RoutedCommand("Insert",     typeof(ListViewCommands));
+        private static readonly ICommand _extract = new RoutedCommand("Extract",    typeof(ListViewCommands));
+        private static readonly ICommand _split   = new RoutedCommand("Split",      typeof(ListViewCommands));
+        private static readonly ICommand _remove  = new RoutedCommand("Remove",     typeof(ListViewCommands));
+        private static readonly ICommand _move    = new RoutedCommand("Move",       typeof(ListViewCommands));
+        private static readonly ICommand _rotate  = new RoutedCommand("Rotate",     typeof(ListViewCommands));
+        private static readonly ICommand _undo    = new RoutedCommand("Undo",       typeof(ListViewCommands));
+        private static readonly ICommand _redo    = new RoutedCommand("Redo",       typeof(ListViewCommands));
+        private static readonly ICommand _meta    = new RoutedCommand("Metadata",   typeof(ListViewCommands));
+        private static readonly ICommand _encrypt = new RoutedCommand("Encryption", typeof(ListViewCommands));
         #endregion
     }
 }
