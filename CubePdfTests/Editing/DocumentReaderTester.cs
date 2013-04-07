@@ -114,14 +114,6 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(filename, doc.FilePath);
 
                     Assert.AreEqual(64877, doc.FileSize);
-                    
-                    Assert.AreEqual(2013, doc.CreationTime.Year);
-                    Assert.AreEqual(3, doc.CreationTime.Month);
-                    Assert.AreEqual(6, doc.CreationTime.Day);
-
-                    Assert.AreEqual(2013, doc.UpdateTime.Year);
-                    Assert.AreEqual(3, doc.UpdateTime.Month);
-                    Assert.AreEqual(8, doc.UpdateTime.Day);
 
                     Assert.NotNull(doc.Metadata);
                     Assert.NotNull(doc.Metadata.Version);

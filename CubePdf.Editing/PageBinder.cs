@@ -99,7 +99,11 @@ namespace CubePdf.Editing
             var wdc = writer.DirectContent;
             foreach (var page in _pages)
             {
-                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath);
+                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath); 
+
+                // RV: ページサイズに関しては多分下記で問題ない。テストは行うこと (tsugawa)
+                // doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
+
                 switch (page.Rotation)
                 {
                     case 0:
@@ -117,6 +121,19 @@ namespace CubePdf.Editing
                 }
                 doc.NewPage();
 
+                //RV: AddTemplate の2～4個目の引数には回転行列を、5, 6個目の引数には平行移動用の値を指定する。
+                //回転行列の指定方法に関しては、例えば、下記のようになる
+                //System.Drawing.Drawing2D.Matrix で指定する方法もあるらしい。
+                //平行移動の(x, y)座標の指定の仕方が現時点ではよくわからないので、要調査。
+                //0→270度と90→270度で結果が異なるので、平行移動に関しては元の度数も考慮する必要がある様子。(tsugawa)
+                //
+                //var radian = Math.PI * page.Rotation / 180.0;
+                //var sin = (float)Math.Sin(radian);
+                //var cos = (float)Math.Cos(radian);
+                //var x = ???;
+                //var y = ???;
+                //wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, 0, 0);
+
                 switch (page.Rotation)
                 {
                     case 0:
@@ -129,10 +146,9 @@ namespace CubePdf.Editing
                         wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), -1f, 0f, 0f, -1f, reader.GetPageSizeWithRotation(page.PageNumber).Width, reader.GetPageSizeWithRotation(page.PageNumber).Height);
                         break;
                     case 270:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, 1f, -1f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Width, 0f);
+                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, 1f, -1f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Height, 0f);
                         break;
                 }
-                //writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 reader.Close();
             }
 

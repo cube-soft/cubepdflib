@@ -300,6 +300,57 @@ namespace CubePdfTests.Editing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestRotateDetail
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いてページ回転のテストを行います。
+        /// (0, 90, 180, 270) x (0, 90, 180, 270) の 16 パターンの回転を
+        /// 行い生成後の PDF を確認します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [TestCase(0)]
+        [TestCase(90)]
+        [TestCase(180)]
+        [TestCase(270)]
+        public void TestRotateDetail(int degree)
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                Assert.AreEqual(0,   reader.Pages[1].Rotation);
+                Assert.AreEqual(90,  reader.Pages[2].Rotation);
+                Assert.AreEqual(180, reader.Pages[3].Rotation);
+                Assert.AreEqual(270, reader.Pages[4].Rotation);
+
+                for (int i = 1; i <= 4; ++i)
+                {
+                    var page = new CubePdf.Data.Page(reader.Pages[i]);
+                    page.Rotation = degree;
+                    binder.Pages.Add(page);
+                }
+            }
+
+            var filename = String.Format("TestPageBinderRotate{0}.pdf", degree);
+            var dest = System.IO.Path.Combine(_dest, filename);
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(degree, reader.Pages[1].Rotation);
+                Assert.AreEqual(degree, reader.Pages[2].Rotation);
+                Assert.AreEqual(degree, reader.Pages[3].Rotation);
+                Assert.AreEqual(degree, reader.Pages[4].Rotation);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestMetadata
         /// 
         /// <summary>
