@@ -22,6 +22,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Windows.Media;
 
 namespace CubePdf.Wpf
@@ -359,6 +360,18 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Redo();
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PreviewImage
+        /// 
+        /// <summary>
+        /// ListView で表示されているサムネイルに対応するプレビュー用の
+        /// イメージを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        Image PreviewImage(int index, Size bound);
 
         /* ----------------------------------------------------------------- */
         ///

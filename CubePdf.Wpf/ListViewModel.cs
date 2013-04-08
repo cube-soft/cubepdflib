@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Drawing;
 
 namespace CubePdf.Wpf
 {
@@ -571,6 +572,32 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Redo() { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PreviewImage
+        /// 
+        /// <summary>
+        /// ListView で表示されているサムネイルに対応するプレビュー用の
+        /// イメージを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Image PreviewImage(int index, Size bound)
+        {
+            if (index < 0 || index >= _pages.Count) return null;
+
+            var page = _pages[index];
+            var horizontal = bound.Width / (double)page.ViewSize.Width;
+            var vertical = bound.Height / (double)page.ViewSize.Height;
+            var power = (horizontal < vertical) ? horizontal : vertical;
+
+            lock (_engines)
+            {
+                var engine = _engines[page.FilePath];
+                return engine.CreateImage(page.PageNumber, power);
+            }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
