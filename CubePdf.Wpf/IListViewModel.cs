@@ -23,7 +23,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Windows.Media;
 
 namespace CubePdf.Wpf
 {
@@ -39,7 +38,7 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : IItemsProvider<ImageSource>
+    public interface IListViewModel : IItemsProvider<Image>
     {
         #region Properties
 
@@ -159,7 +158,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<ImageSource> Items { get; }
+        ObservableCollection<Image> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -384,7 +383,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         CubePdf.Data.Page ToPage(object item);
-        CubePdf.Data.Page ToPage(ImageSource item);
+        CubePdf.Data.Page ToPage(Image item);
 
         #endregion
     }

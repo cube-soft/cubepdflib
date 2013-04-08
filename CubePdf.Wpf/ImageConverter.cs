@@ -58,8 +58,6 @@ namespace CubePdf.Wpf
             using (var stream = new System.IO.MemoryStream())
             {
                 src.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                src.Dispose();
-
                 var dest = new BitmapImage();
                 dest.BeginInit();
                 dest.CacheOption = BitmapCacheOption.OnLoad;

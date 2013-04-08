@@ -23,8 +23,6 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Drawing;
 
 namespace CubePdf.Wpf
@@ -191,7 +189,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ObservableCollection<ImageSource> Items
+        public ObservableCollection<Image> Items
         {
             get { return _images; }
         }
@@ -283,7 +281,11 @@ namespace CubePdf.Wpf
                 _engines.Clear();
             }
             lock (_requests) _requests.Clear();
-            lock (_images) _images.Clear();
+            lock (_images)
+            {
+                foreach (var image in _images) image.Dispose();
+                _images.Clear();
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -432,7 +434,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public  void Split(IList<CubePdf.Data.Page> pages, string directory) { foreach (var page in pages) Split(_pages.IndexOf(page), directory); }
-        public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as ImageSource), directory); }
+        public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as Image), directory); }
         private void Split(int index, string directory)
         {
             if (index < 0 || index >= _pages.Count) return;
@@ -456,7 +458,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Remove(object item) { RemoveAt(_images.IndexOf(item as ImageSource)); }
+        public void Remove(object item) { RemoveAt(_images.IndexOf(item as Image)); }
         public void Remove(CubePdf.Data.Page item) { RemoveAt(_pages.IndexOf(item)); }
 
         /* ----------------------------------------------------------------- */
@@ -479,7 +481,9 @@ namespace CubePdf.Wpf
             lock (_images)
             {
                 _pages.RemoveAt(index);
+                var image = _images[index];
                 _images.RemoveAt(index);
+                if (image != null) image.Dispose();
             }
         }
 
@@ -518,7 +522,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as ImageSource), degree); }
+        public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as Image), degree); }
         public void Rotate(CubePdf.Data.Page item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
 
         /* ----------------------------------------------------------------- */
@@ -548,7 +552,9 @@ namespace CubePdf.Wpf
             if (delta >= 360) delta -= 360;
 
             RotateImage(image, delta);
-            _images[index] = ToImageSource(image);
+            var prev = _images[index];
+            _images[index] = image;
+            if (prev != null) prev.Dispose();
         }
 
         /* ----------------------------------------------------------------- */
@@ -609,8 +615,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Page ToPage(object item) { return ToPage(item as ImageSource); }
-        public CubePdf.Data.Page ToPage(ImageSource item)
+        public CubePdf.Data.Page ToPage(object item) { return ToPage(item as Image); }
+        public CubePdf.Data.Page ToPage(Image item)
         {
             var index = _images.IndexOf(item);
             return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
@@ -620,7 +626,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// IItemsProvider(ImageSource)
+        /// IItemsProvider(Image)
         /// 
         /// <summary>
         /// IItemsProvider インターフェースの実装を行います。
@@ -629,10 +635,10 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        #region Implementations for IItemsProvider<ImageSource>
+        #region Implementations for IItemsProvider<Image>
 
         public int ProvideItemsCount() { throw new NotImplementedException(); }
-        public ImageSource ProvideItem(int index) { throw new NotImplementedException(); }
+        public Image ProvideItem(int index) { throw new NotImplementedException(); }
 
         #endregion
 
@@ -656,7 +662,9 @@ namespace CubePdf.Wpf
             {
                 lock (_images)
                 {
-                    _images[index] = ToImageSource(e.Image);
+                    var prev = _images[index];
+                    _images[index] = e.Image;
+                    if (prev != null) prev.Dispose();
                     Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
                 }
             }
@@ -715,40 +723,12 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private ImageSource GetDummyItem(CubePdf.Data.IReadOnlyPage page)
+        private Image GetDummyItem(CubePdf.Data.IReadOnlyPage page)
         {
             var power = GetPower(page);
             var width = (int)(page.ViewSize.Width * power);
             var height = (int)(page.ViewSize.Height * power);
-            return ToImageSource(new System.Drawing.Bitmap(width, height));
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ToImageSource
-        /// 
-        /// <summary>
-        /// System.Drawing.Image オブジェクトから
-        /// System.Windows.Media.Imaging.ImageSource オブジェクトへの変換を
-        /// 行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private ImageSource ToImageSource(System.Drawing.Image src)
-        {
-            using (var stream = new System.IO.MemoryStream())
-            {
-                src.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                src.Dispose();
-
-                var dest = new BitmapImage();
-                dest.BeginInit();
-                dest.CacheOption = BitmapCacheOption.OnLoad;
-                dest.StreamSource = new System.IO.MemoryStream(stream.ToArray());
-                dest.EndInit();
-                //if (dest.CanFreeze) dest.Freeze();
-                return dest;
-            }
+            return new Bitmap(width, height);
         }
 
         #endregion
@@ -898,7 +878,7 @@ namespace CubePdf.Wpf
         private CubePdf.Data.Metadata _meta = null;
         private CubePdf.Data.Encryption _crypt = null;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
-        private ObservableCollection<ImageSource> _images = new ObservableCollection<ImageSource>();
+        private ObservableCollection<Image> _images = new ObservableCollection<Image>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
         #endregion
