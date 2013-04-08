@@ -24,6 +24,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Windows.Input;
 
 namespace CubePdf.Wpf
 {
@@ -196,6 +197,77 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// HistoryLimit
+        /// 
+        /// <summary>
+        /// 記録可能な履歴の最大値を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int HistoryLimit
+        {
+            get { return _maxundo; }
+            set { _maxundo = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// HistoryCount
+        /// 
+        /// <summary>
+        /// これまでに実行した処理の履歴数を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int HistoryCount
+        {
+            get { return _undo.Count; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// History
+        /// 
+        /// <summary>
+        /// これまでに実行した処理の履歴を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public IList<CommandElement> History
+        {
+            get { return _undo; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UndoHistoryCount
+        /// 
+        /// <summary>
+        /// 直前に実行した Undo 処理の履歴数を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int UndoHistoryCount
+        {
+            get { return _redo.Count; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UndoHistory
+        /// 
+        /// <summary>
+        /// 直前に実行した Undo 処理の履歴を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public IList<CommandElement> UndoHistory
+        {
+            get { return _redo; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// UnderItemCreation
         /// 
         /// <summary>
@@ -207,22 +279,6 @@ namespace CubePdf.Wpf
         public bool UnderItemCreation
         {
             get { return GetRunningEngine() != null; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// MaxUndoCount
-        /// 
-        /// <summary>
-        /// 連続して Undo（処理の取り消し）を行える最大回数を設定、または
-        /// 取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int MaxUndoCount
-        {
-            get { return _maxundo; }
-            set { _maxundo = value; }
         }
 
         #endregion
@@ -559,6 +615,30 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// BeginCommand
+        /// 
+        /// <summary>
+        /// 一連の処理が始まる事を表します。主に Undo の際の処理粒度を調整
+        /// する目的で使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void BeginCommand() { _status = CommandStatus.Begin; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EndCommand
+        /// 
+        /// <summary>
+        /// 一連の処理が終わる事を表します。主に Undo の際の処理粒度を調整
+        /// する目的で使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void EndCommand() { _status = CommandStatus.End; }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Undo
         /// 
         /// <summary>
@@ -790,6 +870,23 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// UpdateHistory
+        /// 
+        /// <summary>
+        /// 履歴を更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateHistory(ICommand command, IList parameters)
+        {
+            if (_status != CommandStatus.Continue) _undo.Add(new CommandElement(command));
+            var element = _undo[_undo.Count - 1];
+            foreach (var param in parameters) element.Parameters.Add(param);
+            if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// UpdateRequest
         /// 
         /// <summary>
@@ -867,6 +964,22 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Internal classes
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CommandStatus
+        ///
+        /// <summary>
+        /// 処理の状態を判別するための Enum 型です。主に、BeginCommand(),
+        /// EndCommand() を判別するために使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        internal enum CommandStatus { Begin, Continue, End }
+
+        #endregion
+
         #region Variables
         private int _width = 0;
         private int _maxundo = 0;
@@ -881,6 +994,9 @@ namespace CubePdf.Wpf
         private ObservableCollection<Image> _images = new ObservableCollection<Image>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
+        private CommandStatus _status = CommandStatus.End;
+        private List<CommandElement> _undo = new List<CommandElement>();
+        private List<CommandElement> _redo = new List<CommandElement>();
         #endregion
     }
 }

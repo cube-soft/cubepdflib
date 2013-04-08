@@ -64,11 +64,13 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ControlToTagConverter.cs" />
     <Compile Include="EnumToIntConverter.cs" />
     <Compile Include="IItemsProvider.cs" />
     <Compile Include="IListViewModel.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="ListViewCommands.cs" />
+    <Compile Include="CommandElement.cs" />
     <Compile Include="ListViewModel.cs" />
     <Compile Include="MultiAndConverter.cs" />
     <Compile Include="MultipleLoadException.cs" />
