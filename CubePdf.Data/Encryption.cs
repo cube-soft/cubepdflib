@@ -58,10 +58,12 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public Encryption(IReadOnlyEncryption cp)
         {
-            this.OwnerPassword = cp.OwnerPassword;
-            this.UserPassword = cp.UserPassword;
-            this.Method = cp.Method;
-            this.Permission = new Permission(cp.Permission);
+            IsEnabled = cp.IsEnabled;
+            IsUserPasswordEnabled = cp.IsUserPasswordEnabled;
+            OwnerPassword = cp.OwnerPassword;
+            UserPassword = cp.UserPassword;
+            Method = cp.Method;
+            Permission = new Permission(cp.Permission);
         }
 
         #endregion
