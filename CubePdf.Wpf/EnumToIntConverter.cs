@@ -52,7 +52,7 @@ namespace CubePdf.Wpf
                 var id = (T)value;
                 return id.ToInt32(null);
             }
-            catch (InvalidCastException /* err */) { return default(T).ToInt32(null); }
+            catch (Exception /* err */) { return default(T).ToInt32(null); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -71,7 +71,7 @@ namespace CubePdf.Wpf
                 var index = (int)value;
                 return (T)Enum.Parse(typeof(T), index.ToString(), true);
             }
-            catch (InvalidCastException /* err */) { return default(T); }
+            catch (Exception /* err */) { return default(T); }
         }
     }
 }

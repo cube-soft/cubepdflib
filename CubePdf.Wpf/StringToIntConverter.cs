@@ -46,8 +46,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var str = value as string;
-            return (str != null) ? int.Parse(str) : -1;
+            try { return int.Parse(value as string); }
+            catch (Exception /* err */) { return default(int); }
         }
 
         /* ----------------------------------------------------------------- */
