@@ -59,14 +59,5 @@ namespace CubePdf.Wpf.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   指定されたファイルは既に読み込まれています。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string MultipleLoadException {
-            get {
-                return ResourceManager.GetString("MultipleLoadException", resourceCulture);
-            }
-        }
     }
 }

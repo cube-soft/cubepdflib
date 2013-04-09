@@ -299,6 +299,8 @@ namespace CubePdf.Wpf
                 _encrypt  = new Data.Encryption();
                 _encrypt.Method = reader.EncryptionMethod;
                 _encrypt.Permission = new Data.Permission(reader.Permission);
+                _undo.Clear();
+                _redo.Clear();
             }
         }
 
@@ -317,6 +319,8 @@ namespace CubePdf.Wpf
             _size  = 0;
             _meta  = null;
             _encrypt = null;
+            _undo.Clear();
+            _redo.Clear();
 
             lock (_pages) _pages.Clear();
             lock (_engines)
@@ -395,7 +399,12 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, CubePdf.Data.Page item)
         {
-            lock (_pages) _pages.Insert(index, item);
+            lock (_pages)
+            {
+                _pages.Insert(index, item);
+                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.Page>(index, item));
+            }
+
             lock (_images) _images.Insert(index, GetDummyItem(item));
             lock (_requests)
             {
@@ -418,15 +427,18 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, string path, string password = "")
         {
-            if (_engines.ContainsKey(path)) throw new MultipleLoadException(Properties.Resources.MultipleLoadException, path);
-
-            var engine = CreateEngine(path, password);
-            foreach (var page in engine.Pages.Values)
+            try
             {
-                var item = new CubePdf.Data.Page(page);
-                Insert(index, item);
-                ++index;
+                BeginCommand();
+                var engine = _engines.ContainsKey(path) ? _engines[path] : CreateEngine(path, password);
+                foreach (var page in engine.Pages.Values)
+                {
+                    var item = new CubePdf.Data.Page(page);
+                    Insert(index, item);
+                    ++index;
+                }
             }
+            finally { EndCommand(); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -731,9 +743,31 @@ namespace CubePdf.Wpf
         #region Undo methods
 
         /* ----------------------------------------------------------------- */
+        ///
         /// UndoInsert
+        ///
+        /// <summary>
+        /// 挿入操作を取り消します。
+        /// パラメータ (parameters) は、インデックスと挿入された PDF ページ
+        /// オブジェクトのペア (KeyValuePair(int, CubePdf.Data.Page))
+        /// オブジェクトが 1 つ以上指定されます。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        private void UndoInsert(IList parameters) { throw new NotImplementedException(); }
+        private void UndoInsert(IList parameters)
+        {
+            if (parameters == null) return;
+            try
+            {
+                BeginCommand();
+                for (int i = parameters.Count - 1; i >= 0; --i)
+                {
+                    var param = (KeyValuePair<int, CubePdf.Data.Page>)parameters[i];
+                    RemoveAt(param.Key);
+                }
+            }
+            finally { EndCommand(); }
+        }
 
         /* ----------------------------------------------------------------- */
         /// UndoRemove
@@ -752,7 +786,7 @@ namespace CubePdf.Wpf
         /// <summary>
         /// 回転操作を取り消します。
         /// パラメータ (parameters) は、インデックスと回転度数のペア
-        /// (KeyValuePair(int, int)) オブジェクトが 1 個以上指定されます。
+        /// (KeyValuePair(int, int)) オブジェクトが 1 つ以上指定されます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */

@@ -207,38 +207,6 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestMultipleLoadException
-        /// 
-        /// <summary>
-        /// 同じファイルを 2 回読み込むテストを行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestMultipleLoadException()
-        {
-            var viewmodel = CreateViewModel();
-            try
-            {
-                var src = System.IO.Path.Combine(_src, "readme.pdf");
-                Assert.IsTrue(System.IO.File.Exists(src));
-                viewmodel.Insert(2, src);
-                Assert.AreEqual(11, viewmodel.ItemCount);
-                viewmodel.Add(src);
-                Assert.Fail("never reached");
-            }
-            catch (CubePdf.Wpf.MultipleLoadException /* err */)
-            {
-                Assert.Pass();
-            }
-            finally
-            {
-                viewmodel.Close();
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// TestAdd
         /// 
         /// <summary>
@@ -514,15 +482,24 @@ namespace CubePdfTests.Wpf
             viewmodel.RotateAt(2, 90);
             viewmodel.RotateAt(3, 90);
             viewmodel.EndCommand();
-            Assert.AreEqual(3,   viewmodel.History.Count);
+            Assert.AreEqual(3, viewmodel.History.Count);
             Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[0]).Rotation);
             Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[1]).Rotation);
             Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
             Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[3]).Rotation);
 
+            var added = System.IO.Path.Combine(_src, "readme.pdf");
+            viewmodel.Insert(0, added);
+            Assert.AreEqual(4, viewmodel.History.Count);
+            Assert.AreEqual(11, viewmodel.ItemCount);
+
             // Undo 開始
             viewmodel.Undo();
-            Assert.AreEqual(2,   viewmodel.History.Count);
+            Assert.AreEqual(3, viewmodel.History.Count);
+            Assert.AreEqual(9, viewmodel.ItemCount);
+
+            viewmodel.Undo();
+            Assert.AreEqual(2, viewmodel.History.Count);
             Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[0]).Rotation);
             Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[1]).Rotation);
             Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
