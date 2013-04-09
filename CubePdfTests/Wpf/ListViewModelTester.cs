@@ -492,7 +492,34 @@ namespace CubePdfTests.Wpf
         [Test]
         public void TestUndo()
         {
-            // TODO: テストを書く。
+            var viewmodel = CreateViewModel();
+
+            var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
+            metadata.Title = "TestHistory";
+            viewmodel.Metadata = metadata;
+            Assert.AreEqual(1, viewmodel.History.Count);
+            Assert.AreEqual("TestHistory", viewmodel.Metadata.Title);
+
+            var encrypt = new CubePdf.Data.Encryption(viewmodel.Encryption);
+            encrypt.IsEnabled = true;
+            encrypt.OwnerPassword = "owner";
+            viewmodel.Encryption = encrypt;
+            Assert.AreEqual(2, viewmodel.History.Count);
+            Assert.IsTrue(viewmodel.Encryption.IsEnabled);
+            Assert.AreEqual("owner", encrypt.OwnerPassword);
+
+            viewmodel.Undo();
+            Assert.AreEqual(1, viewmodel.History.Count);
+            Assert.AreEqual(1, viewmodel.UndoHistory.Count);
+            Assert.IsFalse(viewmodel.Encryption.IsEnabled);
+            Assert.IsNullOrEmpty(viewmodel.Encryption.OwnerPassword);
+
+            viewmodel.Undo();
+            Assert.AreEqual(0, viewmodel.History.Count);
+            Assert.AreEqual(2, viewmodel.UndoHistory.Count);
+            Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
+
+            viewmodel.Close();
         }
 
         #endregion

@@ -124,14 +124,22 @@ namespace CubePdf.Wpf
         /// Metadata
         /// 
         /// <summary>
-        /// PDF ファイルの文書プロパティを取得します。
+        /// PDF ファイルの文書プロパティを取得、または設定します。
+        /// 
+        /// NOTE: Metadata のメンバのみを変更する場合、その変更は履歴には
+        /// 残りません。履歴に残す場合、Metadata オブジェクト自体を変更
+        /// して下さい。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.Metadata Metadata
         {
             get { return _meta; }
-            set { _meta = value; }
+            set
+            {
+                UpdateHistory(ListViewCommands.Metadata, _meta);
+                _meta = value;
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -140,13 +148,21 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// PDF ファイルのセキュリティに関する情報を取得します。
+        /// 
+        /// NOTE: Encryption のメンバのみを変更する場合、その変更は履歴には
+        /// 残りません。履歴に残す場合、Encryption オブジェクト自体を変更
+        /// して下さい。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.Encryption Encryption
         {
-            get { return _crypt; }
-            set { _crypt = value; }
+            get { return _encrypt; }
+            set
+            {
+                UpdateHistory(ListViewCommands.Encryption, _encrypt);
+                _encrypt = value;
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -212,20 +228,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// HistoryCount
-        /// 
-        /// <summary>
-        /// これまでに実行した処理の履歴数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int HistoryCount
-        {
-            get { return _undo.Count; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// History
         /// 
         /// <summary>
@@ -233,23 +235,9 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IList<CommandElement> History
+        public ReadOnlyCollection<CommandElement> History
         {
-            get { return _undo; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UndoHistoryCount
-        /// 
-        /// <summary>
-        /// 直前に実行した Undo 処理の履歴数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int UndoHistoryCount
-        {
-            get { return _redo.Count; }
+            get { return _undo.AsReadOnly(); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -261,9 +249,9 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IList<CommandElement> UndoHistory
+        public ReadOnlyCollection<CommandElement> UndoHistory
         {
-            get { return _redo; }
+            get { return _redo.AsReadOnly(); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -308,9 +296,9 @@ namespace CubePdf.Wpf
                 _update = reader.UpdateTime;
                 _access = reader.AccessTime;
                 _meta   = new Data.Metadata(reader.Metadata);
-                _crypt  = new Data.Encryption();
-                _crypt.Method = reader.EncryptionMethod;
-                _crypt.Permission = new Data.Permission(reader.Permission);
+                _encrypt  = new Data.Encryption();
+                _encrypt.Method = reader.EncryptionMethod;
+                _encrypt.Permission = new Data.Permission(reader.Permission);
             }
         }
 
@@ -328,7 +316,7 @@ namespace CubePdf.Wpf
             _path  = string.Empty;
             _size  = 0;
             _meta  = null;
-            _crypt = null;
+            _encrypt = null;
 
             lock (_pages) _pages.Clear();
             lock (_engines)
@@ -646,7 +634,25 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Undo() { throw new NotImplementedException(); }
+        public void Undo()
+        {
+            if (_undo.Count == 0) return;
+
+            try
+            {
+                _onundo = true;
+                var element = _undo[_undo.Count - 1];
+                _undo.Remove(element);
+                if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
+                else if (element.Command == ListViewCommands.Add) UndoAdd(element.Parameters);
+                else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
+                else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
+                else if (element.Command == ListViewCommands.Rotate) UndoRotate(element.Parameters);
+                else if (element.Command == ListViewCommands.Metadata) UndoMetadata(element.Parameters);
+                else if (element.Command == ListViewCommands.Encryption) UndoEncryption(element.Parameters);
+            }
+            finally { _onundo = false; }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -657,7 +663,19 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Redo() { throw new NotImplementedException(); }
+        public void Redo()
+        {
+            if (_redo.Count == 0) return;
+            var element = _redo[_redo.Count - 1];
+            _redo.Remove(element);
+            if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
+            else if (element.Command == ListViewCommands.Add) UndoAdd(element.Parameters);
+            else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
+            else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
+            else if (element.Command == ListViewCommands.Rotate) UndoRotate(element.Parameters);
+            else if (element.Command == ListViewCommands.Metadata) UndoMetadata(element.Parameters);
+            else if (element.Command == ListViewCommands.Encryption) UndoEncryption(element.Parameters);
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -700,6 +718,75 @@ namespace CubePdf.Wpf
         {
             var index = _images.IndexOf(item);
             return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
+        }
+
+        #endregion
+
+        #region Undo methods
+
+        /* ----------------------------------------------------------------- */
+        /// UndoInsert
+        /* ----------------------------------------------------------------- */
+        private void UndoInsert(IList parameters) { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        /// UndoAdd
+        /* ----------------------------------------------------------------- */
+        private void UndoAdd(IList parameters) { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        /// UndoRemove
+        /* ----------------------------------------------------------------- */
+        private void UndoRemove(IList parameters) { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        /// UndoMove
+        /* ----------------------------------------------------------------- */
+        private void UndoMove(IList parameters) { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        /// UndoRotate
+        /* ----------------------------------------------------------------- */
+        private void UndoRotate(IList parameters) { throw new NotImplementedException(); }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UndoMetadata
+        ///
+        /// <summary>
+        /// Metadata の変更を取り消します。
+        /// パラメータ (parameters) の数は 1 つのみで、変更前の Metadata
+        /// オブジェクトが格納されています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UndoMetadata(IList parameters)
+        {
+            if (parameters == null) return;
+            var metadata = parameters[0] as CubePdf.Data.Metadata;
+            if (metadata == null) return;
+
+            Metadata = metadata;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UndoEncryption
+        ///
+        /// <summary>
+        /// Encryption の変更を取り消します。
+        /// パラメータ (parameters) の数は 1 つのみで、変更前の Encryption
+        /// オブジェクトが格納されています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UndoEncryption(IList parameters)
+        {
+            if (parameters == null) return;
+            var encrypt = parameters[0] as CubePdf.Data.Encryption;
+            if (encrypt == null) return;
+
+            Encryption = encrypt;
         }
 
         #endregion
@@ -877,12 +964,16 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
+        private void UpdateHistory(ICommand command, object parameter) { UpdateHistory(command, new ArrayList() { parameter }); }
         private void UpdateHistory(ICommand command, IList parameters)
         {
-            if (_status != CommandStatus.Continue) _undo.Add(new CommandElement(command));
-            var element = _undo[_undo.Count - 1];
+            var history = _onundo ? _redo : _undo;
+            if (_status != CommandStatus.Continue) history.Add(new CommandElement(command));
+            var element = history[history.Count - 1];
             foreach (var param in parameters) element.Parameters.Add(param);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
+            if (!_onundo) _redo.Clear();
+            
         }
 
         /* ----------------------------------------------------------------- */
@@ -982,18 +1073,19 @@ namespace CubePdf.Wpf
 
         #region Variables
         private int _width = 0;
-        private int _maxundo = 0;
+        private int _maxundo = 30;
         private string _path = string.Empty;
         private long _size = 0;
         private DateTime _create = new DateTime();
         private DateTime _update = new DateTime();
         private DateTime _access = new DateTime();
         private CubePdf.Data.Metadata _meta = null;
-        private CubePdf.Data.Encryption _crypt = null;
+        private CubePdf.Data.Encryption _encrypt = null;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
         private ObservableCollection<Image> _images = new ObservableCollection<Image>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
+        private bool _onundo = false;
         private CommandStatus _status = CommandStatus.End;
         private List<CommandElement> _undo = new List<CommandElement>();
         private List<CommandElement> _redo = new List<CommandElement>();
