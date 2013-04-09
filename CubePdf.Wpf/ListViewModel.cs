@@ -565,6 +565,7 @@ namespace CubePdf.Wpf
                 var item = _pages[oldindex];
                 _pages.RemoveAt(oldindex);
                 _pages.Insert(newindex, item);
+                UpdateHistory(ListViewCommands.Move, new KeyValuePair<int, int>(oldindex, newindex));
             }
             lock (_images) _images.Move(oldindex, newindex);
         }
@@ -799,9 +800,30 @@ namespace CubePdf.Wpf
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// UndoMove
+        ///
+        /// <summary>
+        /// 移動操作を取り消します。
+        /// パラメータ (parameters) は、移動元/移動先のインデックスのペア
+        /// (KeyValuePair(int, int)) オブジェクトが 1 つ以上指定されます。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        private void UndoMove(IList parameters) { throw new NotImplementedException(); }
+        private void UndoMove(IList parameters)
+        {
+            if (parameters == null) return;
+            try
+            {
+                BeginCommand();
+                for (int i = parameters.Count - 1; i >= 0; --i)
+                {
+                    var param = (KeyValuePair<int, int>)parameters[i];
+                    Move(param.Value, param.Key);
+                }
+            }
+            finally { EndCommand(); }
+        }
 
         /* ----------------------------------------------------------------- */
         ///

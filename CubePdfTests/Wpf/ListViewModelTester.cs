@@ -506,7 +506,18 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(5, viewmodel.History.Count);
             Assert.AreEqual(8, viewmodel.ItemCount);
 
+            // 移動
+            viewmodel.BeginCommand();
+            viewmodel.Move(0, 2);
+            viewmodel.Move(1, 7);
+            viewmodel.Move(4, 2);
+            viewmodel.EndCommand();
+            Assert.AreEqual(6, viewmodel.History.Count);
+
             // Undo 開始
+            viewmodel.Undo();
+            Assert.AreEqual(5, viewmodel.History.Count);
+
             viewmodel.Undo();
             Assert.AreEqual(4, viewmodel.History.Count);
             Assert.AreEqual(11, viewmodel.ItemCount);
