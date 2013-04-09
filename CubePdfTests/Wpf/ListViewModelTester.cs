@@ -508,15 +508,33 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(viewmodel.Encryption.IsEnabled);
             Assert.AreEqual("owner", encrypt.OwnerPassword);
 
+            viewmodel.BeginCommand();
+            viewmodel.RotateAt(0, 90);
+            viewmodel.RotateAt(1, 90);
+            viewmodel.RotateAt(2, 90);
+            viewmodel.RotateAt(3, 90);
+            viewmodel.EndCommand();
+            Assert.AreEqual(3,   viewmodel.History.Count);
+            Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[0]).Rotation);
+            Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[1]).Rotation);
+            Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
+            Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[3]).Rotation);
+
+            // Undo 開始
+            viewmodel.Undo();
+            Assert.AreEqual(2,   viewmodel.History.Count);
+            Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[0]).Rotation);
+            Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[1]).Rotation);
+            Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
+            Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[3]).Rotation);
+
             viewmodel.Undo();
             Assert.AreEqual(1, viewmodel.History.Count);
-            Assert.AreEqual(1, viewmodel.UndoHistory.Count);
             Assert.IsFalse(viewmodel.Encryption.IsEnabled);
             Assert.IsNullOrEmpty(viewmodel.Encryption.OwnerPassword);
 
             viewmodel.Undo();
             Assert.AreEqual(0, viewmodel.History.Count);
-            Assert.AreEqual(2, viewmodel.UndoHistory.Count);
             Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
 
             viewmodel.Close();

@@ -599,6 +599,8 @@ namespace CubePdf.Wpf
             var prev = _images[index];
             _images[index] = image;
             if (prev != null) prev.Dispose();
+
+            UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
         }
 
         /* ----------------------------------------------------------------- */
@@ -640,18 +642,17 @@ namespace CubePdf.Wpf
 
             try
             {
-                _onundo = true;
+                _undostatus = UndoStatus.Undo;
                 var element = _undo[_undo.Count - 1];
                 _undo.Remove(element);
                 if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
-                else if (element.Command == ListViewCommands.Add) UndoAdd(element.Parameters);
                 else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
                 else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
                 else if (element.Command == ListViewCommands.Rotate) UndoRotate(element.Parameters);
                 else if (element.Command == ListViewCommands.Metadata) UndoMetadata(element.Parameters);
                 else if (element.Command == ListViewCommands.Encryption) UndoEncryption(element.Parameters);
             }
-            finally { _onundo = false; }
+            finally { _undostatus = UndoStatus.Normal; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -666,15 +667,20 @@ namespace CubePdf.Wpf
         public void Redo()
         {
             if (_redo.Count == 0) return;
-            var element = _redo[_redo.Count - 1];
-            _redo.Remove(element);
-            if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
-            else if (element.Command == ListViewCommands.Add) UndoAdd(element.Parameters);
-            else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
-            else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
-            else if (element.Command == ListViewCommands.Rotate) UndoRotate(element.Parameters);
-            else if (element.Command == ListViewCommands.Metadata) UndoMetadata(element.Parameters);
-            else if (element.Command == ListViewCommands.Encryption) UndoEncryption(element.Parameters);
+
+            try
+            {
+                _undostatus = UndoStatus.Redo;
+                var element = _redo[_redo.Count - 1];
+                _redo.Remove(element);
+                if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
+                else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
+                else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
+                else if (element.Command == ListViewCommands.Rotate) UndoRotate(element.Parameters);
+                else if (element.Command == ListViewCommands.Metadata) UndoMetadata(element.Parameters);
+                else if (element.Command == ListViewCommands.Encryption) UndoEncryption(element.Parameters);
+            }
+            finally { _undostatus = UndoStatus.Normal; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -730,11 +736,6 @@ namespace CubePdf.Wpf
         private void UndoInsert(IList parameters) { throw new NotImplementedException(); }
 
         /* ----------------------------------------------------------------- */
-        /// UndoAdd
-        /* ----------------------------------------------------------------- */
-        private void UndoAdd(IList parameters) { throw new NotImplementedException(); }
-
-        /* ----------------------------------------------------------------- */
         /// UndoRemove
         /* ----------------------------------------------------------------- */
         private void UndoRemove(IList parameters) { throw new NotImplementedException(); }
@@ -745,9 +746,26 @@ namespace CubePdf.Wpf
         private void UndoMove(IList parameters) { throw new NotImplementedException(); }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// UndoRotate
+        ///
+        /// <summary>
+        /// 回転操作を取り消します。
+        /// パラメータ (parameters) は、インデックスと回転度数のペア
+        /// (KeyValuePair(int, int)) オブジェクトが 1 個以上指定されます。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        private void UndoRotate(IList parameters) { throw new NotImplementedException(); }
+        private void UndoRotate(IList parameters)
+        {
+            if (parameters == null) return;
+            try
+            {
+                BeginCommand();
+                foreach (KeyValuePair<int, int> param in parameters) RotateAt(param.Key, -param.Value);
+            }
+            finally { EndCommand(); }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -967,12 +985,12 @@ namespace CubePdf.Wpf
         private void UpdateHistory(ICommand command, object parameter) { UpdateHistory(command, new ArrayList() { parameter }); }
         private void UpdateHistory(ICommand command, IList parameters)
         {
-            var history = _onundo ? _redo : _undo;
+            var history = (_undostatus == UndoStatus.Undo) ? _redo : _undo;
             if (_status != CommandStatus.Continue) history.Add(new CommandElement(command));
             var element = history[history.Count - 1];
             foreach (var param in parameters) element.Parameters.Add(param);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
-            if (!_onundo) _redo.Clear();
+            if (_undostatus == UndoStatus.Normal) _redo.Clear();
             
         }
 
@@ -1069,6 +1087,18 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         internal enum CommandStatus { Begin, Continue, End }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UndoStatus
+        /// 
+        /// <summary>
+        /// 実行されたコマンドが通常の処理なのか Undo/Redo なのかを判別する
+        /// ために使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        internal enum UndoStatus { Normal, Undo, Redo }
+
         #endregion
 
         #region Variables
@@ -1085,8 +1115,8 @@ namespace CubePdf.Wpf
         private ObservableCollection<Image> _images = new ObservableCollection<Image>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
-        private bool _onundo = false;
         private CommandStatus _status = CommandStatus.End;
+        private UndoStatus _undostatus = UndoStatus.Normal;
         private List<CommandElement> _undo = new List<CommandElement>();
         private List<CommandElement> _redo = new List<CommandElement>();
         #endregion
