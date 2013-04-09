@@ -1071,6 +1071,7 @@ namespace CubePdf.Wpf
             if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
             foreach (var param in parameters) element.Parameters.Add(param);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
+            if (_undo.Count > _maxundo) _undo.RemoveAt(0);
             if (_undostatus == UndoStatus.Normal) _redo.Clear();
         }
 
