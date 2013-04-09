@@ -536,10 +536,12 @@ namespace CubePdf.Wpf
             lock (_pages)
             lock (_images)
             {
+                var page = _pages[index];
                 _pages.RemoveAt(index);
                 var image = _images[index];
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
+                UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.Page>(index, page));
             }
         }
 
@@ -770,9 +772,31 @@ namespace CubePdf.Wpf
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// UndoRemove
+        ///
+        /// <summary>
+        /// 削除操作を取り消します。
+        /// パラメータ (parameters) は、インデックスと削除された PDF ページ
+        /// オブジェクトのペア (KeyValuePair(int, CubePdf.Data.Page))
+        /// オブジェクトが 1 つ以上指定されます。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        private void UndoRemove(IList parameters) { throw new NotImplementedException(); }
+        private void UndoRemove(IList parameters)
+        {
+            if (parameters == null) return;
+            try
+            {
+                BeginCommand();
+                for (int i = parameters.Count - 1; i >= 0; --i)
+                {
+                    var param = (KeyValuePair<int, CubePdf.Data.Page>)parameters[i];
+                    Insert(param.Key, param.Value);
+                }
+            }
+            finally { EndCommand(); }
+        }
 
         /* ----------------------------------------------------------------- */
         /// UndoMove

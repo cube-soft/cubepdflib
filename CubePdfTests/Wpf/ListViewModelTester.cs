@@ -462,12 +462,14 @@ namespace CubePdfTests.Wpf
         {
             var viewmodel = CreateViewModel();
 
+            // メタ情報の変更
             var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
             metadata.Title = "TestHistory";
             viewmodel.Metadata = metadata;
             Assert.AreEqual(1, viewmodel.History.Count);
             Assert.AreEqual("TestHistory", viewmodel.Metadata.Title);
 
+            // 暗号化に関する情報の変更
             var encrypt = new CubePdf.Data.Encryption(viewmodel.Encryption);
             encrypt.IsEnabled = true;
             encrypt.OwnerPassword = "owner";
@@ -476,6 +478,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(viewmodel.Encryption.IsEnabled);
             Assert.AreEqual("owner", encrypt.OwnerPassword);
 
+            // 回転
             viewmodel.BeginCommand();
             viewmodel.RotateAt(0, 90);
             viewmodel.RotateAt(1, 90);
@@ -488,12 +491,26 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
             Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[3]).Rotation);
 
+            // 挿入
             var added = System.IO.Path.Combine(_src, "readme.pdf");
             viewmodel.Insert(0, added);
             Assert.AreEqual(4, viewmodel.History.Count);
             Assert.AreEqual(11, viewmodel.ItemCount);
 
+            // 削除
+            viewmodel.BeginCommand();
+            viewmodel.RemoveAt(0);
+            viewmodel.RemoveAt(9);
+            viewmodel.RemoveAt(3);
+            viewmodel.EndCommand();
+            Assert.AreEqual(5, viewmodel.History.Count);
+            Assert.AreEqual(8, viewmodel.ItemCount);
+
             // Undo 開始
+            viewmodel.Undo();
+            Assert.AreEqual(4, viewmodel.History.Count);
+            Assert.AreEqual(11, viewmodel.ItemCount);
+
             viewmodel.Undo();
             Assert.AreEqual(3, viewmodel.History.Count);
             Assert.AreEqual(9, viewmodel.ItemCount);
