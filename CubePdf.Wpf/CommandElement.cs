@@ -80,11 +80,27 @@ namespace CubePdf.Wpf
             get { return _params; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Text
+        /// 
+        /// <summary>
+        /// コマンドを説明するテキストを取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string Text
+        {
+            get { return _text; }
+            set { _text = value; }
+        }
+
         #endregion
 
         #region Variables
         private ICommand _command = null;
         private IList _params = new ArrayList();
+        private string _text = string.Empty;
         #endregion
     }
 }
