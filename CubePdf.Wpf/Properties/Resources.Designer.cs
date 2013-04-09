@@ -59,5 +59,14 @@ namespace CubePdf.Wpf.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   単一の履歴に複数のコマンドを含める事はできません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string HistoryCommandException {
+            get {
+                return ResourceManager.GetString("HistoryCommandException", resourceCulture);
+            }
+        }
     }
 }

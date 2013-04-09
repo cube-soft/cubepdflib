@@ -1068,10 +1068,10 @@ namespace CubePdf.Wpf
             var history = (_undostatus == UndoStatus.Undo) ? _redo : _undo;
             if (_status != CommandStatus.Continue) history.Add(new CommandElement(command));
             var element = history[history.Count - 1];
+            if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
             foreach (var param in parameters) element.Parameters.Add(param);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
             if (_undostatus == UndoStatus.Normal) _redo.Clear();
-            
         }
 
         /* ----------------------------------------------------------------- */
