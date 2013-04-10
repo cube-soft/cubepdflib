@@ -5,6 +5,7 @@
 #Visual Studio files
 *.[Oo]bj
 *.exe
+*.dll
 *.pdb
 *.user
 *.aps
