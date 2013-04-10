@@ -140,32 +140,32 @@ namespace CubePdfTests.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        //[Test]
-        //public void TestOverwrite()
-        //{
-        //    var dest = System.IO.Path.Combine(_dest, "TestListViewModelSave.pdf");
-        //    {
-        //        var viewmodel = CreateViewModel();
-        //        System.IO.File.Delete(dest);
-        //        viewmodel.Save(dest);
-        //        Assert.IsTrue(System.IO.File.Exists(dest));
-        //        viewmodel.Close();
-        //    }
+        [Test]
+        public void TestOverwrite()
+        {
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelSave.pdf");
+            {
+                var viewmodel = CreateViewModel();
+                System.IO.File.Delete(dest);
+                viewmodel.Save(dest);
+                Assert.IsTrue(System.IO.File.Exists(dest));
+                viewmodel.Close();
+            }
 
-        //    {
-        //        var viewmodel = CreateViewModel(dest);
-        //        viewmodel.RemoveAt(0);
-        //        viewmodel.Save();
-        //        Assert.IsTrue(System.IO.File.Exists(dest));
-        //        viewmodel.Close();
-        //    }
+            {
+                var viewmodel = CreateViewModel(dest);
+                viewmodel.RemoveAt(0);
+                viewmodel.Save();
+                Assert.IsTrue(System.IO.File.Exists(dest));
+                viewmodel.Close();
+            }
 
-        //    using (var doc = new CubePdf.Editing.DocumentReader(dest))
-        //    {
-        //        Assert.AreEqual(8, doc.Pages.Count);
-        //    }
+            using (var doc = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.AreEqual(8, doc.Pages.Count);
+            }
 
-        //}
+        }
 
         /* ----------------------------------------------------------------- */
         ///
