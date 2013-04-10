@@ -66,6 +66,7 @@
     <Compile Include="Editing\PageBinderTester.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Wpf\ListViewModelTester.cs" />
+    <Compile Include="Wpf\MultiValueConverterTester.cs" />
     <Compile Include="Wpf\ValueConverterTester.cs" />
   </ItemGroup>
   <ItemGroup>

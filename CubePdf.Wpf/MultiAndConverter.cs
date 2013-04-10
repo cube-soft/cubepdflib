@@ -47,11 +47,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
+            if (values == null) return false;
+
             var dest = true;
             foreach (var value in values)
             {
                 try { dest &= (bool)value; }
-                catch (System.InvalidCastException /* err */) { }
+                catch (Exception /* err */) { }
             }
             return dest;
         }
