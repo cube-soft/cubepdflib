@@ -46,6 +46,21 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// IsModified
+        /// 
+        /// <summary>
+        /// 現在、開かれている PDF ファイルに対して何らかの変更が加えられた
+        /// かどうかを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool IsModified
+        {
+            get { return _modified; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// FilePath
         /// 
         /// <summary>
@@ -290,6 +305,7 @@ namespace CubePdf.Wpf
             {
                 var engine = CreateEngine(reader);
                 foreach (var page in engine.Pages.Values) Add(new CubePdf.Data.Page(page));
+                _modified = false;
                 _path   = path;
                 _size   = reader.FileSize;
                 _create = reader.CreationTime;
@@ -315,6 +331,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Close()
         {
+            _modified = false;
             _path  = string.Empty;
             _size  = 0;
             _meta  = null;
@@ -358,17 +375,19 @@ namespace CubePdf.Wpf
                 binder.Metadata = Metadata;
                 binder.Encryption = Encryption;
 
+                var dest = String.IsNullOrEmpty(path) ? _path : path;
+                var tmp = System.IO.Path.GetTempFileName();
+                binder.Save(tmp);
+                CubePdf.Data.FileIOWrapper.Move(tmp, dest);
+
+                _modified = false;
+                _path = dest;
+
                 _requests.Clear();
                 _pages.Clear();
                 foreach (var engine in _engines.Values) engine.Dispose();
                 _engines.Clear();
 
-                var dest = String.IsNullOrEmpty(path) ? _path : path;
-                var tmp  = System.IO.Path.GetTempFileName();
-                binder.Save(tmp);
-                CubePdf.Data.FileIOWrapper.Move(tmp, dest);
-
-                _path = dest;
                 var newengine = CreateEngine(dest, "");
                 foreach (var page in newengine.Pages.Values) _pages.Add(new CubePdf.Data.Page(page));
             }
@@ -726,6 +745,20 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// IndexOf
+        /// 
+        /// <summary>
+        /// ListView で表示されている項目、またはページ情報に対応する
+        /// インデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int IndexOf(object item) { return IndexOf(item as Image); }
+        public int IndexOf(Image item) { return _images.IndexOf(item); }
+        public int IndexOf(CubePdf.Data.Page page) { return _pages.IndexOf(page); }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ToPage
         /// 
         /// <summary>
@@ -735,11 +768,8 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.Page ToPage(object item) { return ToPage(item as Image); }
-        public CubePdf.Data.Page ToPage(Image item)
-        {
-            var index = _images.IndexOf(item);
-            return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
-        }
+        public CubePdf.Data.Page ToPage(Image item) { return ToPage(_images.IndexOf(item)); }
+        public CubePdf.Data.Page ToPage(int index) { return (index >= 0 && index < _pages.Count) ? _pages[index] : null; }
 
         #endregion
 
@@ -1073,6 +1103,7 @@ namespace CubePdf.Wpf
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
             if (_undo.Count > _maxundo) _undo.RemoveAt(0);
             if (_undostatus == UndoStatus.Normal) _redo.Clear();
+            _modified = true;
         }
 
         /* ----------------------------------------------------------------- */
@@ -1185,6 +1216,7 @@ namespace CubePdf.Wpf
         #region Variables
         private int _width = 0;
         private int _maxundo = 30;
+        private bool _modified = false;
         private string _path = string.Empty;
         private long _size = 0;
         private DateTime _create = new DateTime();

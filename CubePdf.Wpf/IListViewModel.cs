@@ -44,6 +44,18 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// IsModified
+        /// 
+        /// <summary>
+        /// 現在、開かれている PDF ファイルに対して何らかの変更が加えられた
+        /// かどうかを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        bool IsModified { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// FilePath
         /// 
         /// <summary>
@@ -419,6 +431,20 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// IndexOf
+        /// 
+        /// <summary>
+        /// ListView で表示されている項目、またはページ情報に対応する
+        /// インデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        int IndexOf(object item);
+        int IndexOf(Image item);
+        int IndexOf(CubePdf.Data.Page page);
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ToPage
         /// 
         /// <summary>
@@ -429,6 +455,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         CubePdf.Data.Page ToPage(object item);
         CubePdf.Data.Page ToPage(Image item);
+        CubePdf.Data.Page ToPage(int index);
 
         #endregion
     }
