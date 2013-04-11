@@ -54,12 +54,12 @@ namespace CubePdf.Wpf
             : base()
         {
             _canvas.Visibility = Visibility.Collapsed;
-            _rectangle.BorderBrush = SystemColors.HotTrackBrush;
-            _rectangle.BorderThickness = new Thickness(1);
-            _rectangle.Background = SystemColors.HotTrackBrush.Clone();
-            _rectangle.Background.Opacity = 0.1;
-            _rectangle.CornerRadius = new CornerRadius(1);
-            _canvas.Children.Add(_rectangle);
+            _rect.BorderBrush = SystemColors.HotTrackBrush;
+            _rect.BorderThickness = new Thickness(1);
+            _rect.Background = SystemColors.HotTrackBrush.Clone();
+            _rect.Background.Opacity = 0.1;
+            _rect.CornerRadius = new CornerRadius(1);
+            _canvas.Children.Add(_rect);
         }
 
         #region Properties
@@ -108,7 +108,7 @@ namespace CubePdf.Wpf
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
                 AssociatedObject.CaptureMouse();
-                UpdateRectangle(_position, _position);
+                RefreshDragSelection(_position, _position);
                 _canvas.Visibility = Visibility.Visible;
             }
         }
@@ -147,7 +147,7 @@ namespace CubePdf.Wpf
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
-                else UpdateRectangle(_position, e.GetPosition(AssociatedObject));
+                else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
             }
         }
 
@@ -157,11 +157,6 @@ namespace CubePdf.Wpf
         ///
         /// <summary>
         /// マウスのドロップ時の挙動を記述するためのイベントハンドラです。
-        /// 
-        /// TODO: 水平方向に見て 2 つの項目の間にドロップされた場合でも
-        /// 移動を受け付けるようにしているが、現在は項目間かどうかを
-        /// 判断するための x 軸の量がマジックナンバーとなっている。
-        /// 項目のマージンを取得して、その値を元にするように修正する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -171,7 +166,8 @@ namespace CubePdf.Wpf
             _target = GetItemIndex(pos);
             if (_target == -1)
             {
-                int margin = (pos.X <= _position.X) ? 5 : -5; // TODO: ListViewItem.Margin の値で計算したい
+                var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
+                var margin = (pos.X <= _position.X) ? lvi.Margin.Left : -lvi.Margin.Right;
                 pos.X += margin;
                 _target = GetItemIndex(pos);
             }
@@ -249,14 +245,14 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// UpdateRectangle
+        /// RefreshDragSelection
         ///
         /// <summary>
         /// マウスドラッグによる選択領域の描画を更新します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void UpdateRectangle(Point start, Point last)
+        private void RefreshDragSelection(Point start, Point last)
         {
             start = PointToWindow(start);
             last = PointToWindow(last);
@@ -266,18 +262,59 @@ namespace CubePdf.Wpf
             double width = (start.X < last.X) ? last.X - start.X : start.X - last.X;
             double height = (start.Y < last.Y) ? last.Y - start.Y : start.Y - last.Y;
 
-            Canvas.SetLeft(_rectangle, x);
-            Canvas.SetTop(_rectangle, y);
-            _rectangle.Width = width;
-            _rectangle.Height = height;
+            Canvas.SetLeft(_rect, x);
+            Canvas.SetTop(_rect, y);
+            _rect.Width = width;
+            _rect.Height = height;
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// SelectRange
+        /// 
+        /// <summary>
+        /// ドラッグ&ドロップで指定した選択領域内に存在する ListView の
+        /// 項目を選択状態にします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         private void SelectRange()
         {
-            //var first = new Point(10, 10);
-            //Debug.WriteLine(String.Format("First(10, 10) => {0}", GetItemIndex(first)));
-            //var last = new Point(AssociatedObject.Width - 10, AssociatedObject.Height - 10);
-            //Debug.WriteLine(String.Format("Last(*, *) => {0}", GetItemIndex(last)));
+            var x = Canvas.GetLeft(_rect);
+            var y = Canvas.GetTop(_rect);
+            var width = _rect.Width;
+            var height = _rect.Height;
+            var pt = PointFromWindow(new Point(x, y));
+            var area = new Rect(pt.X, pt.Y, width, height);
+            area.Inflate(width / 10, height / 10);
+            
+            AssociatedObject.SelectedItems.Clear();
+            foreach (var item in AssociatedObject.Items)
+            {
+                var rect = GetItemBounds(item);
+                if (area.Contains(rect)) AssociatedObject.SelectedItems.Add(item);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetItemBounds
+        /// 
+        /// <summary>
+        /// 指定された項目（AssociatedObject.Items の各要素）の描画領域を
+        /// 取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Rect GetItemBounds(object item)
+        {
+            var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromItem(item) as ListViewItem;
+            if (lvi == null) return new Rect();
+
+            var dest = VisualTreeHelper.GetDescendantBounds(lvi);
+            var transform = lvi.TransformToVisual((Visual)AssociatedObject).Transform(new Point());
+            dest.Offset(transform.X, transform.Y);
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */
@@ -294,6 +331,22 @@ namespace CubePdf.Wpf
         {
             var tmp = AssociatedObject.PointToScreen(pt);
             return Application.Current.MainWindow.PointFromScreen(tmp);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PointToWindow
+        /// 
+        /// <summary>
+        /// アプリケーションのメインウィンドウをベースにした座標を
+        /// AssociatedObject をベースにした座標へ変換します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Point PointFromWindow(Point pt)
+        {
+            var tmp = Application.Current.MainWindow.PointToScreen(pt);
+            return AssociatedObject.PointFromScreen(tmp);
         }
 
         #endregion
@@ -346,7 +399,7 @@ namespace CubePdf.Wpf
 
         #region Variables
         private Canvas _canvas = new Canvas();
-        private Border _rectangle = new Border();
+        private Border _rect = new Border();
         private Point _position = new Point();
         private int _source = -1;
         private int _target = -1;
