@@ -274,7 +274,8 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// ドラッグ&ドロップで指定した選択領域内に存在する ListView の
-        /// 項目を選択状態にします。
+        /// 項目を選択状態にします。各項目が選択領域に含まれるかどうかの
+        /// 判定基準は、各項目の中心点を利用しています。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -286,13 +287,13 @@ namespace CubePdf.Wpf
             var height = _rect.Height;
             var pt = PointFromWindow(new Point(x, y));
             var area = new Rect(pt.X, pt.Y, width, height);
-            area.Inflate(width / 10, height / 10);
             
             AssociatedObject.SelectedItems.Clear();
             foreach (var item in AssociatedObject.Items)
             {
                 var rect = GetItemBounds(item);
-                if (area.Contains(rect)) AssociatedObject.SelectedItems.Add(item);
+                var center = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
+                if (area.Contains(center)) AssociatedObject.SelectedItems.Add(item);
             }
         }
 
