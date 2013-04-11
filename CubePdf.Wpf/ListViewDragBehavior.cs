@@ -41,6 +41,27 @@ namespace CubePdf.Wpf
     /* --------------------------------------------------------------------- */
     public class ListViewDragBehavior : Behavior<ListView>
     {
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ListViewDragBehavior
+        /// 
+        /// <summary>
+        /// 既定の値でオブジェクトを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ListViewDragBehavior()
+            : base()
+        {
+            _canvas.Visibility = Visibility.Collapsed;
+            _rectangle.BorderBrush = SystemColors.HotTrackBrush;
+            _rectangle.BorderThickness = new Thickness(1);
+            _rectangle.Background = SystemColors.HotTrackBrush.Clone();
+            _rectangle.Background.Opacity = 0.1;
+            _rectangle.CornerRadius = new CornerRadius(1);
+            _canvas.Children.Add(_rectangle);
+        }
+
         #region Properties
 
         /* ----------------------------------------------------------------- */
@@ -75,10 +96,35 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            _position = e.GetPosition(AssociatedObject);
+            _source = GetItemIndex(_position);
             _target = -1;
-            _begin  = e.GetPosition(AssociatedObject);
-            _source = GetItemIndex(_begin);
+
             if (_source >= 0) AssociatedObject.AllowDrop = true;
+            else
+            {
+                AssociatedObject.CaptureMouse();
+                UpdateRectangle(_position, _position);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnMouseLeftButtonUp
+        ///
+        /// <summary>
+        /// マウスの左ボタンが離された時の挙動を記述するためのイベントハンドラ
+        /// です。ドラッグ&ドロップ時の挙動は OnDrop で行われます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_source == -1)
+            {
+                AssociatedObject.ReleaseMouseCapture();
+                _canvas.Visibility = Visibility.Collapsed;
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -92,9 +138,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (_source >= 0 && e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
-                DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                else UpdateRectangle(_position, e.GetPosition(AssociatedObject));
             }
         }
 
@@ -118,7 +165,7 @@ namespace CubePdf.Wpf
             _target = GetItemIndex(pos);
             if (_target == -1)
             {
-                int margin = (pos.X <= _begin.X) ? 5 : -5; // TODO: ListViewItem.Margin の値で計算したい
+                int margin = (pos.X <= _position.X) ? 5 : -5; // TODO: ListViewItem.Margin の値で計算したい
                 pos.X += margin;
                 _target = GetItemIndex(pos);
             }
@@ -129,7 +176,7 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        #region Other methods
+        #region Methods for moving items
 
         /* ----------------------------------------------------------------- */
         ///
@@ -192,7 +239,54 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        #region Methods for inheriting from the superclass
+        #region Methods for drag selection
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateRectangle
+        ///
+        /// <summary>
+        /// マウスドラッグによる選択領域の描画を更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateRectangle(Point start, Point last)
+        {
+            start = PointToWindow(start);
+            last = PointToWindow(last);
+
+            double x = Math.Min(start.X, last.X);
+            double y = Math.Min(start.Y, last.Y);
+            double width = (start.X < last.X) ? last.X - start.X : start.X - last.X;
+            double height = (start.Y < last.Y) ? last.Y - start.Y : start.Y - last.Y;
+
+            Canvas.SetLeft(_rectangle, x);
+            Canvas.SetTop(_rectangle, y);
+            _rectangle.Width = width;
+            _rectangle.Height = height;
+
+            if (_canvas.Visibility != Visibility.Visible) _canvas.Visibility = Visibility.Visible;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PointToWindow
+        /// 
+        /// <summary>
+        /// AssociatedObject をベースにした座標をアプリケーションのメイン
+        /// ウィンドウをベースにした座標へ変換します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Point PointToWindow(Point pt)
+        {
+            var tmp = AssociatedObject.PointToScreen(pt);
+            return Application.Current.MainWindow.PointFromScreen(tmp);
+        }
+
+        #endregion
+
+        #region Attached/Detach methods
 
         /* ----------------------------------------------------------------- */
         /// OnAttached
@@ -201,7 +295,12 @@ namespace CubePdf.Wpf
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnMouseLeftButtonDown;
             AssociatedObject.PreviewMouseMove += OnMouseMove;
+            AssociatedObject.PreviewMouseLeftButtonUp += OnMouseLeftButtonUp;
             AssociatedObject.Drop += OnDrop;
+
+            var panel = Application.Current.MainWindow.Content as Panel;
+            if (panel != null) panel.Children.Add(_canvas);
+
             base.OnAttached();
         }
 
@@ -212,7 +311,12 @@ namespace CubePdf.Wpf
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnMouseLeftButtonDown;
             AssociatedObject.PreviewMouseMove -= OnMouseMove;
+            AssociatedObject.PreviewMouseLeftButtonUp -= OnMouseLeftButtonUp;
             AssociatedObject.Drop -= OnDrop;
+
+            var panel = Application.Current.MainWindow.Content as Panel;
+            if (panel != null) panel.Children.Remove(_canvas);
+
             base.OnDetaching();
         }
 
@@ -229,7 +333,9 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Variables
-        private Point _begin = new Point();
+        private Canvas _canvas = new Canvas();
+        private Border _rectangle = new Border();
+        private Point _position = new Point();
         private int _source = -1;
         private int _target = -1;
         #endregion
