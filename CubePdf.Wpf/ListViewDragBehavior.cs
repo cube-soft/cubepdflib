@@ -91,6 +91,10 @@ namespace CubePdf.Wpf
         /// <summary>
         /// マウスの左ボタンが押下された時の挙動を記述するためのイベント
         /// ハンドラです。
+        /// 
+        /// NOTE: ドラッグ&ドラップによる範囲選択時、スクロールバーへの
+        /// クリックが無効になる事があるので、スクロールバー分の幅の領域
+        /// へのクリックは無視しています。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -101,10 +105,11 @@ namespace CubePdf.Wpf
             _target = -1;
 
             if (_source >= 0) AssociatedObject.AllowDrop = true;
-            else
+            else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
                 AssociatedObject.CaptureMouse();
                 UpdateRectangle(_position, _position);
+                _canvas.Visibility = Visibility.Visible;
             }
         }
 
@@ -124,6 +129,7 @@ namespace CubePdf.Wpf
             {
                 AssociatedObject.ReleaseMouseCapture();
                 _canvas.Visibility = Visibility.Collapsed;
+                SelectRange();
             }
         }
 
@@ -223,7 +229,7 @@ namespace CubePdf.Wpf
                     var index = ViewModel.Items.IndexOf(item as System.Drawing.Image);
                     indices.Add(index);
                 }
-
+                
                 ViewModel.BeginCommand();
                 var sorted = (delta < 0) ? indices.OrderBy(i => i) : indices.OrderByDescending(i => i);
                 foreach (var oldindex in sorted)
@@ -264,8 +270,14 @@ namespace CubePdf.Wpf
             Canvas.SetTop(_rectangle, y);
             _rectangle.Width = width;
             _rectangle.Height = height;
+        }
 
-            if (_canvas.Visibility != Visibility.Visible) _canvas.Visibility = Visibility.Visible;
+        private void SelectRange()
+        {
+            //var first = new Point(10, 10);
+            //Debug.WriteLine(String.Format("First(10, 10) => {0}", GetItemIndex(first)));
+            //var last = new Point(AssociatedObject.Width - 10, AssociatedObject.Height - 10);
+            //Debug.WriteLine(String.Format("Last(*, *) => {0}", GetItemIndex(last)));
         }
 
         /* ----------------------------------------------------------------- */
@@ -338,6 +350,10 @@ namespace CubePdf.Wpf
         private Point _position = new Point();
         private int _source = -1;
         private int _target = -1;
+        #endregion
+
+        #region Constant variables
+        private static readonly int SCROLLBAR_WIDTH = 18;
         #endregion
     }
 }
