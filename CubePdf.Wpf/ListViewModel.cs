@@ -221,7 +221,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ObservableCollection<Image> Items
+        public ObservableCollection<CubePdf.Drawing.ImageContainer> Items
         {
             get { return _images; }
         }
@@ -509,7 +509,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public  void Split(IList<CubePdf.Data.Page> pages, string directory) { foreach (var page in pages) Split(_pages.IndexOf(page), directory); }
-        public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as Image), directory); }
+        public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as CubePdf.Drawing.ImageContainer), directory); }
         private void Split(int index, string directory)
         {
             if (index < 0 || index >= _pages.Count) return;
@@ -533,7 +533,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Remove(object item) { RemoveAt(_images.IndexOf(item as Image)); }
+        public void Remove(object item) { RemoveAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer)); }
         public void Remove(CubePdf.Data.Page item) { RemoveAt(_pages.IndexOf(item)); }
 
         /* ----------------------------------------------------------------- */
@@ -600,7 +600,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as Image), degree); }
+        public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer), degree); }
         public void Rotate(CubePdf.Data.Page item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
 
         /* ----------------------------------------------------------------- */
@@ -630,10 +630,7 @@ namespace CubePdf.Wpf
             if (delta >= 360) delta -= 360;
 
             RotateImage(image, delta);
-            var prev = _images[index];
-            _images[index] = image;
-            if (prev != null) prev.Dispose();
-
+            _images[index].UpdateImage(image, Drawing.ImageStatus.Created);
             UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
         }
 
@@ -753,8 +750,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int IndexOf(object item) { return IndexOf(item as Image); }
-        public int IndexOf(Image item) { return _images.IndexOf(item); }
+        public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
+        public int IndexOf(CubePdf.Drawing.ImageContainer item) { return _images.IndexOf(item); }
         public int IndexOf(CubePdf.Data.Page page) { return _pages.IndexOf(page); }
 
         /* ----------------------------------------------------------------- */
@@ -767,8 +764,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Page ToPage(object item) { return ToPage(item as Image); }
-        public CubePdf.Data.Page ToPage(Image item) { return ToPage(_images.IndexOf(item)); }
+        public CubePdf.Data.Page ToPage(object item) { return ToPage(item as CubePdf.Drawing.ImageContainer); }
+        public CubePdf.Data.Page ToPage(CubePdf.Drawing.ImageContainer item) { return ToPage(_images.IndexOf(item)); }
         public CubePdf.Data.Page ToPage(int index) { return (index >= 0 && index < _pages.Count) ? _pages[index] : null; }
 
         #endregion
@@ -933,7 +930,7 @@ namespace CubePdf.Wpf
         #region Implementations for IItemsProvider<Image>
 
         public int ProvideItemsCount() { throw new NotImplementedException(); }
-        public Image ProvideItem(int index) { throw new NotImplementedException(); }
+        public CubePdf.Drawing.ImageContainer ProvideItem(int index) { throw new NotImplementedException(); }
 
         #endregion
 
@@ -957,9 +954,7 @@ namespace CubePdf.Wpf
             {
                 lock (_images)
                 {
-                    var prev = _images[index];
-                    _images[index] = e.Image;
-                    if (prev != null) prev.Dispose();
+                    _images[index].UpdateImage(e.Image, Drawing.ImageStatus.Created);
                     Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
                 }
             }
@@ -1018,12 +1013,12 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private Image GetDummyItem(CubePdf.Data.IReadOnlyPage page)
+        private CubePdf.Drawing.ImageContainer GetDummyItem(CubePdf.Data.IReadOnlyPage page)
         {
             var power = GetPower(page);
             var width = (int)(page.ViewSize.Width * power);
             var height = (int)(page.ViewSize.Height * power);
-            return new Bitmap(width, height);
+            return new Drawing.ImageContainer(new Bitmap(width, height), Drawing.ImageStatus.Dummy);
         }
 
         #endregion
@@ -1225,7 +1220,7 @@ namespace CubePdf.Wpf
         private CubePdf.Data.Metadata _meta = null;
         private CubePdf.Data.Encryption _encrypt = null;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
-        private ObservableCollection<Image> _images = new ObservableCollection<Image>();
+        private ObservableCollection<CubePdf.Drawing.ImageContainer> _images = new ObservableCollection<CubePdf.Drawing.ImageContainer>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
         private CommandStatus _status = CommandStatus.End;

@@ -36,8 +36,83 @@ namespace CubePdf.Drawing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class ImageContainer : INotifyPropertyChanged
+    public class ImageContainer : IDisposable, INotifyPropertyChanged
     {
+        #region Initialization and Termination
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ImageContainer (constructor)
+        /// 
+        /// <summary>
+        /// 既定の値でオブジェクトを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ImageContainer() { }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ImageContainer (constructor)
+        /// 
+        /// <summary>
+        /// イメージ、およびイメージの状態を指定してオブジェクトを初期化
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ImageContainer(Image image, ImageStatus status)
+        {
+            UpdateImage(image, status);
+        }
+
+        /* ----------------------------------------------------------------- */
+        /// ~ImageContainer (destructor)
+        /* ----------------------------------------------------------------- */
+        ~ImageContainer()
+        {
+            this.Dispose(false);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// IDisposable で定義されているメソッドの実装部分です。実際に必要な
+        /// 処理は Dispose(bool) メソッドに記述して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// 終了時に必要な処理を記述します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            if (disposing)
+            {
+                if (_image != null) _image.Dispose();
+                _image = null;
+                _status = ImageStatus.None;
+            }
+        }
+
+        #endregion
+
         #region Properties
 
         /* ----------------------------------------------------------------- */
@@ -97,13 +172,15 @@ namespace CubePdf.Drawing
         /// UpdateImage
         ///
         /// <summary>
-        /// イメージを更新します。
+        /// Image オブジェクトを更新します。古い Image オブジェクトは
+        /// Dispose されます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public void UpdateImage(Image image, ImageStatus status)
         {
             _status = status;
+            if (_image != null) _image.Dispose();
             _image = image;
             OnPropertyChanged("Image");
         }
@@ -131,6 +208,7 @@ namespace CubePdf.Drawing
         private ImageStatus _status = ImageStatus.None;
         private Image _image = null;
         private string _text = string.Empty;
+        private bool _disposed = false;
         #endregion
     }
 }

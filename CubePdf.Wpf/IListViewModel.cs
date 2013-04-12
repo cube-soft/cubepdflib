@@ -38,7 +38,7 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : IItemsProvider<Image>
+    public interface IListViewModel : IItemsProvider<CubePdf.Drawing.ImageContainer>
     {
         #region Properties
 
@@ -170,7 +170,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<Image> Items { get; }
+        ObservableCollection<CubePdf.Drawing.ImageContainer> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -440,7 +440,6 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         int IndexOf(object item);
-        int IndexOf(Image item);
         int IndexOf(CubePdf.Data.Page page);
 
         /* ----------------------------------------------------------------- */
@@ -454,7 +453,6 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         CubePdf.Data.Page ToPage(object item);
-        CubePdf.Data.Page ToPage(Image item);
         CubePdf.Data.Page ToPage(int index);
 
         #endregion

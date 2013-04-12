@@ -222,7 +222,7 @@ namespace CubePdf.Wpf
                 var indices = new List<int>();
                 foreach (var item in AssociatedObject.SelectedItems)
                 {
-                    var index = ViewModel.Items.IndexOf(item as System.Drawing.Image);
+                    var index = ViewModel.IndexOf(item);
                     indices.Add(index);
                 }
                 
