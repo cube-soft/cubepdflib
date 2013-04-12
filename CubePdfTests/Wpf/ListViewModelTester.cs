@@ -95,6 +95,7 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(2013, viewmodel.UpdateTime.Year);
             Assert.AreEqual(3, viewmodel.UpdateTime.Month);
             Assert.AreEqual(8, viewmodel.UpdateTime.Day);
+            Assert.IsFalse(viewmodel.IsModified);
             Assert.NotNull(viewmodel.Metadata);
             Assert.NotNull(viewmodel.Metadata.Version);
             Assert.AreEqual(1, viewmodel.Metadata.Version.Major);
@@ -131,12 +132,10 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestSaveAs
+        /// TestOverwrite
         /// 
         /// <summary>
         /// 上書き保存のテストです。
-        /// 
-        /// NOTE: 保留
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -183,6 +182,7 @@ namespace CubePdfTests.Wpf
             var src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Insert(2, src);
+            Assert.IsTrue(viewmodel.IsModified);
             Assert.AreEqual(11, viewmodel.ItemCount);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelInsert.pdf");
@@ -221,6 +221,7 @@ namespace CubePdfTests.Wpf
             var src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Add(src);
+            Assert.IsTrue(viewmodel.IsModified);
             Assert.AreEqual(11, viewmodel.ItemCount);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd.pdf");
@@ -253,6 +254,7 @@ namespace CubePdfTests.Wpf
             viewmodel.RemoveAt(0);
             viewmodel.RemoveAt(2);
             viewmodel.RemoveAt(viewmodel.ItemCount - 1);
+            Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemoveAt.pdf");
             System.IO.File.Delete(dest);
@@ -288,6 +290,7 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Remove(viewmodel.Items[0]);
             viewmodel.Remove(viewmodel.Items[viewmodel.ItemCount - 1]);
+            Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemove.pdf");
             System.IO.File.Delete(dest);
@@ -390,6 +393,7 @@ namespace CubePdfTests.Wpf
             viewmodel.Move(1, 0);
             viewmodel.Move(1, 3);
             viewmodel.Move(2, viewmodel.ItemCount - 1);
+            Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelMove.pdf");
             System.IO.File.Delete(dest);
@@ -430,6 +434,7 @@ namespace CubePdfTests.Wpf
             viewmodel.RotateAt(1, 180); //  90 -> 270
             viewmodel.RotateAt(2, 270); // 180 ->  90
             viewmodel.RotateAt(3, -90); // 270 -> 180
+            Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRotate.pdf");
             System.IO.File.Delete(dest);
