@@ -203,12 +203,12 @@ namespace CubePdfTests.Editing
         /// <summary>
         /// パスワードの設定されているファイルを開くテストを行います。
         /// 
-        /// TODO: 未実装のため、いったんテスト項目から外す。修正とテストを
-        /// 行う。
+        /// TODO: EncryptionMethod の取得が未実装なので該当部分をコメント
+        /// アウト。修正後、コメントを外してテストを行う。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        //[Test]
+        [Test]
         public void TestPassword()
         {
             try
@@ -219,7 +219,7 @@ namespace CubePdfTests.Editing
                 using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
                 {
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, doc.EncryptionStatus);
-                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
+                    //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
 
                     Assert.IsFalse(doc.Permission.Accessibility);
                     Assert.IsTrue(doc.Permission.Assembly);

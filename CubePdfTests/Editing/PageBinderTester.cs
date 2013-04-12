@@ -427,9 +427,9 @@ namespace CubePdfTests.Editing
         /// PageBinder クラスを用いて暗号化に関する情報を設定するテストを
         /// 行います。
         /// 
-        /// NOTE: EncryptionMethod, および Permission の各値のテストに
-        /// ついては DocumentReader の実装がまだのため、コメントアウトして
-        /// います。
+        /// TODO: EncryptionMethod のテストについては DocumentReader の実装が
+        /// まだのため、コメントアウト。修正終了後、コメントを外してテスト
+        /// 行う。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -471,17 +471,17 @@ namespace CubePdfTests.Editing
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
                 //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
-                //Assert.IsTrue(reader.Permission.Printing);
-                //Assert.IsTrue(reader.Permission.DegradedPrinting);
-                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                //Assert.IsTrue(reader.Permission.Assembly);
-                //Assert.IsTrue(reader.Permission.CopyContents);
-                //Assert.IsTrue(reader.Permission.ExtractPage);
-                //Assert.IsTrue(reader.Permission.Accessibility);
-                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                //Assert.IsTrue(reader.Permission.InputFormFields);
+                Assert.IsTrue(reader.Permission.Printing);
+                Assert.IsTrue(reader.Permission.DegradedPrinting);
+                Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Permission.Assembly);
+                Assert.IsTrue(reader.Permission.CopyContents);
+                Assert.IsTrue(reader.Permission.Accessibility);
+                Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Permission.InputFormFields);
 
-                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsTrue(reader.Permission.ExtractPage);
                 // Assert.IsTrue(reader.Permission.Signature);
                 // Assert.IsTrue(reader.Permission.TemplatePage);
             }
@@ -505,21 +505,21 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
-                //Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
                 //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
-                //Assert.IsFalse(reader.Permission.Printing);
-                //Assert.IsFalse(reader.Permission.DegradedPrinting);
-                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                //Assert.IsFalse(reader.Permission.Assembly);
-                //Assert.IsFalse(reader.Permission.CopyContents);
-                //Assert.IsFalse(reader.Permission.ExtractPage);
-                //Assert.IsFalse(reader.Permission.Accessibility);
-                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                //Assert.IsFalse(reader.Permission.InputFormFields);
+                Assert.IsFalse(reader.Permission.Printing);
+                Assert.IsFalse(reader.Permission.DegradedPrinting);
+                Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Permission.Assembly);
+                Assert.IsFalse(reader.Permission.CopyContents);
+                Assert.IsFalse(reader.Permission.Accessibility);
+                Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Permission.InputFormFields);
 
-                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
-                // Assert.IsTrue(reader.Permission.Signature);
-                // Assert.IsTrue(reader.Permission.TemplatePage);
+                // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsFalse(reader.Permission.ExtractPage);
+                // Assert.IsFalse(reader.Permission.Signature);
+                // Assert.IsFalse(reader.Permission.TemplatePage);
             }
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "view"))
