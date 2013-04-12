@@ -182,6 +182,20 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// EncryptionStatus
+        /// 
+        /// <summary>
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionStatus EncryptionStatus
+        {
+            get { return _encrypt_status; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ItemWidth
         /// 
         /// <summary>
@@ -315,6 +329,7 @@ namespace CubePdf.Wpf
                 _encrypt  = new Data.Encryption();
                 _encrypt.Method = reader.EncryptionMethod;
                 _encrypt.Permission = new Data.Permission(reader.Permission);
+                _encrypt_status = reader.EncryptionStatus;
                 _undo.Clear();
                 _redo.Clear();
             }
@@ -336,6 +351,7 @@ namespace CubePdf.Wpf
             _size  = 0;
             _meta  = null;
             _encrypt = null;
+            _encrypt_status = Data.EncryptionStatus.NotEncrypted;
             _undo.Clear();
             _redo.Clear();
 
@@ -1219,6 +1235,7 @@ namespace CubePdf.Wpf
         private DateTime _access = new DateTime();
         private CubePdf.Data.Metadata _meta = null;
         private CubePdf.Data.Encryption _encrypt = null;
+        private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
         private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
         private ObservableCollection<CubePdf.Drawing.ImageContainer> _images = new ObservableCollection<CubePdf.Drawing.ImageContainer>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();

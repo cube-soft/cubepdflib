@@ -126,15 +126,23 @@ namespace CubePdf.Editing
         public void Open(string path, string password = "")
         {
             if (_core != null) this.Close();
-            _core = password.Length > 0 ?
-                new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
-                new iTextSharp.text.pdf.PdfReader(path);
-            _path = path;
-            _password = password;
 
-            ExtractPages(_core, _path);
-            ExtractMetadata(_core, _path);
-            ExtractEncryption(_core, _password);
+            try
+            {
+                _core = password.Length > 0 ?
+                    new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
+                    new iTextSharp.text.pdf.PdfReader(path);
+                _path = path;
+                _password = password;
+
+                ExtractPages(_core, _path);
+                ExtractMetadata(_core, _path);
+                ExtractEncryption(_core, _password);
+            }
+            catch (iTextSharp.text.pdf.BadPasswordException err)
+            {
+                throw new CubePdf.Data.EncryptionException(err.Message, err);
+            }
         }
 
         /* ----------------------------------------------------------------- */
