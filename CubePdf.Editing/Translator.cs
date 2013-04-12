@@ -146,7 +146,6 @@ namespace CubePdf.Editing
         public static Permission ToPermission(int value)
         {
             var dest = new Permission();
-
             if ((value & PdfWriter.AllowPrinting) != 0)          dest.Printing = true;
             if ((value & PdfWriter.AllowDegradedPrinting) != 0)  dest.DegradedPrinting = true;
             if ((value & PdfWriter.AllowAssembly) != 0)          dest.Assembly = true;
@@ -157,8 +156,8 @@ namespace CubePdf.Editing
             if ((value & PdfWriter.AllowScreenReaders) != 0)     dest.Accessibility = true;
             // if ((value & ???) != 0) dest.Signature = true;
             // if ((value & ???) != 0) dest.TemplatePage = true;
-            
-            return new CubePdf.Data.Permission();
+
+            return dest;
         }
     }
 }
