@@ -107,16 +107,16 @@ namespace CubePdf.Editing
                 switch (page.Rotation)
                 {
                     case 0:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber));//WithRotation
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber));
                         break;
                     case 90:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate());//WithRotation
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate());
                         break;
                     case 180:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate());//WithRotation
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate());
                         break;
                     case 270:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate().Rotate());//WithRotation
+                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate().Rotate());
                         break;
                 }
                 doc.NewPage();
@@ -126,29 +126,15 @@ namespace CubePdf.Editing
                 //System.Drawing.Drawing2D.Matrix で指定する方法もあるらしい。
                 //平行移動の(x, y)座標の指定の仕方が現時点ではよくわからないので、要調査。
                 //0→270度と90→270度で結果が異なるので、平行移動に関しては元の度数も考慮する必要がある様子。(tsugawa)
-                //
-                //var radian = Math.PI * page.Rotation / 180.0;
-                //var sin = (float)Math.Sin(radian);
-                //var cos = (float)Math.Cos(radian);
-                //var x = ???;
-                //var y = ???;
-                //wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, 0, 0);
 
-                switch (page.Rotation)
-                {
-                    case 0:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 1f, 0f, 0f, 1f, 0f, 0f);
-                        break;
-                    case 90:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, -1f, 1f, 0f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Width);
-                        break;
-                    case 180:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), -1f, 0f, 0f, -1f, reader.GetPageSizeWithRotation(page.PageNumber).Width, reader.GetPageSizeWithRotation(page.PageNumber).Height);
-                        break;
-                    case 270:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, 1f, -1f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Height, 0f);
-                        break;
-                }
+                var radian = Math.PI * page.Rotation / 180.0;
+                var sin = (float)Math.Sin(radian);
+                var cos = (float)Math.Cos(radian);
+                var x = (reader.GetPageSize(page.PageNumber).Width * Math.Abs(cos) + reader.GetPageSize(page.PageNumber).Height * Math.Abs(sin)) * (-sin-cos+1) / 2;
+                var y = (reader.GetPageSize(page.PageNumber).Width * Math.Abs(sin) + reader.GetPageSize(page.PageNumber).Height * Math.Abs(cos)) * ( sin-cos+1) / 2;
+                
+                wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
+
                 reader.Close();
             }
 
