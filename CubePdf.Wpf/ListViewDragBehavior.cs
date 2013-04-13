@@ -100,6 +100,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            _ondrag = true;
             _position = e.GetPosition(AssociatedObject);
             _source = GetItemIndex(_position);
             _target = -1;
@@ -125,6 +126,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            if (!_ondrag) return;
+            _ondrag = false;
+
             if (_source == -1)
             {
                 AssociatedObject.ReleaseMouseCapture();
@@ -144,11 +148,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
-                else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
-            }
+            if (!_ondrag) return;
+
+            if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+            else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
         }
 
         /* ----------------------------------------------------------------- */
@@ -162,6 +165,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDrop(object sender, DragEventArgs e)
         {
+            if (!_ondrag) return;
+            _ondrag = false;
+
             var pos = e.GetPosition(AssociatedObject);
             _target = GetItemIndex(pos);
             if (_target == -1)
@@ -399,6 +405,7 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Variables
+        private bool _ondrag = false;
         private Canvas _canvas = new Canvas();
         private Border _rect = new Border();
         private Point _position = new Point();
