@@ -203,7 +203,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ReadOnlyCollection<CommandElement> History { get; }
+        ObservableCollection<CommandElement> History { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -214,7 +214,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ReadOnlyCollection<CommandElement> UndoHistory { get; }
+        ObservableCollection<CommandElement> UndoHistory { get; }
 
         /* ----------------------------------------------------------------- */
         ///
