@@ -1037,6 +1037,26 @@ namespace CubePdf.Wpf
             return new Drawing.ImageContainer(new Bitmap(width, height), Drawing.ImageStatus.Dummy);
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetCommandText
+        /// 
+        /// <summary>
+        /// 各コマンドを説明するテキストを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private string GetCommandText(CubePdf.Wpf.CommandElement element)
+        {
+            if (element.Command == ListViewCommands.Insert) return Properties.Resources.InsertText;
+            else if (element.Command == ListViewCommands.Remove) return Properties.Resources.RemoveText;
+            else if (element.Command == ListViewCommands.Move) return Properties.Resources.MoveText;
+            else if (element.Command == ListViewCommands.Rotate) return Properties.Resources.RotateText;
+            else if (element.Command == ListViewCommands.Metadata) return Properties.Resources.MetadataText;
+            else if (element.Command == ListViewCommands.Encryption) return Properties.Resources.EncryptionText;
+            return string.Empty;
+        }
+
         #endregion
 
         #region Methods for changing condition
@@ -1111,6 +1131,7 @@ namespace CubePdf.Wpf
             var element = history[history.Count - 1];
             if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
             foreach (var param in parameters) element.Parameters.Add(param);
+            element.Text = GetCommandText(element);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
             if (_undo.Count > _maxundo) _undo.RemoveAt(0);
             if (_undostatus == UndoStatus.Normal) _redo.Clear();

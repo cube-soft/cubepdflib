@@ -117,7 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="EncryptionText" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
   <data name="HistoryCommandException" xml:space="preserve">
     <value>単一の履歴に複数のコマンドを含める事はできません。</value>
+  </data>
+  <data name="InsertText" xml:space="preserve">
+    <value>挿入</value>
+  </data>
+  <data name="MetadataText" xml:space="preserve">
+    <value>文書プロパティ</value>
+  </data>
+  <data name="MoveText" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="RemoveText" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="RotateText" xml:space="preserve">
+    <value>回転</value>
   </data>
 </root>
