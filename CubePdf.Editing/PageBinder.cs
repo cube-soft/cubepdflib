@@ -85,7 +85,6 @@ namespace CubePdf.Editing
             var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
             if (writer == null) return;
 
-            writer.Open();
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
             if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
             {
@@ -99,7 +98,7 @@ namespace CubePdf.Editing
             var wdc = writer.DirectContent;
             foreach (var page in _pages)
             {
-                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath); 
+                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath);
 
                 doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
                 doc.NewPage();
@@ -109,8 +108,8 @@ namespace CubePdf.Editing
                 var cos = (float)Math.Cos(radian);
                 var original = reader.GetPageSize(page.PageNumber);
                 var x = (original.Width * Math.Abs(cos) + original.Height * Math.Abs(sin)) * (-sin - cos + 1) / 2;
-                var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * ( sin - cos + 1) / 2;
-                
+                var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
+
                 wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
 
                 reader.Close();
@@ -124,7 +123,6 @@ namespace CubePdf.Editing
             doc.AddProducer();
 
             doc.Close();
-            writer.Close();
         }
 
         #endregion
