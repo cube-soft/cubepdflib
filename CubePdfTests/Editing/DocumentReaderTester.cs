@@ -250,7 +250,7 @@ namespace CubePdfTests.Editing
                         Assert.Fail("never reached");
                     }
                 }
-                catch (iTextSharp.text.pdf.BadPasswordException /* err */)
+                catch (CubePdf.Data.EncryptionException /* err */)
                 {
                     //Assert.Pass(err.ToString());
                 }
