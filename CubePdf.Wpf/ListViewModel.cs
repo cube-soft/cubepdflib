@@ -264,9 +264,9 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ReadOnlyCollection<CommandElement> History
+        public ObservableCollection<CommandElement> History
         {
-            get { return _undo.AsReadOnly(); }
+            get { return _undo; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -278,9 +278,9 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ReadOnlyCollection<CommandElement> UndoHistory
+        public ObservableCollection<CommandElement> UndoHistory
         {
-            get { return _redo.AsReadOnly(); }
+            get { return _redo; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -690,7 +690,7 @@ namespace CubePdf.Wpf
             try
             {
                 _undostatus = UndoStatus.Undo;
-                var element = _undo[_undo.Count - 1];
+                var element = _undo[0];
                 _undo.Remove(element);
                 if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
                 else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
@@ -718,7 +718,7 @@ namespace CubePdf.Wpf
             try
             {
                 _undostatus = UndoStatus.Redo;
-                var element = _redo[_redo.Count - 1];
+                var element = _redo[0];
                 _redo.Remove(element);
                 if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
                 else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
@@ -1127,13 +1127,13 @@ namespace CubePdf.Wpf
         private void UpdateHistory(ICommand command, IList parameters)
         {
             var history = (_undostatus == UndoStatus.Undo) ? _redo : _undo;
-            if (_status != CommandStatus.Continue) history.Add(new CommandElement(command));
-            var element = history[history.Count - 1];
+            if (_status != CommandStatus.Continue) history.Insert(0, new CommandElement(command));
+            var element = history[0];
             if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
             foreach (var param in parameters) element.Parameters.Add(param);
             element.Text = GetCommandText(element);
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
-            if (_undo.Count > _maxundo) _undo.RemoveAt(0);
+            if (_undo.Count > _maxundo) _undo.RemoveAt(_undo.Count - 1);
             if (_undostatus == UndoStatus.Normal) _redo.Clear();
             _modified = true;
         }
@@ -1263,8 +1263,8 @@ namespace CubePdf.Wpf
         private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
         private CommandStatus _status = CommandStatus.End;
         private UndoStatus _undostatus = UndoStatus.Normal;
-        private List<CommandElement> _undo = new List<CommandElement>();
-        private List<CommandElement> _redo = new List<CommandElement>();
+        private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
+        private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
         #endregion
     }
 }
