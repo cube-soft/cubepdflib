@@ -385,11 +385,10 @@ namespace CubePdfTests.Editing
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
-
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                //Assert.AreEqual(1, reader.Metadata.Version.Major);
-                //Assert.AreEqual(7, reader.Metadata.Version.Minor);
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(7, reader.Metadata.Version.Minor);
                 Assert.AreEqual("TestPageBinderMetadata", reader.Metadata.Title);
                 Assert.AreEqual("キューブ・ソフト", reader.Metadata.Author);
                 Assert.AreEqual("文書プロパティ編集テスト", reader.Metadata.Subtitle);
@@ -410,8 +409,8 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                //Assert.AreEqual(1, reader.Metadata.Version.Major);
-                //Assert.AreEqual(5, reader.Metadata.Version.Minor);
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(5, reader.Metadata.Version.Minor);
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Title));
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Author));
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Subtitle));
