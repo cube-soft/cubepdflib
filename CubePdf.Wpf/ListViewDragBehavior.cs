@@ -150,7 +150,10 @@ namespace CubePdf.Wpf
         {
             if (!_ondrag) return;
 
-            if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+            if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
+            {
+                DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+            }
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
         }
 
@@ -366,8 +369,8 @@ namespace CubePdf.Wpf
         protected override void OnAttached()
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnMouseLeftButtonDown;
-            AssociatedObject.PreviewMouseMove += OnMouseMove;
-            AssociatedObject.PreviewMouseLeftButtonUp += OnMouseLeftButtonUp;
+            AssociatedObject.MouseMove += OnMouseMove;
+            AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
             AssociatedObject.Drop += OnDrop;
 
             var panel = Application.Current.MainWindow.Content as Panel;
@@ -382,8 +385,8 @@ namespace CubePdf.Wpf
         protected override void OnDetaching()
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnMouseLeftButtonDown;
-            AssociatedObject.PreviewMouseMove -= OnMouseMove;
-            AssociatedObject.PreviewMouseLeftButtonUp -= OnMouseLeftButtonUp;
+            AssociatedObject.MouseMove -= OnMouseMove;
+            AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
             AssociatedObject.Drop -= OnDrop;
 
             var panel = Application.Current.MainWindow.Content as Panel;
