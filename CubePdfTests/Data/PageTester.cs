@@ -115,15 +115,15 @@ namespace CubePdfTests.Data
             Assert.IsFalse(page1.Equals(page3));
             Assert.IsFalse(page1.Equals(page4));
 
-            var page5 = page2 as CubePdf.Data.IReadOnlyPage;
+            var page5 = page2 as CubePdf.Data.IPage;
             Assert.IsTrue(page1.Equals(page5));
             Assert.IsTrue(page5.Equals(page1));
 
-            var page6 = page3 as CubePdf.Data.IReadOnlyPage;
+            var page6 = page3 as CubePdf.Data.IPage;
             Assert.IsFalse(page1.Equals(page6));
             Assert.IsFalse(page6.Equals(page1));
 
-            var list = new List<CubePdf.Data.IReadOnlyPage>();
+            var list = new List<CubePdf.Data.IPage>();
             list.Add(page1);
             list.Add(page3);
             list.Add(page4);

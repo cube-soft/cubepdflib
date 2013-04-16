@@ -34,7 +34,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Metadata : IReadOnlyMetadata
+    public class Metadata : IMetadata
     {
         #region Initialization and Termination
 
@@ -59,7 +59,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Metadata(IReadOnlyMetadata cp)
+        public Metadata(IMetadata cp)
         {
             Version = cp.Version;
             Author = cp.Author;

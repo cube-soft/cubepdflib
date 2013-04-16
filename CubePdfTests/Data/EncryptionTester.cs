@@ -101,7 +101,7 @@ namespace CubePdfTests.Data
             Assert.IsFalse(crypt.Permission.Signature);
             Assert.IsFalse(crypt.Permission.TemplatePage);
 
-            var readable = new CubePdf.Data.Encryption(crypt) as CubePdf.Data.IReadOnlyEncryption;
+            var readable = new CubePdf.Data.Encryption(crypt) as CubePdf.Data.IEncryption;
             Assert.IsTrue(readable.IsEnabled);
             Assert.IsTrue(readable.IsUserPasswordEnabled);
             Assert.AreEqual("owner", readable.OwnerPassword);

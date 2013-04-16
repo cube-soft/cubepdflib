@@ -1024,7 +1024,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private double GetPower(CubePdf.Data.IReadOnlyPage page)
+        private double GetPower(CubePdf.Data.IPage page)
         {
             var horizontal = _width / (double)page.ViewSize.Width;
             var vertical = _width / (double)page.ViewSize.Height;
@@ -1041,7 +1041,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Drawing.ImageContainer GetDummyItem(CubePdf.Data.IReadOnlyPage page)
+        private CubePdf.Drawing.ImageContainer GetDummyItem(CubePdf.Data.IPage page)
         {
             var power = GetPower(page);
             var width = (int)(page.ViewSize.Width * power);

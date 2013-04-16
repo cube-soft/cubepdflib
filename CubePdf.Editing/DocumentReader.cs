@@ -269,7 +269,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IReadOnlyMetadata Metadata
+        public CubePdf.Data.IMetadata Metadata
         {
             get { return _metadata; }
         }
@@ -312,7 +312,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IReadOnlyPermission Permission
+        public CubePdf.Data.IPermission Permission
         {
             get { return _permission; }
         }
@@ -326,7 +326,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public SortedDictionary<int, CubePdf.Data.IReadOnlyPage> Pages
+        public SortedDictionary<int, CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -414,11 +414,11 @@ namespace CubePdf.Editing
         private DateTime _create = new DateTime();
         private DateTime _update = new DateTime();
         private DateTime _access = new DateTime();
-        private CubePdf.Data.IReadOnlyMetadata _metadata = null;
+        private CubePdf.Data.IMetadata _metadata = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
-        private CubePdf.Data.IReadOnlyPermission _permission = null;
-        private SortedDictionary<int, CubePdf.Data.IReadOnlyPage> _pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
+        private CubePdf.Data.IPermission _permission = null;
+        private SortedDictionary<int, CubePdf.Data.IPage> _pages = new SortedDictionary<int, CubePdf.Data.IPage>();
         #endregion
     }
 }

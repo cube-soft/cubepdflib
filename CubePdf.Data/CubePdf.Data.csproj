@@ -64,10 +64,10 @@
     <Compile Include="SystemEnvironment.cs" />
     <Compile Include="FileIOWrapper.cs" />
     <Compile Include="IDocumentReader.cs" />
-    <Compile Include="IReadOnlyEncryption.cs" />
-    <Compile Include="IReadOnlyMetadata.cs" />
-    <Compile Include="IReadOnlyPage.cs" />
-    <Compile Include="IReadOnlyPermission.cs" />
+    <Compile Include="IEncryption.cs" />
+    <Compile Include="IMetadata.cs" />
+    <Compile Include="IPage.cs" />
+    <Compile Include="IPermission.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="Permission.cs" />

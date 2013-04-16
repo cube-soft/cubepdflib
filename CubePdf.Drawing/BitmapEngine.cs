@@ -359,7 +359,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IDictionary<int, CubePdf.Data.IReadOnlyPage> Pages
+        public IDictionary<int, CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -535,7 +535,7 @@ namespace CubePdf.Drawing
         private string _path = string.Empty;
         private string _tmp = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
-        private SortedDictionary<int, CubePdf.Data.IReadOnlyPage> _pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
+        private SortedDictionary<int, CubePdf.Data.IPage> _pages = new SortedDictionary<int, CubePdf.Data.IPage>();
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
         private List<string> _garbage = new List<string>();
