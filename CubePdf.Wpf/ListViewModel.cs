@@ -440,7 +440,12 @@ namespace CubePdf.Wpf
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.Page>(index, item));
             }
 
-            lock (_images) _images.Insert(index, GetDummyItem(item));
+            lock (_images)
+            {
+                _images.Insert(index, GetDummyItem(item));
+                UpdateImageText(index);
+            }
+
             lock (_requests)
             {
                 UpdateRequest(index, item);
@@ -576,6 +581,7 @@ namespace CubePdf.Wpf
                 var image = _images[index];
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
+                UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.Page>(index, page));
             }
         }
@@ -602,7 +608,13 @@ namespace CubePdf.Wpf
                 _pages.Insert(newindex, item);
                 UpdateHistory(ListViewCommands.Move, new KeyValuePair<int, int>(oldindex, newindex));
             }
-            lock (_images) _images.Move(oldindex, newindex);
+
+            lock (_images)
+            {
+                _images.Move(oldindex, newindex);
+                if (oldindex <= newindex) UpdateImageText(oldindex, newindex);
+                else UpdateImageText(newindex, oldindex);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1116,6 +1128,46 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// RotateImage
+        /// 
+        /// <summary>
+        /// 引数に指定された image を degree 度だけ回転させます。
+        /// 
+        /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
+        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
+        /// で丸めています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void RotateImage(System.Drawing.Image image, int degree)
+        {
+            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
+            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
+            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
+            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
+            image.RotateFlip(value);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateImageText
+        /// 
+        /// <summary>
+        /// [first, last] の範囲にある ImageContainer の Text プロパティを
+        /// 更新します。Text プロパティには、ページ番号を表す文字列が設定
+        /// されます。last が省略された（または、-1 が指定された）場合は、
+        /// [first, Items.Count) までの Text プロパティを更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateImageText(int first, int last = -1)
+        {
+            if (last == -1) last = _images.Count - 1;
+            for (int i = first; i <= last; ++i) _images[i].Text = (i + 1).ToString();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// UpdateHistory
         /// 
         /// <summary>
@@ -1191,28 +1243,6 @@ namespace CubePdf.Wpf
                     break;
                 }
             }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RotateImage
-        /// 
-        /// <summary>
-        /// 引数に指定された image を degree 度だけ回転させます。
-        /// 
-        /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
-        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
-        /// で丸めています。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotateImage(System.Drawing.Image image, int degree)
-        {
-            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
-            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
-            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
-            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
-            image.RotateFlip(value);
         }
 
         #endregion
