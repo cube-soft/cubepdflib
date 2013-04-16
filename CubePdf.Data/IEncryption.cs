@@ -98,14 +98,9 @@ namespace CubePdf.Data
         /// 
         /// <summary>
         /// 暗号化された PDF に設定されている各種権限の状態を取得します。
-        /// 
-        /// TODO: Permission プロパティの戻り値は IReadOnlyPermission と
-        /// すべきだが（Permission オブジェクトのプロパティが変更可能に
-        /// なってしまう）、Encryption クラスとの間で不整合が生じてしまう。
-        /// 解決方法を検討する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        Permission Permission { get; }
+        IPermission Permission { get; }
     }
 }

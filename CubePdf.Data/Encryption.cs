@@ -160,7 +160,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Permission Permission
+        public IPermission Permission
         {
             get { return _permission; }
             set { _permission = value; }
@@ -174,7 +174,7 @@ namespace CubePdf.Data
         private string _password = string.Empty;
         private string _userpassword = string.Empty;
         private EncryptionMethod _method = EncryptionMethod.Unknown;
-        private Permission _permission = new Permission();
+        private IPermission _permission = new Permission();
         #endregion
     }
 }

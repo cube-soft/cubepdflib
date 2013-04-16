@@ -83,8 +83,10 @@ namespace CubePdfTests.Data
             crypt.OwnerPassword = "owner";
             crypt.UserPassword = "user";
             crypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
-            crypt.Permission.Printing = true;
-            crypt.Permission.Accessibility = true;
+            var permission = new CubePdf.Data.Permission(crypt.Permission);
+            permission.Printing = true;
+            permission.Accessibility = true;
+            crypt.Permission = permission;
             Assert.IsTrue(crypt.IsEnabled);
             Assert.IsTrue(crypt.IsUserPasswordEnabled);
             Assert.AreEqual("owner", crypt.OwnerPassword);

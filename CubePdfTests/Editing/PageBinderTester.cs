@@ -449,17 +449,20 @@ namespace CubePdfTests.Editing
             binder.Encryption.IsUserPasswordEnabled = true;
             binder.Encryption.UserPassword = "view";
             binder.Encryption.Method = CubePdf.Data.EncryptionMethod.Aes128;
-            binder.Encryption.Permission.Printing = true;
-            binder.Encryption.Permission.DegradedPrinting = true;
-            binder.Encryption.Permission.ModifyContents = true;
-            binder.Encryption.Permission.Assembly = true;
-            binder.Encryption.Permission.CopyContents = true;
-            binder.Encryption.Permission.ExtractPage = true;
-            binder.Encryption.Permission.Accessibility = true;
-            binder.Encryption.Permission.ModifyAnnotations = true;
-            binder.Encryption.Permission.InputFormFields = true;
-            binder.Encryption.Permission.Signature = true;
-            binder.Encryption.Permission.TemplatePage = true;
+
+            var permission = new CubePdf.Data.Permission(binder.Encryption.Permission);
+            permission.Printing = true;
+            permission.DegradedPrinting = true;
+            permission.ModifyContents = true;
+            permission.Assembly = true;
+            permission.CopyContents = true;
+            permission.ExtractPage = true;
+            permission.Accessibility = true;
+            permission.ModifyAnnotations = true;
+            permission.InputFormFields = true;
+            permission.Signature = true;
+            permission.TemplatePage = true;
+            binder.Encryption.Permission = permission;
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderEncryption.pdf");
             System.IO.File.Delete(dest);
@@ -485,17 +488,19 @@ namespace CubePdfTests.Editing
                 // Assert.IsTrue(reader.Permission.TemplatePage);
             }
 
-            binder.Encryption.Permission.Printing = false;
-            binder.Encryption.Permission.DegradedPrinting = false;
-            binder.Encryption.Permission.ModifyContents = false;
-            binder.Encryption.Permission.Assembly = false;
-            binder.Encryption.Permission.CopyContents = false;
-            binder.Encryption.Permission.ExtractPage = false;
-            binder.Encryption.Permission.Accessibility = false;
-            binder.Encryption.Permission.ModifyAnnotations = false;
-            binder.Encryption.Permission.InputFormFields = false;
-            binder.Encryption.Permission.Signature = false;
-            binder.Encryption.Permission.TemplatePage = false;
+            permission = new CubePdf.Data.Permission(binder.Encryption.Permission);
+            permission.Printing = false;
+            permission.DegradedPrinting = false;
+            permission.ModifyContents = false;
+            permission.Assembly = false;
+            permission.CopyContents = false;
+            permission.ExtractPage = false;
+            permission.Accessibility = false;
+            permission.ModifyAnnotations = false;
+            permission.InputFormFields = false;
+            permission.Signature = false;
+            permission.TemplatePage = false;
+            binder.Encryption.Permission = permission;
 
             dest = System.IO.Path.Combine(_dest, "TestPageBinderNoPermission.pdf");
             System.IO.File.Delete(dest);
