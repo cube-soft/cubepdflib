@@ -178,6 +178,6 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        SortedDictionary<int, IPage> Pages { get; }
+        IList<IPage> Pages { get; }
     }
 }

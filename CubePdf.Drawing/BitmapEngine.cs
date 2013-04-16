@@ -196,7 +196,7 @@ namespace CubePdf.Drawing
         public void Open(CubePdf.Data.IDocumentReader reader)
         {
             OpenFile(reader.FilePath, reader.Password);
-            foreach (var page in reader.Pages) _pages.Add(page.Key, page.Value);
+            foreach (var page in reader.Pages) _pages.Add(page.PageNumber, page);
         }
 
         /* ----------------------------------------------------------------- */

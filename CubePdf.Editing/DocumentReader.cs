@@ -326,7 +326,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public SortedDictionary<int, CubePdf.Data.IPage> Pages
+        public IList<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -354,7 +354,7 @@ namespace CubePdf.Editing
                 page.OriginalSize = Translator.ToSize(reader.GetPageSize(i + 1));
                 page.Rotation = reader.GetPageRotation(i + 1);
                 page.Power = 1.0;
-                _pages.Add(i + 1, page);
+                _pages.Add(page);
             }
         }
 
@@ -418,7 +418,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
         private CubePdf.Data.IPermission _permission = null;
-        private SortedDictionary<int, CubePdf.Data.IPage> _pages = new SortedDictionary<int, CubePdf.Data.IPage>();
+        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }

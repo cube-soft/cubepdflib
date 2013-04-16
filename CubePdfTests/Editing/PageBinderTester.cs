@@ -93,7 +93,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
 
                 var dest = System.IO.Path.Combine(_dest, "TestPageBinderCopy.pdf");
@@ -129,7 +129,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
                 binder.Save(dest);
                 Assert.IsTrue(System.IO.File.Exists(dest));
@@ -144,7 +144,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
                 binder.Save(tmp);
                 Assert.IsTrue(System.IO.File.Exists(tmp));
@@ -174,14 +174,14 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderFullMerge.pdf");
@@ -210,10 +210,10 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
                 Assert.AreEqual(9, reader.Pages.Count);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[3]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[5]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[7]));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[0]));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[4]));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[6]));
             }
 
             src = System.IO.Path.Combine(_src, "readme.pdf");
@@ -221,8 +221,8 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
                 Assert.AreEqual(2, reader.Pages.Count);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[0]));
                 binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderPartMerge.pdf");
@@ -256,27 +256,27 @@ namespace CubePdfTests.Editing
             {
                 Assert.AreEqual(9, reader.Pages.Count);
 
-                var page = new CubePdf.Data.Page(reader.Pages[1]);
+                var page = new CubePdf.Data.Page(reader.Pages[0]);
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 90;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[2]);
+                page = new CubePdf.Data.Page(reader.Pages[1]);
                 Assert.AreEqual(90, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[3]);
+                page = new CubePdf.Data.Page(reader.Pages[2]);
                 Assert.AreEqual(180, page.Rotation);
                 page.Rotation = 0;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[5]);
+                page = new CubePdf.Data.Page(reader.Pages[4]);
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[6]);
+                page = new CubePdf.Data.Page(reader.Pages[5]);
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 270;
                 binder.Pages.Add(page);
@@ -290,11 +290,11 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(5,   reader.Pages.Count);
-                Assert.AreEqual(90,  reader.Pages[1].Rotation);
-                Assert.AreEqual(270, reader.Pages[2].Rotation);
-                Assert.AreEqual(0,   reader.Pages[3].Rotation);
-                Assert.AreEqual(180, reader.Pages[4].Rotation);
-                Assert.AreEqual(270, reader.Pages[5].Rotation);
+                Assert.AreEqual(90,  reader.Pages[0].Rotation);
+                Assert.AreEqual(270, reader.Pages[1].Rotation);
+                Assert.AreEqual(0,   reader.Pages[2].Rotation);
+                Assert.AreEqual(180, reader.Pages[3].Rotation);
+                Assert.AreEqual(270, reader.Pages[4].Rotation);
             }
         }
 
@@ -321,10 +321,10 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(0,   reader.Pages[1].Rotation);
-                Assert.AreEqual(90,  reader.Pages[2].Rotation);
-                Assert.AreEqual(180, reader.Pages[3].Rotation);
-                Assert.AreEqual(270, reader.Pages[4].Rotation);
+                Assert.AreEqual(0,   reader.Pages[0].Rotation);
+                Assert.AreEqual(90,  reader.Pages[1].Rotation);
+                Assert.AreEqual(180, reader.Pages[2].Rotation);
+                Assert.AreEqual(270, reader.Pages[3].Rotation);
 
                 for (int i = 1; i <= 4; ++i)
                 {
@@ -342,10 +342,10 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
+                Assert.AreEqual(degree, reader.Pages[0].Rotation);
                 Assert.AreEqual(degree, reader.Pages[1].Rotation);
                 Assert.AreEqual(degree, reader.Pages[2].Rotation);
                 Assert.AreEqual(degree, reader.Pages[3].Rotation);
-                Assert.AreEqual(degree, reader.Pages[4].Rotation);
             }
         }
 
@@ -371,7 +371,7 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             // 新しい情報の設定テスト
@@ -441,7 +441,7 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             binder.Encryption.IsEnabled = true;
@@ -565,7 +565,7 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             binder.Encryption.IsEnabled = false;
@@ -629,7 +629,7 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             // Printing

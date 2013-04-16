@@ -193,13 +193,13 @@ namespace CubePdfTests.Wpf
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(11,  doc.Pages.Count);
-                Assert.AreEqual(0,   doc.Pages[1].Rotation);
-                Assert.AreEqual(90,  doc.Pages[2].Rotation);
+                Assert.AreEqual(0,   doc.Pages[0].Rotation);
+                Assert.AreEqual(90,  doc.Pages[1].Rotation);
+                Assert.AreEqual(0,   doc.Pages[2].Rotation);
                 Assert.AreEqual(0,   doc.Pages[3].Rotation);
-                Assert.AreEqual(0,   doc.Pages[4].Rotation);
-                Assert.AreEqual(180, doc.Pages[5].Rotation);
-                Assert.AreEqual(270, doc.Pages[6].Rotation);
-                Assert.AreEqual(0,   doc.Pages[7].Rotation);
+                Assert.AreEqual(180, doc.Pages[4].Rotation);
+                Assert.AreEqual(270, doc.Pages[5].Rotation);
+                Assert.AreEqual(0,   doc.Pages[6].Rotation);
             }
 
             viewmodel.Close();
@@ -266,10 +266,10 @@ namespace CubePdfTests.Wpf
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(6,   doc.Pages.Count);
-                Assert.AreEqual(90,  doc.Pages[1].Rotation);
-                Assert.AreEqual(180, doc.Pages[2].Rotation);
+                Assert.AreEqual(90,  doc.Pages[0].Rotation);
+                Assert.AreEqual(180, doc.Pages[1].Rotation);
+                Assert.AreEqual(0,   doc.Pages[2].Rotation);
                 Assert.AreEqual(0,   doc.Pages[3].Rotation);
-                Assert.AreEqual(0,   doc.Pages[4].Rotation);
             }
         }
 
@@ -334,10 +334,10 @@ namespace CubePdfTests.Wpf
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(4,   doc.Pages.Count);
-                Assert.AreEqual(0,   doc.Pages[1].Rotation);
-                Assert.AreEqual(180, doc.Pages[2].Rotation);
-                Assert.AreEqual(90,  doc.Pages[3].Rotation);
-                Assert.AreEqual(0,   doc.Pages[4].Rotation);
+                Assert.AreEqual(0,   doc.Pages[0].Rotation);
+                Assert.AreEqual(180, doc.Pages[1].Rotation);
+                Assert.AreEqual(90,  doc.Pages[2].Rotation);
+                Assert.AreEqual(0,   doc.Pages[3].Rotation);
             }
         }
 
@@ -405,11 +405,11 @@ namespace CubePdfTests.Wpf
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(9,   doc.Pages.Count);
-                Assert.AreEqual(90,  doc.Pages[1].Rotation);
-                Assert.AreEqual(180, doc.Pages[2].Rotation);
+                Assert.AreEqual(90,  doc.Pages[0].Rotation);
+                Assert.AreEqual(180, doc.Pages[1].Rotation);
+                Assert.AreEqual(0,   doc.Pages[2].Rotation);
                 Assert.AreEqual(0,   doc.Pages[3].Rotation);
-                Assert.AreEqual(0,   doc.Pages[4].Rotation);
-                Assert.AreEqual(270, doc.Pages[9].Rotation);
+                Assert.AreEqual(270, doc.Pages[8].Rotation);
             }
         }
 
@@ -446,10 +446,10 @@ namespace CubePdfTests.Wpf
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(9,   doc.Pages.Count);
-                Assert.AreEqual(90,  doc.Pages[1].Rotation);
-                Assert.AreEqual(270, doc.Pages[2].Rotation);
-                Assert.AreEqual(90,  doc.Pages[3].Rotation);
-                Assert.AreEqual(180, doc.Pages[4].Rotation);
+                Assert.AreEqual(90,  doc.Pages[0].Rotation);
+                Assert.AreEqual(270, doc.Pages[1].Rotation);
+                Assert.AreEqual(90,  doc.Pages[2].Rotation);
+                Assert.AreEqual(180, doc.Pages[3].Rotation);
             }
         }
 
