@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// IReadOnlyEncryption.cs
+/// IEncryption.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -24,15 +24,14 @@ namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// IReadOnlyEncryption
+    /// IEncryption
     /// 
     /// <summary>
-    /// PDF の暗号化に関するデータを読み取り専用で提供するための
-    /// インターフェースです。
+    /// PDF の暗号化に関するデータを提供するためのインターフェースです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IReadOnlyEncryption
+    public interface IEncryption
     {
         /* ----------------------------------------------------------------- */
         ///
@@ -99,14 +98,9 @@ namespace CubePdf.Data
         /// 
         /// <summary>
         /// 暗号化された PDF に設定されている各種権限の状態を取得します。
-        /// 
-        /// TODO: Permission プロパティの戻り値は IReadOnlyPermission と
-        /// すべきだが（Permission オブジェクトのプロパティが変更可能に
-        /// なってしまう）、Encryption クラスとの間で不整合が生じてしまう。
-        /// 解決方法を検討する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        Permission Permission { get; }
+        IPermission Permission { get; }
     }
 }

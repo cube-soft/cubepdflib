@@ -133,7 +133,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IReadOnlyMetadata Metadata { get; }
+        IMetadata Metadata { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -167,7 +167,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IReadOnlyPermission Permission { get; }
+        IPermission Permission { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -178,6 +178,6 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        SortedDictionary<int, IReadOnlyPage> Pages { get; }
+        IList<IPage> Pages { get; }
     }
 }

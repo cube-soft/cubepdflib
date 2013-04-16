@@ -113,7 +113,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static int ToIText(Permission value)
+        public static int ToIText(IPermission value)
         {
             int dest = 0;
 
