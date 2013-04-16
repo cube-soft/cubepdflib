@@ -600,6 +600,144 @@ namespace CubePdfTests.Editing
             catch (Exception /* err */) { Assert.Pass(); }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestPermission
+        /// 
+        /// <summary>
+        /// 各パーミッションのみを許可した場合のテストを行います。通常テスト
+        /// の他、生成されたファイルは、パーミッションが Adobe Reader でどの
+        /// ように表示されるかを確認されるために使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestPermission()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+            var encrypt = new CubePdf.Data.Encryption();
+            encrypt.IsEnabled = true;
+            encrypt.OwnerPassword = "owner";
+            encrypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
+
+            var src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+            }
+
+            // Printing
+            var permission = new CubePdf.Data.Permission();
+            permission.Printing = true;
+            var dest = System.IO.Path.Combine(_dest, "TestPermissionPrinting.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // DegradedPrinting
+            permission = new CubePdf.Data.Permission();
+            permission.DegradedPrinting = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionDegradedPrinting.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Assembly
+            permission = new CubePdf.Data.Permission();
+            permission.Assembly = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionAssembly.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ModifyContents
+            permission = new CubePdf.Data.Permission();
+            permission.ModifyContents = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionModifyContents.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // CopyContents
+            permission = new CubePdf.Data.Permission();
+            permission.CopyContents = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionCopyContents.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Accessibility
+            permission = new CubePdf.Data.Permission();
+            permission.Accessibility = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionAccessibility.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ModifyAnnotations
+            permission = new CubePdf.Data.Permission();
+            permission.ModifyAnnotations = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionModifyAnnotations.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // InputFormFields
+            permission = new CubePdf.Data.Permission();
+            permission.InputFormFields = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionInputFormFields.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ExtractPage
+            //permission = new CubePdf.Data.Permission();
+            //permission.ExtractPage = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionExtractPage.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Signature
+            //permission = new CubePdf.Data.Permission();
+            //permission.Signature = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionSignature.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // TemplatePage
+            //permission = new CubePdf.Data.Permission();
+            //permission.TemplatePage = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionTemplatePage.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
+        }
+
         #endregion
 
         #region Variables
