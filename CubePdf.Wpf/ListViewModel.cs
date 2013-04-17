@@ -580,6 +580,16 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IDocumentReader
+        /// 
+        /// <summary>
+        /// IDocumentReader インターフェースを実装します。Metadata プロパティ
+        /// に関しては、IDocumentWriter インターフェースのものを優先します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         #region Implementations for IDocumentReader
 
         #region Properties
@@ -590,7 +600,7 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// パスを取得します。
+        /// パスを取得します（IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -606,7 +616,8 @@ namespace CubePdf.Wpf
         /// <summary>
         /// PDF ファイルを開く際に指定されたパスワードを取得します。
         /// 指定されたパスワードがオーナパスワードなのかユーザパスワード
-        /// なのかの判断については、EncryptionStatus の情報から判断します。
+        /// なのかの判断については、EncryptionStatus の情報から判断
+        /// します（IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -621,7 +632,7 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 現在、開いている（または各種操作を行った結果の）PDF ファイルに
-        /// 含まれるページ数を取得します。
+        /// 含まれるページ数を取得します（IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -635,18 +646,15 @@ namespace CubePdf.Wpf
         /// Metadata
         /// 
         /// <summary>
-        /// PDF ファイルの文書プロパティを取得、または設定します。
+        /// PDF ファイルの文書プロパティを取得します（IDocumentReader から
+        /// 継承されます）。IListViewModel インターフェースでは、
+        /// IDocumentWriter.Metadata プロパティが優先されます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IMetadata Metadata
+        CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
         {
             get { return _metadata; }
-            set
-            {
-                UpdateHistory(ListViewCommands.Metadata, _metadata);
-                _metadata = value;
-            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -654,7 +662,8 @@ namespace CubePdf.Wpf
         /// EncryptionStatus
         /// 
         /// <summary>
-        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を
+        /// 取得します（IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -668,7 +677,11 @@ namespace CubePdf.Wpf
         /// EncryptionMethod
         /// 
         /// <summary>
-        /// 暗号化方式を取得します。
+        /// 暗号化方式を取得します（IDocumentReader から継承されます）。
+        /// EncryptionMethod プロパティでは、常に、Open メソッドで開いた
+        /// PDF ファイルの元々の暗号化方式が取得されます。PDF ファイルを
+        /// 保存する際に暗号化方式を変更したい場合は、Encryption プロパティ
+        /// で設定して下さい。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -683,7 +696,10 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
-        /// します。
+        /// します（IDocumentReader から継承されます）。Permission プロパティ
+        /// では、常に、Open メソッドで開いた PDF ファイルの元々の各種操作
+        /// 権限情報が取得されます。PDF ファイルを保存する際に各種操作権限を
+        /// 変更したい場合は、Encrytpion プロパティで設定して下さい。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -697,7 +713,8 @@ namespace CubePdf.Wpf
         /// Pages
         /// 
         /// <summary>
-        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
+        /// PDF の各ページ情報へアクセスするための反復子を取得します
+        /// （IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -716,7 +733,7 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
-        /// ための準備を行います。
+        /// ための準備を行います（IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -754,7 +771,8 @@ namespace CubePdf.Wpf
         /// Close
         /// 
         /// <summary>
-        /// 現在開いている PDF ファイルを閉じます。
+        /// 現在開いている PDF ファイルを閉じます（IDocumentReader から
+        /// 継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -762,9 +780,12 @@ namespace CubePdf.Wpf
         {
             _modified = false;
             _path = string.Empty;
+            _password = string.Empty;
             _metadata = null;
-            _encrypt = null;
             _source_status = Data.EncryptionStatus.NotEncrypted;
+            _source_method = Data.EncryptionMethod.Unknown;
+            _source_permission = null;
+            _encrypt = null;
             _undo.Clear();
             _redo.Clear();
 
@@ -787,7 +808,8 @@ namespace CubePdf.Wpf
         /// GetPage
         /// 
         /// <summary>
-        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// 指定されたページ番号に対応するページ情報を取得します
+        /// （IDocumentReader から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -800,16 +822,47 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IDocumentWriter
+        /// 
+        /// <summary>
+        /// IDocumentWriter インターフェースを実装します。Pages プロパティに
+        /// 関しては、IDocumentReader インターフェースのものを優先します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         #region Implementations for IDocumentWriter
 
         #region Properties
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルの文書プロパティを取得、または設定します
+        /// （IDocumentWriter から継承されます）。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IMetadata Metadata
+        {
+            get { return _metadata; }
+            set
+            {
+                UpdateHistory(ListViewCommands.Metadata, _metadata);
+                _metadata = value;
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Encryption
         /// 
         /// <summary>
-        /// PDF ファイルのセキュリティに関する情報を取得します。
+        /// PDF ファイルのセキュリティに関する情報を取得します
+        /// （IDocumentWriter から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -828,7 +881,10 @@ namespace CubePdf.Wpf
         /// Pages
         /// 
         /// <summary>
-        /// PDF ファイルの各ページ情報を取得、または設定します。
+        /// PDF ファイルの各ページ情報を取得、または設定します
+        /// （IDocumentWriter から継承されます）。
+        /// IListViewModel インターフェースでは、IDocumentReader.Pages
+        /// プロパティが優先されます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -846,7 +902,7 @@ namespace CubePdf.Wpf
         /// Reset
         /// 
         /// <summary>
-        /// 初期状態にリセットします。
+        /// 初期状態にリセットします（IDocumentWriter から継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -860,9 +916,8 @@ namespace CubePdf.Wpf
         /// Save
         /// 
         /// <summary>
-        /// 現在のページ構成でファイルに保存します。引数に null が指定された
-        /// 場合、Open メソッドにより開いたファイルに対して上書き保存を
-        /// 試みます。
+        /// 現在のページ構成でファイルに保存します（IDocumentWriter から
+        /// 継承されます）。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -901,6 +956,15 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IDisposable
+        /// 
+        /// <summary>
+        /// IDisposable インターフェースを実装します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         #region Implementations for IDisposable
 
         /* ----------------------------------------------------------------- */
@@ -923,8 +987,8 @@ namespace CubePdf.Wpf
         /// Dispose
         /// 
         /// <summary>
-        /// IDisposable で定義されているメソッドの実装部分です。実際に必要な
-        /// 処理は Dispose(bool) メソッドに記述して下さい。
+        /// NOTE: IDisposable で定義されているメソッドの実装部分です。実際に
+        /// 必要な処理は Dispose(bool) メソッドに記述して下さい。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
