@@ -903,12 +903,14 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 初期状態にリセットします（IDocumentWriter から継承されます）。
+        /// 
+        /// TODO: 実装
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            // TODO: 適切な実装
+            throw new NotSupportedException();
         }
 
         /* ----------------------------------------------------------------- */
