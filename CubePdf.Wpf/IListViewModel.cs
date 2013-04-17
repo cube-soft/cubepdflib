@@ -33,14 +33,55 @@ namespace CubePdf.Wpf
     /// <summary>
     /// ListView に CubePdf.Drawing.BitmapEngine で生成される各 PDF ページ
     /// のサムネイルを表示、および各種操作を行うためのインターフェースです。
-    /// T には System.Windows.Media.ImageSource クラス、またはその継承
-    /// クラスが指定される事を想定しています。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
     public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter, IItemsProvider<CubePdf.Drawing.ImageContainer>
     {
         #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF のメタ情報を取得します。Metadata プロパティは、IDocumentReader
+        /// インターフェースでは get のみ、IDocumentWriter インターフェース
+        /// では get/set 両方とも許可されています。IListViewModel
+        /// インターフェースでは、IDocumentWriter インターフェースのものを
+        /// 引き継ぐ事とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        new CubePdf.Data.IMetadata Metadata { get; set; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF の各ページ情報を参照するための反復子を取得します。
+        /// Pages プロパティは、IDocumentReader インターフェースでは
+        /// IEnumerable(T) クラス、IDocumentWriter インターフェースでは
+        /// ICollection(T) クラスを戻り値としています。IListViewModel
+        /// インターフェースでは、IDocumentReader インターフェースのものを
+        /// 引き継ぐ事とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        new IEnumerable<CubePdf.Data.IPage> Pages { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsModified
+        /// 
+        /// <summary>
+        /// 現在、開かれている PDF ファイルに対して何らかの変更が加えられた
+        /// かどうかを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        bool IsModified { get; }
 
         /* ----------------------------------------------------------------- */
         ///
