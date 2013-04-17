@@ -318,7 +318,7 @@ namespace CubePdf.Wpf
             using (var reader = new CubePdf.Editing.DocumentReader(path, password))
             {
                 var engine = CreateEngine(reader);
-                foreach (var page in engine.Pages.Values) Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) Add(new CubePdf.Data.Page(page));
                 _modified = false;
                 _path   = path;
                 _size   = reader.FileSize;
@@ -404,8 +404,11 @@ namespace CubePdf.Wpf
                 foreach (var engine in _engines.Values) engine.Dispose();
                 _engines.Clear();
 
-                var newengine = CreateEngine(dest, "");
-                foreach (var page in newengine.Pages.Values) _pages.Add(new CubePdf.Data.Page(page));
+                using (var reader = new CubePdf.Editing.DocumentReader(dest, ""))
+                {
+                    var newengine = CreateEngine(reader);
+                    foreach (var page in reader.Pages) _pages.Add(new CubePdf.Data.Page(page));
+                }
             }
         }
 
@@ -656,7 +659,7 @@ namespace CubePdf.Wpf
             var image = _engines[item.FilePath].CreateImage(item.PageNumber, GetPower(item));
             if (image == null) return;
 
-            var delta = item.Rotation - _engines[item.FilePath].Pages[item.PageNumber].Rotation;
+            var delta = item.Rotation - _engines[item.FilePath].GetPage(item.PageNumber).Rotation;
             if (delta < 0) delta += 360;
             if (delta >= 360) delta -= 360;
 

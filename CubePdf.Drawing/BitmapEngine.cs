@@ -196,7 +196,7 @@ namespace CubePdf.Drawing
         public void Open(CubePdf.Data.IDocumentReader reader)
         {
             OpenFile(reader.FilePath, reader.Password);
-            foreach (var page in reader.Pages) _pages.Add(page.PageNumber, page);
+            foreach (var page in reader.Pages) _pages.Add(page);
         }
 
         /* ----------------------------------------------------------------- */
@@ -218,13 +218,14 @@ namespace CubePdf.Drawing
 
             lock (_lock)
             {
+                _pages.Clear();
+                _path = string.Empty;
+
                 if (_core != null)
                 {
                     _core.Dispose();
                     _core = null;
                 }
-                _pages.Clear();
-                _path = string.Empty;
 
                 try { System.IO.File.Delete(_tmp); }
                 catch (Exception /* err */) { _garbage.Add(_tmp); }
@@ -252,6 +253,20 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// GetPage
+        /// 
+        /// <summary>
+        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPage GetPage(int pagenum)
+        {
+            return _pages[pagenum - 1];
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// CreateImage
         /// 
         /// <summary>
@@ -264,12 +279,13 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public Image CreateImage(int pagenum, double power = 1.0)
         {
+            var index = pagenum - 1;
             lock (_lock)
             {
                 PDFLibNet.PDFPage obj;
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
 
-                var page = _pages[pagenum];
+                var page = _pages[index];
                 int width = (int)(page.ViewSize.Width * power);
                 int height = (int)(page.ViewSize.Height * power);
                 return obj.GetBitmap(width, height, true);
@@ -293,10 +309,11 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void CreateImageAsync(int pagenum, double power = 1.0)
         {
+            var index = pagenum - 1;
             lock (_creating)
             {
-                if (!_pages.ContainsKey(pagenum)) return;
-                var entry = new ImageEventArgs(new CubePdf.Data.Page(_pages[pagenum]));
+                if (index >= _pages.Count) return;
+                var entry = new ImageEventArgs(new CubePdf.Data.Page(_pages[index]));
                 entry.Page.Power = power;
                 _creating.Enqueue(entry);
             }
@@ -352,14 +369,28 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Pages
+        /// PageCount
         /// 
         /// <summary>
-        /// PDF ファイルの各ページのページ情報を取得します。
+        /// 現在、開いている PDF ファイルのページ数を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IDictionary<int, CubePdf.Data.IPage> Pages
+        public int PageCount
+        {
+            get { return _pages.Count; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public IEnumerable<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -521,7 +552,8 @@ namespace CubePdf.Drawing
                     var page = new CubePdf.Data.Page(_path, i + 1);
                     page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
                     page.Rotation = obj.Rotation;
-                    if (!_pages.ContainsKey(i + 1)) _pages.Add(i + 1, page);
+                    if (i >= _pages.Count) _pages.Add(page);
+                    else _pages[i] = page;
                 }
             }
         }
@@ -535,7 +567,7 @@ namespace CubePdf.Drawing
         private string _path = string.Empty;
         private string _tmp = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
-        private SortedDictionary<int, CubePdf.Data.IPage> _pages = new SortedDictionary<int, CubePdf.Data.IPage>();
+        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
         private List<string> _garbage = new List<string>();

@@ -20,7 +20,6 @@
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using NUnit.Framework;
 
 namespace CubePdfTests.Drawing
@@ -89,7 +88,7 @@ namespace CubePdfTests.Drawing
             using (var engine = new CubePdf.Drawing.BitmapEngine(filename))
             {
                 Assert.Pass();
-                Assert.AreEqual(9, engine.Pages.Count);
+                Assert.AreEqual(9, engine.PageCount);
             }
 
             // 2. オーナパスワードを指定して開く
@@ -98,7 +97,7 @@ namespace CubePdfTests.Drawing
             using (var engine = new CubePdf.Drawing.BitmapEngine(filename, password))
             {
                 Assert.Pass();
-                Assert.AreEqual(2, engine.Pages.Count);
+                Assert.AreEqual(2, engine.PageCount);
             }
 
             // 3. ユーザパスワードを指定して開く
@@ -106,7 +105,7 @@ namespace CubePdfTests.Drawing
             using (var engine = new CubePdf.Drawing.BitmapEngine(filename, password))
             {
                 Assert.Pass();
-                Assert.AreEqual(2, engine.Pages.Count);
+                Assert.AreEqual(2, engine.PageCount);
             }
 
             // 4. 間違ったパスワードを指定する
@@ -156,7 +155,7 @@ namespace CubePdfTests.Drawing
             using (var engine = new CubePdf.Drawing.BitmapEngine(src))
             {
                 Assert.AreEqual(src, engine.FilePath);
-                Assert.AreEqual(9, engine.Pages.Count);
+                Assert.AreEqual(9, engine.PageCount);
             }
         }
 
@@ -180,7 +179,7 @@ namespace CubePdfTests.Drawing
 
             using (var engine = new CubePdf.Drawing.BitmapEngine(src))
             {
-                var page = engine.Pages[1];
+                var page = engine.GetPage(1);
                 Assert.NotNull(page);
                 Assert.AreEqual(engine.FilePath, page.FilePath);
                 Assert.AreEqual(1, page.PageNumber);
@@ -192,7 +191,7 @@ namespace CubePdfTests.Drawing
                 Assert.AreEqual(1.0, page.Power);
 
                 page = null;
-                page = engine.Pages[2];
+                page = engine.GetPage(2);
                 Assert.NotNull(page);
                 Assert.AreEqual(engine.FilePath, page.FilePath);
                 Assert.AreEqual(2, page.PageNumber);
@@ -204,7 +203,7 @@ namespace CubePdfTests.Drawing
                 Assert.AreEqual(1.0, page.Power);
 
                 page = null;
-                page = engine.Pages[3];
+                page = engine.GetPage(3);
                 Assert.NotNull(page);
                 Assert.AreEqual(engine.FilePath, page.FilePath);
                 Assert.AreEqual(3, page.PageNumber);
@@ -216,7 +215,7 @@ namespace CubePdfTests.Drawing
                 Assert.AreEqual(1.0, page.Power);
 
                 page = null;
-                page = engine.Pages[4];
+                page = engine.GetPage(4);
                 Assert.NotNull(page);
                 Assert.AreEqual(engine.FilePath, page.FilePath);
                 Assert.AreEqual(4, page.PageNumber);
@@ -228,7 +227,7 @@ namespace CubePdfTests.Drawing
                 Assert.AreEqual(1.0, page.Power);
 
                 page = null;
-                page = engine.Pages[5];
+                page = engine.GetPage(5);
                 Assert.NotNull(page);
                 Assert.AreEqual(engine.FilePath, page.FilePath);
                 Assert.AreEqual(5, page.PageNumber);
@@ -260,13 +259,12 @@ namespace CubePdfTests.Drawing
             {
                 foreach (var page in engine.Pages)
                 {
-                    Assert.AreEqual(page.Key, page.Value.PageNumber);
-                    using (var image = engine.CreateImage(page.Key, _power))
+                    using (var image = engine.CreateImage(page.PageNumber, _power))
                     {
                         Assert.NotNull(image);
-                        Assert.AreEqual((int)(page.Value.ViewSize.Width * _power), image.Width);
-                        Assert.AreEqual((int)(page.Value.ViewSize.Height * _power), image.Height);
-                        var filename = String.Format("TestCreateImage-{0}.png", page.Key);
+                        Assert.AreEqual((int)(page.ViewSize.Width * _power), image.Width);
+                        Assert.AreEqual((int)(page.ViewSize.Height * _power), image.Height);
+                        var filename = String.Format("TestCreateImage-{0}.png", page.PageNumber);
                         var dest = System.IO.Path.Combine(_dest, filename);
                         System.IO.File.Delete(dest);
                         image.Save(dest);
@@ -304,9 +302,9 @@ namespace CubePdfTests.Drawing
                     e.Image.Dispose();
                 };
 
-                for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+                for (int i = 0; i < engine.PageCount; ++i) engine.CreateImageAsync(i + 1, _power);
                 while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
-                Assert.AreEqual(engine.Pages.Count, created);
+                Assert.AreEqual(engine.PageCount, created);
             }
         }
 
@@ -339,7 +337,7 @@ namespace CubePdfTests.Drawing
                     e.Image.Dispose();
                 };
 
-                for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+                for (int i = 0; i < engine.PageCount; ++i) engine.CreateImageAsync(i + 1, _power);
                 engine.CancelImageCreation();
                 var savepoint = created;
                 while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
@@ -365,28 +363,28 @@ namespace CubePdfTests.Drawing
                 try
                 {
                     var filename = System.IO.Path.Combine(_src, "rotated.pdf");
-                    Assert.AreEqual(0, engine.Pages.Count);
+                    Assert.AreEqual(0, engine.PageCount);
                     Assert.IsFalse(engine.UnderImageCreation);
 
                     engine.Open(filename);
-                    Assert.AreEqual(9, engine.Pages.Count);
+                    Assert.AreEqual(9, engine.PageCount);
                     engine.ImageCreated += (sender, e) => {
                         Assert.NotNull(e.Image);
                         Assert.AreEqual(e.Page.ViewSize.Width, e.Image.Width);
                         Assert.AreEqual(e.Page.ViewSize.Height, e.Image.Height);
                         e.Image.Dispose();
                     };
-                    for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+                    for (int i = 0; i < engine.PageCount; ++i) engine.CreateImageAsync(i + 1, _power);
                     engine.CancelImageCreation();
                     engine.Close();
-                    Assert.AreEqual(0, engine.Pages.Count);
+                    Assert.AreEqual(0, engine.PageCount);
                     while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
 
                     // 別のファイルを開いてみる
                     filename = System.IO.Path.Combine(_src, "password.pdf");
                     var password = "view"; // UserPassword
                     engine.Open(filename, password);
-                    Assert.AreEqual(2, engine.Pages.Count);
+                    Assert.AreEqual(2, engine.PageCount);
                     Assert.IsFalse(engine.UnderImageCreation);
                 }
                 catch (Exception err)

@@ -209,20 +209,20 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(9, reader.Pages.Count);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[0]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[4]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[6]));
+                Assert.AreEqual(9, reader.PageCount);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(3)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(5)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(7)));
             }
 
             src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(2, reader.Pages.Count);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[0]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
+                Assert.AreEqual(2, reader.PageCount);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderPartMerge.pdf");
@@ -232,7 +232,7 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(6, reader.Pages.Count);
+                Assert.AreEqual(6, reader.PageCount);
             }
         }
 
@@ -254,29 +254,29 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(9, reader.Pages.Count);
+                Assert.AreEqual(9, reader.PageCount);
 
-                var page = new CubePdf.Data.Page(reader.Pages[0]);
+                var page = new CubePdf.Data.Page(reader.GetPage(1));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 90;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[1]);
+                page = new CubePdf.Data.Page(reader.GetPage(2));
                 Assert.AreEqual(90, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[2]);
+                page = new CubePdf.Data.Page(reader.GetPage(3));
                 Assert.AreEqual(180, page.Rotation);
                 page.Rotation = 0;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[4]);
+                page = new CubePdf.Data.Page(reader.GetPage(5));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[5]);
+                page = new CubePdf.Data.Page(reader.GetPage(6));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 270;
                 binder.Pages.Add(page);
@@ -289,12 +289,12 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(5,   reader.Pages.Count);
-                Assert.AreEqual(90,  reader.Pages[0].Rotation);
-                Assert.AreEqual(270, reader.Pages[1].Rotation);
-                Assert.AreEqual(0,   reader.Pages[2].Rotation);
-                Assert.AreEqual(180, reader.Pages[3].Rotation);
-                Assert.AreEqual(270, reader.Pages[4].Rotation);
+                Assert.AreEqual(5,   reader.PageCount);
+                Assert.AreEqual(90,  reader.GetPage(1).Rotation);
+                Assert.AreEqual(270, reader.GetPage(2).Rotation);
+                Assert.AreEqual(0,   reader.GetPage(3).Rotation);
+                Assert.AreEqual(180, reader.GetPage(4).Rotation);
+                Assert.AreEqual(270, reader.GetPage(5).Rotation);
             }
         }
 
@@ -321,14 +321,14 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(0,   reader.Pages[0].Rotation);
-                Assert.AreEqual(90,  reader.Pages[1].Rotation);
-                Assert.AreEqual(180, reader.Pages[2].Rotation);
-                Assert.AreEqual(270, reader.Pages[3].Rotation);
+                Assert.AreEqual(0,   reader.GetPage(1).Rotation);
+                Assert.AreEqual(90,  reader.GetPage(2).Rotation);
+                Assert.AreEqual(180, reader.GetPage(3).Rotation);
+                Assert.AreEqual(270, reader.GetPage(4).Rotation);
 
                 for (int i = 1; i <= 4; ++i)
                 {
-                    var page = new CubePdf.Data.Page(reader.Pages[i]);
+                    var page = new CubePdf.Data.Page(reader.GetPage(i));
                     page.Rotation = degree;
                     binder.Pages.Add(page);
                 }
@@ -342,10 +342,10 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(degree, reader.Pages[0].Rotation);
-                Assert.AreEqual(degree, reader.Pages[1].Rotation);
-                Assert.AreEqual(degree, reader.Pages[2].Rotation);
-                Assert.AreEqual(degree, reader.Pages[3].Rotation);
+                Assert.AreEqual(degree, reader.GetPage(1).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(2).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(3).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(4).Rotation);
             }
         }
 

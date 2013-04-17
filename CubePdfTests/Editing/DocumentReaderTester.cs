@@ -89,7 +89,7 @@ namespace CubePdfTests.Editing
             Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
             Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
             Assert.NotNull(doc.Pages);
-            Assert.AreEqual(0, doc.Pages.Count);
+            Assert.AreEqual(0, doc.PageCount);
         }
 
         /* ----------------------------------------------------------------- */
@@ -129,8 +129,8 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
                     Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
 
-                    Assert.AreEqual(9, doc.Pages.Count);
-                    var page = doc.Pages[0];
+                    Assert.AreEqual(9, doc.PageCount);
+                    var page = doc.GetPage(1);
                     Assert.NotNull(page);
                     Assert.AreEqual(doc.FilePath, page.FilePath);
                     Assert.AreEqual(1, page.PageNumber);
@@ -142,7 +142,7 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(1.0, page.Power);
 
                     page = null;
-                    page = doc.Pages[1];
+                    page = doc.GetPage(2);
                     Assert.NotNull(page);
                     Assert.AreEqual(doc.FilePath, page.FilePath);
                     Assert.AreEqual(2, page.PageNumber);
@@ -154,7 +154,7 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(1.0, page.Power);
 
                     page = null;
-                    page = doc.Pages[2];
+                    page = doc.GetPage(3);
                     Assert.NotNull(page);
                     Assert.AreEqual(doc.FilePath, page.FilePath);
                     Assert.AreEqual(3, page.PageNumber);
@@ -166,7 +166,7 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(1.0, page.Power);
 
                     page = null;
-                    page = doc.Pages[3];
+                    page = doc.GetPage(4);
                     Assert.NotNull(page);
                     Assert.AreEqual(doc.FilePath, page.FilePath);
                     Assert.AreEqual(4, page.PageNumber);
@@ -178,7 +178,7 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual(1.0, page.Power);
 
                     page = null;
-                    page = doc.Pages[4];
+                    page = doc.GetPage(5);
                     Assert.NotNull(page);
                     Assert.AreEqual(doc.FilePath, page.FilePath);
                     Assert.AreEqual(5, page.PageNumber);

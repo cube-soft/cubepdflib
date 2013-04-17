@@ -170,6 +170,20 @@ namespace CubePdf.Editing
             _pages.Clear();
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetPage
+        /// 
+        /// <summary>
+        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPage GetPage(int pagenum)
+        {
+            return _pages[pagenum - 1];
+        }
+
         #endregion
 
         #region Properties
@@ -216,6 +230,20 @@ namespace CubePdf.Editing
         public long FileSize
         {
             get { return _size; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PageCount
+        /// 
+        /// <summary>
+        /// PDF ファイルのページ数を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int PageCount
+        {
+            get { return _pages.Count; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -322,11 +350,11 @@ namespace CubePdf.Editing
         /// Pages
         /// 
         /// <summary>
-        /// PDF ファイルの各ページの情報を取得します。
+        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IList<CubePdf.Data.IPage> Pages
+        public IEnumerable<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
