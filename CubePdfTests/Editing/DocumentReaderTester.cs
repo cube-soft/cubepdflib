@@ -112,9 +112,6 @@ namespace CubePdfTests.Editing
                 using (var doc = new CubePdf.Editing.DocumentReader(filename))
                 {
                     Assert.AreEqual(filename, doc.FilePath);
-
-                    Assert.AreEqual(64877, doc.FileSize);
-
                     Assert.NotNull(doc.Metadata);
                     Assert.NotNull(doc.Metadata.Version);
                     Assert.AreEqual(1, doc.Metadata.Version.Major);

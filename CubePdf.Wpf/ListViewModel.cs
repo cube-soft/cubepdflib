@@ -76,66 +76,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// ファイルサイズを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public long FileSize
-        {
-            get { return _size; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreationTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// 作成日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime CreationTime
-        {
-            get { return _create; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UpdateTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// 更新日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime UpdateTime
-        {
-            get { return _update; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// AccessTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// アクセス日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime AccessTime
-        {
-            get { return _access; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Metadata
         /// 
         /// <summary>
@@ -321,10 +261,6 @@ namespace CubePdf.Wpf
                 foreach (var page in reader.Pages) Add(new CubePdf.Data.Page(page));
                 _modified = false;
                 _path   = path;
-                _size   = reader.FileSize;
-                _create = reader.CreationTime;
-                _update = reader.UpdateTime;
-                _access = reader.AccessTime;
                 _meta   = new Data.Metadata(reader.Metadata);
                 _encrypt  = new Data.Encryption();
                 _encrypt.Method = reader.EncryptionMethod;
@@ -348,7 +284,6 @@ namespace CubePdf.Wpf
         {
             _modified = false;
             _path  = string.Empty;
-            _size  = 0;
             _meta  = null;
             _encrypt = null;
             _encrypt_status = Data.EncryptionStatus.NotEncrypted;
@@ -983,7 +918,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
-            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page);
+            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page); // TODO: 修正
             if (e.Image != null && index >= 0)
             {
                 lock (_images)
@@ -1286,10 +1221,6 @@ namespace CubePdf.Wpf
         private int _maxundo = 30;
         private bool _modified = false;
         private string _path = string.Empty;
-        private long _size = 0;
-        private DateTime _create = new DateTime();
-        private DateTime _update = new DateTime();
-        private DateTime _access = new DateTime();
         private CubePdf.Data.Metadata _meta = null;
         private CubePdf.Data.Encryption _encrypt = null;
         private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
