@@ -38,66 +38,9 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : IItemsProvider<CubePdf.Drawing.ImageContainer>
+    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter, IItemsProvider<CubePdf.Drawing.ImageContainer>
     {
         #region Properties
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// IsModified
-        /// 
-        /// <summary>
-        /// 現在、開かれている PDF ファイルに対して何らかの変更が加えられた
-        /// かどうかを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        bool IsModified { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// パスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        string FilePath { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Metadata
-        /// 
-        /// <summary>
-        /// PDF ファイルの文書プロパティを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        CubePdf.Data.Metadata Metadata { get; set; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption
-        /// 
-        /// <summary>
-        /// PDF ファイルのセキュリティに関する情報を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        CubePdf.Data.Encryption Encryption { get; set; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// EncryptionStatus
-        /// 
-        /// <summary>
-        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        CubePdf.Data.EncryptionStatus EncryptionStatus { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -109,18 +52,6 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         int ItemWidth { get; set; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ItemCount
-        /// 
-        /// <summary>
-        /// 現在、開いている（または各種操作を行った結果の）PDF ファイルに
-        /// 含まれるページ数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        int ItemCount { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -186,39 +117,14 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Open
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
-        /// ための準備を行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        void Open(string path, string password = "");
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Close
-        /// 
-        /// <summary>
-        /// 現在開いている PDF ファイルを閉じます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        void Close();
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Save
         /// 
         /// <summary>
-        /// 現在のページ構成でファイルに保存します。引数に null が指定された
-        /// 場合、Open メソッドにより開いたファイルに対して上書き保存を
-        /// 試みます。
+        /// 現在のページ構成でファイルを上書き保存します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Save(string path = null);
+        void Save();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -229,7 +135,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Add(CubePdf.Data.Page item);
+        void Add(CubePdf.Data.IPage item);
         void Add(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
@@ -242,7 +148,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Insert(int index, CubePdf.Data.Page item);
+        void Insert(int index, CubePdf.Data.IPage item);
         void Insert(int index, string path, string password = "");
 
         /* ----------------------------------------------------------------- */
@@ -255,7 +161,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Extract(IList<CubePdf.Data.Page> pages, string path);
+        void Extract(IList<CubePdf.Data.IPage> pages, string path);
         void Extract(IList items, string path);
 
         /* ----------------------------------------------------------------- */
@@ -268,7 +174,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Split(IList<CubePdf.Data.Page> pages, string directory);
+        void Split(IList<CubePdf.Data.IPage> pages, string directory);
         void Split(IList items, string directory);
 
         /* ----------------------------------------------------------------- */
@@ -280,7 +186,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Remove(CubePdf.Data.Page item);
+        void Remove(CubePdf.Data.IPage item);
         void Remove(object item);
 
         /* ----------------------------------------------------------------- */
@@ -306,7 +212,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Rotate(CubePdf.Data.Page item, int degree);
+        void Rotate(CubePdf.Data.IPage item, int degree);
         void Rotate(object item, int degree);
 
         /* ----------------------------------------------------------------- */
@@ -403,7 +309,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         int IndexOf(object item);
-        int IndexOf(CubePdf.Data.Page page);
+        int IndexOf(CubePdf.Data.IPage page);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -415,8 +321,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.Page ToPage(object item);
-        CubePdf.Data.Page ToPage(int index);
+        CubePdf.Data.IPage ToPage(object item);
 
         #endregion
     }

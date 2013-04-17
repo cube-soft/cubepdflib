@@ -87,6 +87,6 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ICollection<CubePdf.Data.Page> Pages { get; }
+        ICollection<CubePdf.Data.IPage> Pages { get; }
     }
 }

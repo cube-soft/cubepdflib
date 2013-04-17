@@ -285,7 +285,7 @@ namespace CubePdf.Drawing
             {
                 PDFLibNet.PDFPage obj;
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
-
+                
                 var page = _pages[index];
                 int width = (int)(page.ViewSize.Width * power);
                 int height = (int)(page.ViewSize.Height * power);

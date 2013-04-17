@@ -34,14 +34,28 @@ namespace CubePdf.Wpf
     /// 
     /// <summary>
     /// ListView で表示される PDF ファイルの各ページの情報、およびイメージ
-    /// データ等を管理するクラスです。IListViewModel は、ListView の
-    /// VirtualizingStackPanel による仮想化を考慮したインターフェースと
-    /// なっていますが、ListViewModel クラスでは仮想化は考慮していません。
+    /// データ等を管理するクラスです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
     public class ListViewModel : IListViewModel
     {
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IListViewModel
+        /// 
+        /// <summary>
+        /// IListViewModel インターフェースの（継承元インターフェース以外の）
+        /// 各種メソッド、プロパティの実装を行います。IDocumentReader,
+        /// IDocumentWriter インターフェースがページ番号ベースのアクセス
+        /// 方法を提供しているのに対して、IListViewModel インターフェースで
+        /// 提供されるメソッドは（ListView に表示されている項目への）
+        /// インデックスベースとなっています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        #region Implementations for IListViewModel original methods
+
         #region Properties
 
         /* ----------------------------------------------------------------- */
@@ -57,127 +71,6 @@ namespace CubePdf.Wpf
         public bool IsModified
         {
             get { return _modified; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// パスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Metadata
-        /// 
-        /// <summary>
-        /// PDF ファイルの文書プロパティを取得、または設定します。
-        /// 
-        /// NOTE: Metadata のメンバのみを変更する場合、その変更は履歴には
-        /// 残りません。履歴に残す場合、Metadata オブジェクト自体を変更
-        /// して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Metadata Metadata
-        {
-            get { return _meta; }
-            set
-            {
-                UpdateHistory(ListViewCommands.Metadata, _meta);
-                _meta = value;
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption
-        /// 
-        /// <summary>
-        /// PDF ファイルのセキュリティに関する情報を取得します。
-        /// 
-        /// NOTE: Encryption のメンバのみを変更する場合、その変更は履歴には
-        /// 残りません。履歴に残す場合、Encryption オブジェクト自体を変更
-        /// して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Encryption Encryption
-        {
-            get { return _encrypt; }
-            set
-            {
-                UpdateHistory(ListViewCommands.Encryption, _encrypt);
-                _encrypt = value;
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// EncryptionStatus
-        /// 
-        /// <summary>
-        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionStatus EncryptionStatus
-        {
-            get { return _encrypt_status; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ItemWidth
-        /// 
-        /// <summary>
-        /// ListView で表示されるサムネイルの幅を取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int ItemWidth
-        {
-            get { return _width; }
-            set { _width = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ItemCount
-        /// 
-        /// <summary>
-        /// 現在、開いている（または各種操作を行った結果の）PDF ファイルに
-        /// 含まれるページ数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int ItemCount
-        {
-            get { return _pages.Count; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Items
-        /// 
-        /// <summary>
-        /// ListView に表示するサムネイル一覧を取得します。Items 中の
-        /// 各サムネイルは必ずしも表示可能なデータとなっているとは
-        /// 限りませんが、ListView で問題なく表示されるように実装されます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public ObservableCollection<CubePdf.Drawing.ImageContainer> Items
-        {
-            get { return _images; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -225,6 +118,37 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// ItemWidth
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの幅を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int ItemWidth
+        {
+            get { return _width; }
+            set { _width = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Items
+        /// 
+        /// <summary>
+        /// ListView に表示するサムネイル一覧を取得します。Items 中の
+        /// 各サムネイルは必ずしも表示可能なデータとなっているとは
+        /// 限りませんが、ListView で問題なく表示されるように実装されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ObservableCollection<CubePdf.Drawing.ImageContainer> Items
+        {
+            get { return _images; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// UnderItemCreation
         /// 
         /// <summary>
@@ -244,107 +168,16 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Open
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
-        /// ための準備を行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Open(string path, string password = "")
-        {
-            if (_pages.Count > 0) Close();
-            using (var reader = new CubePdf.Editing.DocumentReader(path, password))
-            {
-                var engine = CreateEngine(reader);
-                foreach (var page in reader.Pages) Add(new CubePdf.Data.Page(page));
-                _modified = false;
-                _path   = path;
-                _meta   = new Data.Metadata(reader.Metadata);
-                _encrypt  = new Data.Encryption();
-                _encrypt.Method = reader.EncryptionMethod;
-                _encrypt.Permission = new Data.Permission(reader.Permission);
-                _encrypt_status = reader.EncryptionStatus;
-                _undo.Clear();
-                _redo.Clear();
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Close
-        /// 
-        /// <summary>
-        /// 現在開いている PDF ファイルを閉じます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Close()
-        {
-            _modified = false;
-            _path  = string.Empty;
-            _meta  = null;
-            _encrypt = null;
-            _encrypt_status = Data.EncryptionStatus.NotEncrypted;
-            _undo.Clear();
-            _redo.Clear();
-
-            lock (_pages) _pages.Clear();
-            lock (_engines)
-            {
-                foreach (var engine in _engines.Values) engine.Dispose();
-                _engines.Clear();
-            }
-            lock (_requests) _requests.Clear();
-            lock (_images)
-            {
-                foreach (var image in _images) image.Dispose();
-                _images.Clear();
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Save
         /// 
         /// <summary>
-        /// 現在のページ構成でファイルに保存します。引数に null が指定された
-        /// 場合、Open メソッドにより開いたファイルに対して上書き保存を
-        /// 試みます。
+        /// 現在のページ構成でファイルを上書き保存します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Save(string path = null)
+        public void Save()
         {
-            lock (_engines)
-            lock (_pages)
-            lock (_requests)
-            {
-                var binder = new CubePdf.Editing.PageBinder();
-                foreach (var page in _pages) binder.Pages.Add(page);
-                binder.Metadata = Metadata;
-                binder.Encryption = Encryption;
-
-                var dest = String.IsNullOrEmpty(path) ? _path : path;
-                var tmp = System.IO.Path.GetTempFileName();
-                binder.Save(tmp);
-                CubePdf.Data.FileIOWrapper.Move(tmp, dest);
-
-                _modified = false;
-                _path = dest;
-
-                _requests.Clear();
-                _pages.Clear();
-                foreach (var engine in _engines.Values) engine.Dispose();
-                _engines.Clear();
-
-                using (var reader = new CubePdf.Editing.DocumentReader(dest, ""))
-                {
-                    var newengine = CreateEngine(reader);
-                    foreach (var page in reader.Pages) _pages.Add(new CubePdf.Data.Page(page));
-                }
-            }
+            Save(_path);
         }
 
         /* ----------------------------------------------------------------- */
@@ -357,7 +190,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Add(CubePdf.Data.Page item) { Insert(_pages.Count, item); }
+        public void Add(CubePdf.Data.IPage item) { Insert(_pages.Count, item); }
         public void Add(string path, string password = "") { Insert(_pages.Count, path, password); }
 
         /* ----------------------------------------------------------------- */
@@ -370,12 +203,12 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Insert(int index, CubePdf.Data.Page item)
+        public void Insert(int index, CubePdf.Data.IPage item)
         {
             lock (_pages)
             {
                 _pages.Insert(index, item);
-                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.Page>(index, item));
+                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, item));
             }
 
             lock (_images)
@@ -432,7 +265,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Extract(IList<CubePdf.Data.Page> pages, string path)
+        public void Extract(IList<CubePdf.Data.IPage> pages, string path)
         {
             var binder = new CubePdf.Editing.PageBinder();
             foreach (var page in pages) binder.Pages.Add(page);
@@ -451,7 +284,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Extract(IList items, string path)
         {
-            IList<CubePdf.Data.Page> list = new List<CubePdf.Data.Page>();
+            IList<CubePdf.Data.IPage> list = new List<CubePdf.Data.IPage>();
             foreach (var item in items)
             {
                 var page = ToPage(item);
@@ -470,7 +303,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public  void Split(IList<CubePdf.Data.Page> pages, string directory) { foreach (var page in pages) Split(_pages.IndexOf(page), directory); }
+        public  void Split(IList<CubePdf.Data.IPage> pages, string directory) { foreach (var page in pages) Split(_pages.IndexOf(page), directory); }
         public  void Split(IList items, string directory) { foreach (var obj in items) Split(_images.IndexOf(obj as CubePdf.Drawing.ImageContainer), directory); }
         private void Split(int index, string directory)
         {
@@ -496,7 +329,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Remove(object item) { RemoveAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer)); }
-        public void Remove(CubePdf.Data.Page item) { RemoveAt(_pages.IndexOf(item)); }
+        public void Remove(CubePdf.Data.IPage item) { RemoveAt(_pages.IndexOf(item)); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -523,7 +356,7 @@ namespace CubePdf.Wpf
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
                 UpdateImageText(index);
-                UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.Page>(index, page));
+                UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
             }
         }
 
@@ -570,7 +403,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer), degree); }
-        public void Rotate(CubePdf.Data.Page item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
+        public void Rotate(CubePdf.Data.IPage item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -587,7 +420,7 @@ namespace CubePdf.Wpf
         {
             if (index < 0 || index >= _pages.Count) return;
 
-            var item = _pages[index];
+            var item = new CubePdf.Data.Page(_pages[index]);
             item.Rotation += degree;
             if (item.Rotation < 0) item.Rotation += 360;
             if (item.Rotation >= 360) item.Rotation -= 360;
@@ -600,6 +433,7 @@ namespace CubePdf.Wpf
 
             RotateImage(image, delta);
             _images[index].UpdateImage(image, Drawing.ImageStatus.Created);
+            _pages[index] = item;
             UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
         }
 
@@ -721,7 +555,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
         public int IndexOf(CubePdf.Drawing.ImageContainer item) { return _images.IndexOf(item); }
-        public int IndexOf(CubePdf.Data.Page page) { return _pages.IndexOf(page); }
+        public int IndexOf(CubePdf.Data.IPage page) { return _pages.IndexOf(page); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -733,13 +567,439 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Page ToPage(object item) { return ToPage(item as CubePdf.Drawing.ImageContainer); }
-        public CubePdf.Data.Page ToPage(CubePdf.Drawing.ImageContainer item) { return ToPage(_images.IndexOf(item)); }
-        public CubePdf.Data.Page ToPage(int index) { return (index >= 0 && index < _pages.Count) ? _pages[index] : null; }
+        public CubePdf.Data.IPage ToPage(object item)
+        {
+            var image = item as CubePdf.Drawing.ImageContainer;
+            if (image == null) return null;
+
+            var index = _images.IndexOf(image);
+            return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
+        }
 
         #endregion
 
-        #region Undo methods
+        #endregion
+
+        #region Implementations for IDocumentReader
+
+        #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// FilePath
+        /// 
+        /// <summary>
+        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
+        /// パスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string FilePath
+        {
+            get { return _path; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Password
+        /// 
+        /// <summary>
+        /// PDF ファイルを開く際に指定されたパスワードを取得します。
+        /// 指定されたパスワードがオーナパスワードなのかユーザパスワード
+        /// なのかの判断については、EncryptionStatus の情報から判断します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string Password
+        {
+            get { return _password; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PageCount
+        /// 
+        /// <summary>
+        /// 現在、開いている（または各種操作を行った結果の）PDF ファイルに
+        /// 含まれるページ数を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int PageCount
+        {
+            get { return _pages.Count; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルの文書プロパティを取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IMetadata Metadata
+        {
+            get { return _metadata; }
+            set
+            {
+                UpdateHistory(ListViewCommands.Metadata, _metadata);
+                _metadata = value;
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionStatus
+        /// 
+        /// <summary>
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionStatus EncryptionStatus
+        {
+            get { return _source_status; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionMethod
+        /// 
+        /// <summary>
+        /// 暗号化方式を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionMethod EncryptionMethod
+        {
+            get { return _source_method; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission
+        /// 
+        /// <summary>
+        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPermission Permission
+        {
+            get { return _source_permission; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public IEnumerable<CubePdf.Data.IPage> Pages
+        {
+            get { return _pages; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Open
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
+        /// ための準備を行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Open(string path, string password = "")
+        {
+            if (_pages.Count > 0) Close();
+            using (var reader = new CubePdf.Editing.DocumentReader(path, password))
+            {
+                // Properties for IDocumentReader
+                _path = reader.FilePath;
+                _password = reader.Password;
+                _metadata = reader.Metadata;
+                _source_status = reader.EncryptionStatus;
+                _source_method = reader.EncryptionMethod;
+                _source_permission = reader.Permission;
+
+                CreateEngine(reader);
+                foreach (var page in reader.Pages) Add(page);
+
+                // Properties for IDocumentWriter
+                var encrypt = new CubePdf.Data.Encryption();
+                encrypt.Method = _source_method;
+                encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
+                _encrypt = encrypt;
+
+                // Properties for others
+                _undo.Clear();
+                _redo.Clear();
+                _modified = false;
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Close
+        /// 
+        /// <summary>
+        /// 現在開いている PDF ファイルを閉じます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Close()
+        {
+            _modified = false;
+            _path = string.Empty;
+            _metadata = null;
+            _encrypt = null;
+            _source_status = Data.EncryptionStatus.NotEncrypted;
+            _undo.Clear();
+            _redo.Clear();
+
+            lock (_pages) _pages.Clear();
+            lock (_engines)
+            {
+                foreach (var engine in _engines.Values) engine.Dispose();
+                _engines.Clear();
+            }
+            lock (_requests) _requests.Clear();
+            lock (_images)
+            {
+                foreach (var image in _images) image.Dispose();
+                _images.Clear();
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetPage
+        /// 
+        /// <summary>
+        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPage GetPage(int pagenum)
+        {
+            return _pages[pagenum - 1];
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Implementations for IDocumentWriter
+
+        #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Encryption
+        /// 
+        /// <summary>
+        /// PDF ファイルのセキュリティに関する情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IEncryption Encryption
+        {
+            get { return _encrypt; }
+            set
+            {
+                UpdateHistory(ListViewCommands.Encryption, _encrypt);
+                _encrypt = value;
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
+        {
+            get { return _pages; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Reset
+        /// 
+        /// <summary>
+        /// 初期状態にリセットします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Reset()
+        {
+            // TODO: 適切な実装
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Save
+        /// 
+        /// <summary>
+        /// 現在のページ構成でファイルに保存します。引数に null が指定された
+        /// 場合、Open メソッドにより開いたファイルに対して上書き保存を
+        /// 試みます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Save(string path)
+        {
+            lock (_engines)
+                lock (_pages)
+                    lock (_requests)
+                    {
+                        var binder = new CubePdf.Editing.PageBinder();
+                        foreach (var page in _pages) binder.Pages.Add(page);
+                        binder.Metadata = Metadata;
+                        binder.Encryption = Encryption;
+
+                        var tmp = System.IO.Path.GetTempFileName();
+                        binder.Save(tmp);
+                        CubePdf.Data.FileIOWrapper.Move(tmp, path);
+
+                        _modified = false;
+                        _path = path;
+
+                        _requests.Clear();
+                        _pages.Clear();
+                        foreach (var engine in _engines.Values) engine.Dispose();
+                        _engines.Clear();
+
+                        using (var reader = new CubePdf.Editing.DocumentReader(path, ""))
+                        {
+                            var newengine = CreateEngine(reader);
+                            foreach (var page in reader.Pages) _pages.Add(new CubePdf.Data.Page(page));
+                        }
+                    }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Implementations for IDisposable
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// destructor
+        /// 
+        /// <summary>
+        /// NOTE: クラスで必要な終了処理は、デストラクタではなく Dispose(bool)
+        /// メソッドに記述して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        ~ListViewModel()
+        {
+            this.Dispose(false);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// IDisposable で定義されているメソッドの実装部分です。実際に必要な
+        /// 処理は Dispose(bool) メソッドに記述して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// 終了時に必要な処理を記述します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            if (disposing) this.Close();
+        }
+
+        #endregion
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IItemsProvider(Image)
+        /// 
+        /// <summary>
+        /// IItemsProvider インターフェースの実装を行います。
+        /// ListViewModel クラスでは仮想化は行わないので、全てのメソッドで
+        /// NotImplementationException が送出されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        #region Implementations for IItemsProvider<Image>
+
+        public int ProvideItemsCount() { throw new NotImplementedException(); }
+        public CubePdf.Drawing.ImageContainer ProvideItem(int index) { throw new NotImplementedException(); }
+
+        #endregion
+
+        #region Event handlers for BitmapEngine
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BitmapEngine_ImageCreated
+        /// 
+        /// <summary>
+        /// ListViewModel クラスが保持している BitmapEngine オブジェクトの
+        /// いずれかが、画像生成を終了した時に発生するイベントのハンドラ
+        /// です。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
+        {
+            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page); // TODO: 修正
+            if (e.Image != null && index >= 0)
+            {
+                lock (_images)
+                {
+                    _images[index].UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                    Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
+                }
+            }
+            FetchRequest();
+        }
+
+        #endregion
+
+        #region Private methods for Undo/Redo
 
         /* ----------------------------------------------------------------- */
         ///
@@ -761,7 +1021,7 @@ namespace CubePdf.Wpf
                 BeginCommand();
                 for (int i = parameters.Count - 1; i >= 0; --i)
                 {
-                    var param = (KeyValuePair<int, CubePdf.Data.Page>)parameters[i];
+                    var param = (KeyValuePair<int, CubePdf.Data.IPage>)parameters[i];
                     RemoveAt(param.Key);
                 }
             }
@@ -788,7 +1048,7 @@ namespace CubePdf.Wpf
                 BeginCommand();
                 for (int i = parameters.Count - 1; i >= 0; --i)
                 {
-                    var param = (KeyValuePair<int, CubePdf.Data.Page>)parameters[i];
+                    var param = (KeyValuePair<int, CubePdf.Data.IPage>)parameters[i];
                     Insert(param.Key, param.Value);
                 }
             }
@@ -857,7 +1117,7 @@ namespace CubePdf.Wpf
         private void UndoMetadata(IList parameters)
         {
             if (parameters == null) return;
-            var metadata = parameters[0] as CubePdf.Data.Metadata;
+            var metadata = parameters[0] as CubePdf.Data.IMetadata;
             if (metadata == null) return;
 
             Metadata = metadata;
@@ -877,7 +1137,7 @@ namespace CubePdf.Wpf
         private void UndoEncryption(IList parameters)
         {
             if (parameters == null) return;
-            var encrypt = parameters[0] as CubePdf.Data.Encryption;
+            var encrypt = parameters[0] as CubePdf.Data.IEncryption;
             if (encrypt == null) return;
 
             Encryption = encrypt;
@@ -885,54 +1145,7 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// IItemsProvider(Image)
-        /// 
-        /// <summary>
-        /// IItemsProvider インターフェースの実装を行います。
-        /// ListViewModel クラスでは仮想化は行わないので、全てのメソッドで
-        /// NotImplementationException が送出されます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        #region Implementations for IItemsProvider<Image>
-
-        public int ProvideItemsCount() { throw new NotImplementedException(); }
-        public CubePdf.Drawing.ImageContainer ProvideItem(int index) { throw new NotImplementedException(); }
-
-        #endregion
-
-        #region Event handlers for BitmapEngine
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// BitmapEngine_ImageCreated
-        /// 
-        /// <summary>
-        /// ListViewModel クラスが保持している BitmapEngine オブジェクトの
-        /// いずれかが、画像生成を終了した時に発生するイベントのハンドラ
-        /// です。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
-        {
-            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page); // TODO: 修正
-            if (e.Image != null && index >= 0)
-            {
-                lock (_images)
-                {
-                    _images[index].UpdateImage(e.Image, Drawing.ImageStatus.Created);
-                    Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
-                }
-            }
-            FetchRequest();
-        }
-
-        #endregion
-
-        #region Methods for data access and converting
+        #region Private methods for data access and converting
 
         /* ----------------------------------------------------------------- */
         ///
@@ -1012,7 +1225,7 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        #region Methods for changing condition
+        #region Private methods for changing condition
 
         /* ----------------------------------------------------------------- */
         ///
@@ -1140,7 +1353,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void UpdateRequest(int index, CubePdf.Data.Page page)
+        private void UpdateRequest(int index, CubePdf.Data.IPage page)
         {
             lock (_requests)
             {
@@ -1217,21 +1430,35 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Variables
+
+        #region Implementations for IDocumentReader
+        private string _path = string.Empty;
+        private string _password = string.Empty;
+        private CubePdf.Data.IMetadata _metadata = null;
+        private CubePdf.Data.EncryptionStatus _source_status = Data.EncryptionStatus.NotEncrypted;
+        private CubePdf.Data.EncryptionMethod _source_method = Data.EncryptionMethod.Unknown;
+        private CubePdf.Data.IPermission _source_permission = new CubePdf.Data.Permission();
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        #endregion
+
+        #region Implementations for IDocumentWriter
+        private CubePdf.Data.IEncryption _encrypt = null;
+        #endregion
+
+        #region Others
+        private bool _disposed = false;
         private int _width = 0;
         private int _maxundo = 30;
         private bool _modified = false;
-        private string _path = string.Empty;
-        private CubePdf.Data.Metadata _meta = null;
-        private CubePdf.Data.Encryption _encrypt = null;
-        private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
-        private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
         private ObservableCollection<CubePdf.Drawing.ImageContainer> _images = new ObservableCollection<CubePdf.Drawing.ImageContainer>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
-        private SortedList<int, CubePdf.Data.Page> _requests = new SortedList<int, CubePdf.Data.Page>();
+        private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
         private CommandStatus _status = CommandStatus.End;
         private UndoStatus _undostatus = UndoStatus.Normal;
         private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
         private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
+        #endregion
+
         #endregion
     }
 }

@@ -99,7 +99,7 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
             Assert.AreEqual("rotated example", viewmodel.Metadata.Subtitle);
             Assert.AreEqual("CubeSoft,PDF,Test", viewmodel.Metadata.Keywords);
-            Assert.AreEqual(9, viewmodel.ItemCount);
+            Assert.AreEqual(9, viewmodel.PageCount);
             viewmodel.Close();
         }
 
@@ -176,7 +176,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Insert(2, src);
             Assert.IsTrue(viewmodel.IsModified);
-            Assert.AreEqual(11, viewmodel.ItemCount);
+            Assert.AreEqual(11, viewmodel.PageCount);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelInsert.pdf");
             System.IO.File.Delete(dest);
@@ -215,7 +215,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Add(src);
             Assert.IsTrue(viewmodel.IsModified);
-            Assert.AreEqual(11, viewmodel.ItemCount);
+            Assert.AreEqual(11, viewmodel.PageCount);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd.pdf");
             System.IO.File.Delete(dest);
@@ -246,7 +246,7 @@ namespace CubePdfTests.Wpf
             
             viewmodel.RemoveAt(0);
             viewmodel.RemoveAt(2);
-            viewmodel.RemoveAt(viewmodel.ItemCount - 1);
+            viewmodel.RemoveAt(viewmodel.PageCount - 1);
             Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemoveAt.pdf");
@@ -282,7 +282,7 @@ namespace CubePdfTests.Wpf
             var viewmodel = CreateViewModel();
 
             viewmodel.Remove(viewmodel.Items[0]);
-            viewmodel.Remove(viewmodel.Items[viewmodel.ItemCount - 1]);
+            viewmodel.Remove(viewmodel.Items[viewmodel.PageCount - 1]);
             Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemove.pdf");
@@ -350,7 +350,7 @@ namespace CubePdfTests.Wpf
             var src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Add(src);
-            Assert.AreEqual(11, viewmodel.ItemCount);
+            Assert.AreEqual(11, viewmodel.PageCount);
 
             var images = new ArrayList();
             images.Add(viewmodel.Items[0]);
@@ -385,7 +385,7 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Move(1, 0);
             viewmodel.Move(1, 3);
-            viewmodel.Move(2, viewmodel.ItemCount - 1);
+            viewmodel.Move(2, viewmodel.PageCount - 1);
             Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelMove.pdf");
@@ -493,7 +493,7 @@ namespace CubePdfTests.Wpf
             var added = System.IO.Path.Combine(_src, "readme.pdf");
             viewmodel.Insert(0, added);
             Assert.AreEqual(4, viewmodel.History.Count);
-            Assert.AreEqual(11, viewmodel.ItemCount);
+            Assert.AreEqual(11, viewmodel.PageCount);
 
             // 削除
             viewmodel.BeginCommand();
@@ -502,7 +502,7 @@ namespace CubePdfTests.Wpf
             viewmodel.RemoveAt(3);
             viewmodel.EndCommand();
             Assert.AreEqual(5, viewmodel.History.Count);
-            Assert.AreEqual(8, viewmodel.ItemCount);
+            Assert.AreEqual(8, viewmodel.PageCount);
 
             // 移動
             viewmodel.BeginCommand();
@@ -518,11 +518,11 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Undo();
             Assert.AreEqual(4, viewmodel.History.Count);
-            Assert.AreEqual(11, viewmodel.ItemCount);
+            Assert.AreEqual(11, viewmodel.PageCount);
 
             viewmodel.Undo();
             Assert.AreEqual(3, viewmodel.History.Count);
-            Assert.AreEqual(9, viewmodel.ItemCount);
+            Assert.AreEqual(9, viewmodel.PageCount);
 
             viewmodel.Undo();
             Assert.AreEqual(2, viewmodel.History.Count);
