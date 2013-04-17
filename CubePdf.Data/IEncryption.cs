@@ -101,6 +101,6 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IPermission Permission { get; }
+        Permission Permission { get; }
     }
 }
