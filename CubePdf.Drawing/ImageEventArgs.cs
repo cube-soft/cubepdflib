@@ -91,7 +91,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Page Page
+        public CubePdf.Data.IPage Page
         {
             get { return _page; }
             set { _page = value; }
@@ -101,7 +101,7 @@ namespace CubePdf.Drawing
 
         #region Variables
         private Image _image = null;
-        private CubePdf.Data.Page _page = null;
+        private CubePdf.Data.IPage _page = null;
         #endregion
     }
 

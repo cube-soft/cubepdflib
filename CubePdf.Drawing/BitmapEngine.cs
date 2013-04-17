@@ -313,8 +313,9 @@ namespace CubePdf.Drawing
             lock (_creating)
             {
                 if (index >= _pages.Count) return;
-                var entry = new ImageEventArgs(new CubePdf.Data.Page(_pages[index]));
-                entry.Page.Power = power;
+                var page = new CubePdf.Data.Page(_pages[index]);
+                page.Power = power;
+                var entry = new ImageEventArgs(page);
                 _creating.Enqueue(entry);
             }
             if (!_creator.IsBusy) _creator.RunWorkerAsync();

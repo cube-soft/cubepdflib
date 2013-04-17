@@ -983,7 +983,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
-            var index = _pages.IndexOf(e.Page);
+            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page);
             if (e.Image != null && index >= 0)
             {
                 lock (_images)
