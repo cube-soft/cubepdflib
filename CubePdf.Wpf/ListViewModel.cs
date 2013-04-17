@@ -470,12 +470,15 @@ namespace CubePdf.Wpf
             try
             {
                 BeginCommand();
-                var engine = _engines.ContainsKey(path) ? _engines[path] : CreateEngine(path, password);
-                foreach (var page in engine.Pages.Values)
+                using (var reader = new CubePdf.Editing.DocumentReader(path, password))
                 {
-                    var item = new CubePdf.Data.Page(page);
-                    Insert(index, item);
-                    ++index;
+                    CreateEngine(reader);
+                    foreach (var page in reader.Pages)
+                    {
+                        var item = new CubePdf.Data.Page(page);
+                        Insert(index, item);
+                        ++index;
+                    }
                 }
             }
             finally { EndCommand(); }
