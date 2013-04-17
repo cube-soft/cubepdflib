@@ -45,7 +45,7 @@ namespace CubePdf.Drawing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class BitmapEngine : IDisposable
+    public class BitmapEngine : CubePdf.Data.IDocumentReader
     {
         #region Initialization and Termination
 
@@ -188,15 +188,15 @@ namespace CubePdf.Drawing
         /// Open
         /// 
         /// <summary>
-        /// IDocumentReader の情報を利用して、PDF ファイルの各ページに対応
-        /// するイメージを生成可能な状態にします。
+        /// 他の IDocumentReader オブジェクトの情報を利用して、PDF ファイル
+        /// の各ページに対応するイメージを生成可能な状態にします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Open(CubePdf.Data.IDocumentReader reader)
+        public void Open(CubePdf.Data.IDocumentReader other)
         {
-            OpenFile(reader.FilePath, reader.Password);
-            foreach (var page in reader.Pages) _pages.Add(page);
+            OpenFile(other.FilePath, other.Password);
+            foreach (var page in other.Pages) _pages.Add(page);
         }
 
         /* ----------------------------------------------------------------- */
@@ -220,6 +220,7 @@ namespace CubePdf.Drawing
             {
                 _pages.Clear();
                 _path = string.Empty;
+                _password = string.Empty;
 
                 if (_core != null)
                 {
@@ -370,6 +371,20 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Password
+        /// 
+        /// <summary>
+        /// PDF ファイルを開く際に指定されたパスワードを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string Password
+        {
+            get { return _password; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// PageCount
         /// 
         /// <summary>
@@ -409,6 +424,67 @@ namespace CubePdf.Drawing
         {
             get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
+
+        #region NotSupproted methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルのメタデータを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IMetadata Metadata
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionStatus
+        /// 
+        /// <summary>
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionStatus EncryptionStatus
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionMethod
+        /// 
+        /// <summary>
+        /// 暗号化方式を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionMethod EncryptionMethod
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission
+        /// 
+        /// <summary>
+        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPermission Permission
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        #endregion
 
         #endregion
 
@@ -506,8 +582,9 @@ namespace CubePdf.Drawing
 
                 if (password.Length > 0)
                 {
-                    _core.UserPassword = password;
-                    _core.OwnerPassword = password;
+                    _password = password;
+                    _core.UserPassword = _password;
+                    _core.OwnerPassword = _password;
                 }
 
                 _tmp = System.IO.Path.GetTempFileName();
@@ -567,6 +644,7 @@ namespace CubePdf.Drawing
         private object _lock = new object();
         private string _path = string.Empty;
         private string _tmp = string.Empty;
+        private string _password = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         private BackgroundWorker _creator = new BackgroundWorker();
