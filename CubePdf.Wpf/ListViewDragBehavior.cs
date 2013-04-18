@@ -241,7 +241,7 @@ namespace CubePdf.Wpf
                 {
                     if (oldindex < 0) continue;
                     var newindex = oldindex + delta;
-                    if (newindex < 0 || newindex >= ViewModel.ItemCount) continue;
+                    if (newindex < 0 || newindex >= ViewModel.PageCount) continue;
                     ViewModel.Move(oldindex, newindex);
                 }
             }

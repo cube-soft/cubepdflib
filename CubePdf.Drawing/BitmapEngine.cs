@@ -45,7 +45,7 @@ namespace CubePdf.Drawing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class BitmapEngine : IDisposable
+    public class BitmapEngine : CubePdf.Data.IDocumentReader
     {
         #region Initialization and Termination
 
@@ -188,15 +188,15 @@ namespace CubePdf.Drawing
         /// Open
         /// 
         /// <summary>
-        /// IDocumentReader の情報を利用して、PDF ファイルの各ページに対応
-        /// するイメージを生成可能な状態にします。
+        /// 他の IDocumentReader オブジェクトの情報を利用して、PDF ファイル
+        /// の各ページに対応するイメージを生成可能な状態にします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Open(CubePdf.Data.IDocumentReader reader)
+        public void Open(CubePdf.Data.IDocumentReader other)
         {
-            OpenFile(reader.FilePath, reader.Password);
-            foreach (var page in reader.Pages) _pages.Add(page.PageNumber, page);
+            OpenFile(other.FilePath, other.Password);
+            foreach (var page in other.Pages) _pages.Add(page);
         }
 
         /* ----------------------------------------------------------------- */
@@ -218,13 +218,15 @@ namespace CubePdf.Drawing
 
             lock (_lock)
             {
+                _pages.Clear();
+                _path = string.Empty;
+                _password = string.Empty;
+
                 if (_core != null)
                 {
                     _core.Dispose();
                     _core = null;
                 }
-                _pages.Clear();
-                _path = string.Empty;
 
                 try { System.IO.File.Delete(_tmp); }
                 catch (Exception /* err */) { _garbage.Add(_tmp); }
@@ -252,6 +254,20 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// GetPage
+        /// 
+        /// <summary>
+        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPage GetPage(int pagenum)
+        {
+            return _pages[pagenum - 1];
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// CreateImage
         /// 
         /// <summary>
@@ -264,12 +280,13 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public Image CreateImage(int pagenum, double power = 1.0)
         {
+            var index = pagenum - 1;
             lock (_lock)
             {
                 PDFLibNet.PDFPage obj;
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
-
-                var page = _pages[pagenum];
+                
+                var page = _pages[index];
                 int width = (int)(page.ViewSize.Width * power);
                 int height = (int)(page.ViewSize.Height * power);
                 return obj.GetBitmap(width, height, true);
@@ -293,11 +310,13 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void CreateImageAsync(int pagenum, double power = 1.0)
         {
+            var index = pagenum - 1;
             lock (_creating)
             {
-                if (!_pages.ContainsKey(pagenum)) return;
-                var entry = new ImageEventArgs(new CubePdf.Data.Page(_pages[pagenum]));
-                entry.Page.Power = power;
+                if (index >= _pages.Count) return;
+                var page = new CubePdf.Data.Page(_pages[index]);
+                page.Power = power;
+                var entry = new ImageEventArgs(page);
                 _creating.Enqueue(entry);
             }
             if (!_creator.IsBusy) _creator.RunWorkerAsync();
@@ -352,14 +371,42 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Pages
+        /// Password
         /// 
         /// <summary>
-        /// PDF ファイルの各ページのページ情報を取得します。
+        /// PDF ファイルを開く際に指定されたパスワードを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IDictionary<int, CubePdf.Data.IPage> Pages
+        public string Password
+        {
+            get { return _password; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PageCount
+        /// 
+        /// <summary>
+        /// 現在、開いている PDF ファイルのページ数を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int PageCount
+        {
+            get { return _pages.Count; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public IEnumerable<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -377,6 +424,67 @@ namespace CubePdf.Drawing
         {
             get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
+
+        #region NotSupproted methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルのメタデータを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IMetadata Metadata
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionStatus
+        /// 
+        /// <summary>
+        /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionStatus EncryptionStatus
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionMethod
+        /// 
+        /// <summary>
+        /// 暗号化方式を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.EncryptionMethod EncryptionMethod
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Permission
+        /// 
+        /// <summary>
+        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
+        /// します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPermission Permission
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        #endregion
 
         #endregion
 
@@ -474,8 +582,9 @@ namespace CubePdf.Drawing
 
                 if (password.Length > 0)
                 {
-                    _core.UserPassword = password;
-                    _core.OwnerPassword = password;
+                    _password = password;
+                    _core.UserPassword = _password;
+                    _core.OwnerPassword = _password;
                 }
 
                 _tmp = System.IO.Path.GetTempFileName();
@@ -521,7 +630,8 @@ namespace CubePdf.Drawing
                     var page = new CubePdf.Data.Page(_path, i + 1);
                     page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
                     page.Rotation = obj.Rotation;
-                    if (!_pages.ContainsKey(i + 1)) _pages.Add(i + 1, page);
+                    if (i >= _pages.Count) _pages.Add(page);
+                    else _pages[i] = page;
                 }
             }
         }
@@ -534,8 +644,9 @@ namespace CubePdf.Drawing
         private object _lock = new object();
         private string _path = string.Empty;
         private string _tmp = string.Empty;
+        private string _password = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
-        private SortedDictionary<int, CubePdf.Data.IPage> _pages = new SortedDictionary<int, CubePdf.Data.IPage>();
+        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
         private List<string> _garbage = new List<string>();

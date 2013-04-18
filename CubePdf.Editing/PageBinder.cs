@@ -33,7 +33,7 @@ namespace CubePdf.Editing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class PageBinder
+    public class PageBinder : CubePdf.Data.IDocumentWriter
     {
         #region Initialization and Termination
 
@@ -130,27 +130,45 @@ namespace CubePdf.Editing
         #region Properties
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルのメタデータを取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Metadata Metadata
+        public CubePdf.Data.IMetadata Metadata
         {
             get { return _metadata; }
             set { _metadata = value; }
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Encryption
+        /// 
+        /// <summary>
+        /// 暗号化に関する情報をを取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Encryption Encryption
+        public CubePdf.Data.IEncryption Encryption
         {
             get { return _encrypt; }
             set { _encrypt = value; }
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報を取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public ICollection<CubePdf.Data.Page> Pages
+        public ICollection<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -158,9 +176,9 @@ namespace CubePdf.Editing
         #endregion
 
         #region Variables
-        private CubePdf.Data.Metadata _metadata = new CubePdf.Data.Metadata();
-        private CubePdf.Data.Encryption _encrypt = new CubePdf.Data.Encryption();
-        private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
+        private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
+        private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }
