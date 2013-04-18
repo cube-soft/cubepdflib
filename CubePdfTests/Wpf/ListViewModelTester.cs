@@ -543,6 +543,67 @@ namespace CubePdfTests.Wpf
             viewmodel.Close();
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestInterface
+        /// 
+        /// <summary>
+        /// ListViewModel が継承しているインターフェースにキャストして
+        /// 操作（メソッドの実行）するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestInterface()
+        {
+            var viewmodel = CreateViewModel() as CubePdf.Wpf.IListViewModel;
+            Assert.NotNull(viewmodel.Metadata);
+            var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
+            metadata.Title = "TestInterface";
+            viewmodel.Metadata = metadata;
+            Assert.AreEqual("TestInterface", viewmodel.Metadata.Title);
+            Assert.AreEqual(9, viewmodel.PageCount);
+            foreach (var page in viewmodel.Pages)
+            {
+                Assert.NotNull(page);
+                Assert.IsNotNullOrEmpty(page.FilePath);
+                Assert.IsTrue(page.PageNumber > 0);
+                Assert.IsTrue(page.OriginalSize.Width > 0);
+                Assert.IsTrue(page.OriginalSize.Height > 0);
+            }
+
+            var reader = viewmodel as CubePdf.Data.IDocumentReader;
+            Assert.NotNull(reader.Metadata);
+            Assert.AreEqual("TestInterface", reader.Metadata.Title);
+            Assert.AreEqual(9, reader.PageCount);
+            foreach (var page in viewmodel.Pages)
+            {
+                Assert.NotNull(page);
+                Assert.IsNotNullOrEmpty(page.FilePath);
+                Assert.IsTrue(page.PageNumber > 0);
+                Assert.IsTrue(page.OriginalSize.Width > 0);
+                Assert.IsTrue(page.OriginalSize.Height > 0);
+            }
+
+            var writer = viewmodel as CubePdf.Data.IDocumentWriter;
+            Assert.NotNull(writer.Metadata);
+            Assert.AreEqual("TestInterface", writer.Metadata.Title);
+            metadata = new CubePdf.Data.Metadata(writer.Metadata);
+            metadata.Title = "TestInterfaceWriter";
+            writer.Metadata = metadata;
+            Assert.AreEqual("TestInterfaceWriter", writer.Metadata.Title);
+            Assert.AreEqual("TestInterfaceWriter", viewmodel.Metadata.Title);
+            Assert.AreEqual(9, writer.Pages.Count);
+            foreach (var page in writer.Pages)
+            {
+                Assert.NotNull(page);
+                Assert.IsNotNullOrEmpty(page.FilePath);
+                Assert.IsTrue(page.PageNumber > 0);
+                Assert.IsTrue(page.OriginalSize.Width > 0);
+                Assert.IsTrue(page.OriginalSize.Height > 0);
+            }
+        }
+
         #endregion
 
         #region Utility methods
