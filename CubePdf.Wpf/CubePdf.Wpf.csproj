@@ -73,6 +73,7 @@
     <Compile Include="ListViewCommands.cs" />
     <Compile Include="CommandElement.cs" />
     <Compile Include="ListViewDragBehavior.cs" />
+    <Compile Include="ListViewItemVisibility.cs" />
     <Compile Include="ListViewModel.cs" />
     <Compile Include="MultiAndConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -133,6 +133,21 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// ItemVisibility
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの表示方法を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ListViewItemVisibility ItemVisibility
+        {
+            get { return _visibility; }
+            set { _visibility = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Items
         /// 
         /// <summary>
@@ -1516,6 +1531,7 @@ namespace CubePdf.Wpf
         private int _width = 0;
         private int _maxundo = 30;
         private bool _modified = false;
+        private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private ObservableCollection<CubePdf.Drawing.ImageContainer> _images = new ObservableCollection<CubePdf.Drawing.ImageContainer>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();

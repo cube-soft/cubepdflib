@@ -89,6 +89,7 @@ namespace CubePdfTests.Wpf
             var viewmodel = CreateViewModel();
             Assert.AreEqual(System.IO.Path.Combine(_src, "rotated.pdf"), viewmodel.FilePath);
             Assert.IsFalse(viewmodel.IsModified);
+            Assert.AreEqual(CubePdf.Wpf.ListViewItemVisibility.Normal, viewmodel.ItemVisibility);
             Assert.NotNull(viewmodel.Metadata);
             Assert.NotNull(viewmodel.Metadata.Version);
             Assert.AreEqual(1, viewmodel.Metadata.Version.Major);
