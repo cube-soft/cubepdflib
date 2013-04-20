@@ -68,8 +68,10 @@
     <Compile Include="ControlToTagConverter.cs" />
     <Compile Include="EnumToIntConverter.cs" />
     <Compile Include="IItemsProvider.cs" />
+    <Compile Include="IListProxy.cs" />
     <Compile Include="IListViewModel.cs" />
     <Compile Include="ImageConverter.cs" />
+    <Compile Include="ListProxy.cs" />
     <Compile Include="ListViewCommands.cs" />
     <Compile Include="CommandElement.cs" />
     <Compile Include="ListViewDragBehavior.cs" />
@@ -83,7 +85,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="StringToIntConverter.cs" />
-    <Compile Include="VirtualizingListProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CubePdf.Data\CubePdf.Data.csproj">

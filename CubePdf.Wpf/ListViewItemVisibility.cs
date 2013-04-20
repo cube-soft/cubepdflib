@@ -30,7 +30,6 @@ namespace CubePdf.Wpf
     /// ListView に表示させる各項目（サムネイル）の表示方法を定義した
     /// 列挙型です。各値の意味は以下の通りです。
     /// 
-    /// None        : 何も表示しません
     /// Normal      : 通常通りのサムネイルを表示します
     /// LightWeight : パフォーマンス（省メモリ等）を重視して表示します
     /// Minimum     : 最低限のもの（枠線のみ等）のみを表示します
@@ -39,7 +38,6 @@ namespace CubePdf.Wpf
     /* --------------------------------------------------------------------- */
     public enum ListViewItemVisibility
     {
-        None,
         Normal,
         LightWeight,
         Minimum,

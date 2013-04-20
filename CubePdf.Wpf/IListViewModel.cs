@@ -116,7 +116,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<CubePdf.Drawing.ImageContainer> Items { get; }
+        IListProxy<CubePdf.Drawing.ImageContainer> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///
