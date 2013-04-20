@@ -287,7 +287,9 @@ namespace CubePdf.Wpf
         {
             lock (_pages)
             lock (_images)
+            lock (_requests)
             {
+                DeleteRequest(index);
                 _pages.Insert(index, item);
                 _images.Insert(index, new Drawing.ImageContainer());
                 UpdateImageText(index);
@@ -420,12 +422,14 @@ namespace CubePdf.Wpf
 
             lock (_pages)
             lock (_images)
+            lock (_requests)
             {
                 var page = _pages[index];
                 _pages.RemoveAt(index);
                 var image = _images.RawAt(index);
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
+                DeleteRequest(index);
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
             }
@@ -1516,6 +1520,29 @@ namespace CubePdf.Wpf
                 if (!_requests.ContainsKey(index)) _requests.Add(index, page);
                 else _requests[index] = page;
                 Debug.WriteLine(String.Format("Register[{0}] => {1}", index, page.ToString()));
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DeleteRequest
+        /// 
+        /// <summary>
+        /// 引数に指定された範囲のリクエストを削除します。第 2 引数が省略
+        /// された場合、第 1 引数で指定されたインデックスから最後までを
+        /// 対象範囲とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void DeleteRequest(int first, int last = -1)
+        {
+            lock (_requests)
+            {
+                if (last == -1) last = _pages.Count - 1;
+                for (int i = first; i <= last; ++i)
+                {
+                    if (_requests.ContainsKey(i)) _requests.Remove(i);
+                }
             }
         }
 
