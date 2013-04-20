@@ -869,7 +869,7 @@ namespace CubePdf.Wpf
             lock (_requests) _requests.Clear();
             lock (_images)
             {
-                foreach (var image in _images) image.Dispose();
+                ClearImage();
                 _images.Clear();
             }
             DisposeEngine();
@@ -1454,7 +1454,7 @@ namespace CubePdf.Wpf
         {
             lock (_images)
             {
-                foreach (var image in _images) image.DeleteImage();
+                for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
             }
         }
 
