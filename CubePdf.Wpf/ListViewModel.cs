@@ -975,14 +975,18 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 初期状態にリセットします（IDocumentWriter から継承されます）。
-        /// 
-        /// TODO: 実装
+        /// 表示に関わるオブジェクトがクリアされます。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            throw new NotSupportedException();
+            lock (_images)
+            lock (_requests)
+            {
+                ClearImage();
+                _requests.Clear();
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1400,7 +1404,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// CreateEngine
+        /// RegisterEngine
         /// 
         /// <summary>
         /// 新しい BitmapEngine オブジェクトをエンジン一覧に登録します。
