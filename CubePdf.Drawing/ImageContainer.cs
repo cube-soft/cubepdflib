@@ -71,7 +71,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         ~ImageContainer()
         {
-            this.Dispose(false);
+            Dispose(false);
         }
 
         /* ----------------------------------------------------------------- */
@@ -86,7 +86,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -182,6 +182,23 @@ namespace CubePdf.Drawing
             _status = status;
             if (_image != null) _image.Dispose();
             _image = image;
+            OnPropertyChanged("Image");
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DeleteImage
+        /// 
+        /// <summary>
+        /// 現在の Image オブジェクトを削除します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void DeleteImage()
+        {
+            if (_image != null) _image.Dispose();
+            _image = null;
+            _status = ImageStatus.None;
             OnPropertyChanged("Image");
         }
 
