@@ -96,6 +96,17 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// ItemVisibility
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの表示方法を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        ListViewItemVisibility ItemVisibility { get; set; }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Items
         /// 
         /// <summary>
@@ -105,7 +116,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<CubePdf.Drawing.ImageContainer> Items { get; }
+        IListProxy<CubePdf.Drawing.ImageContainer> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///

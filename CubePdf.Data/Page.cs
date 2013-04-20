@@ -202,7 +202,8 @@ namespace CubePdf.Data
         public override string ToString()
         {
             if (_path.Length == 0) return "(empty instance of the CubePdf.Data.Page)";
-            return String.Format("{0}({1})", _path, _pagenum);
+            return String.Format("{0}({1}): Width => {2}, Height => {3}, Rotation => {4}",
+                _path, _pagenum, _size.Width, _size.Height, _rotation);
         }
 
         #endregion

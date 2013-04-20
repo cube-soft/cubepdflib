@@ -40,6 +40,71 @@ namespace CubePdf.Wpf
     /* --------------------------------------------------------------------- */
     public class ListViewModel : IListViewModel
     {
+        #region Initialization and Termination
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ListViewModel (constructor)
+        ///
+        /// <summary>
+        /// 既定の値でオブジェクトを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ListViewModel()
+        {
+            _images = new ListProxy<CubePdf.Drawing.ImageContainer>(this);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// destructor
+        /// 
+        /// <summary>
+        /// NOTE: クラスで必要な終了処理は、デストラクタではなく Dispose(bool)
+        /// メソッドに記述して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        ~ListViewModel()
+        {
+            this.Dispose(false);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// NOTE: IDisposable で定義されているメソッドの実装部分です。実際に
+        /// 必要な処理は Dispose(bool) メソッドに記述して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Dispose
+        /// 
+        /// <summary>
+        /// 終了時に必要な処理を記述します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            if (disposing) this.Close();
+        }
+
+        #endregion
+
         /* ----------------------------------------------------------------- */
         ///
         /// IListViewModel
@@ -133,6 +198,21 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// ItemVisibility
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの表示方法を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public ListViewItemVisibility ItemVisibility
+        {
+            get { return _visibility; }
+            set { _visibility = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Items
         /// 
         /// <summary>
@@ -142,7 +222,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ObservableCollection<CubePdf.Drawing.ImageContainer> Items
+        public IListProxy<CubePdf.Drawing.ImageContainer> Items
         {
             get { return _images; }
         }
@@ -352,7 +432,7 @@ namespace CubePdf.Wpf
             {
                 var page = _pages[index];
                 _pages.RemoveAt(index);
-                var image = _images[index];
+                var image = _images.RawAt(index);
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
                 UpdateImageText(index);
@@ -385,7 +465,9 @@ namespace CubePdf.Wpf
 
             lock (_images)
             {
-                _images.Move(oldindex, newindex);
+                var item = _images.RawAt(oldindex);
+                ((IList<CubePdf.Drawing.ImageContainer>)_images).RemoveAt(oldindex);
+                _images.Insert(newindex, item);
                 if (oldindex <= newindex) UpdateImageText(oldindex, newindex);
                 else UpdateImageText(newindex, oldindex);
             }
@@ -432,7 +514,7 @@ namespace CubePdf.Wpf
             if (delta >= 360) delta -= 360;
 
             RotateImage(image, delta);
-            _images[index].UpdateImage(image, Drawing.ImageStatus.Created);
+            _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
             _pages[index] = item;
             UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
         }
@@ -960,66 +1042,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// IDisposable
-        /// 
-        /// <summary>
-        /// IDisposable インターフェースを実装します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        #region Implementations for IDisposable
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// destructor
-        /// 
-        /// <summary>
-        /// NOTE: クラスで必要な終了処理は、デストラクタではなく Dispose(bool)
-        /// メソッドに記述して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        ~ListViewModel()
-        {
-            this.Dispose(false);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Dispose
-        /// 
-        /// <summary>
-        /// NOTE: IDisposable で定義されているメソッドの実装部分です。実際に
-        /// 必要な処理は Dispose(bool) メソッドに記述して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Dispose
-        /// 
-        /// <summary>
-        /// 終了時に必要な処理を記述します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-            _disposed = true;
-            if (disposing) this.Close();
-        }
-
-        #endregion
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// IItemsProvider(Image)
         /// 
         /// <summary>
@@ -1031,8 +1053,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         #region Implementations for IItemsProvider<Image>
 
-        public int ProvideItemsCount() { throw new NotImplementedException(); }
-        public CubePdf.Drawing.ImageContainer ProvideItem(int index) { throw new NotImplementedException(); }
+        public int ProvideItemsCount() { return _images.RawCount; }
+        public CubePdf.Drawing.ImageContainer ProvideItem(int index) { return _images.RawAt(index); }
 
         #endregion
 
@@ -1056,7 +1078,7 @@ namespace CubePdf.Wpf
             {
                 lock (_images)
                 {
-                    _images[index].UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                    _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
                     Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
                 }
             }
@@ -1289,6 +1311,28 @@ namespace CubePdf.Wpf
             return string.Empty;
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RotateImage
+        /// 
+        /// <summary>
+        /// 引数に指定された image を degree 度だけ回転させます。
+        /// 
+        /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
+        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
+        /// で丸めています。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void RotateImage(System.Drawing.Image image, int degree)
+        {
+            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
+            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
+            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
+            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
+            image.RotateFlip(value);
+        }
+
         #endregion
 
         #region Private methods for changing condition
@@ -1348,28 +1392,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// RotateImage
-        /// 
-        /// <summary>
-        /// 引数に指定された image を degree 度だけ回転させます。
-        /// 
-        /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
-        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
-        /// で丸めています。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotateImage(System.Drawing.Image image, int degree)
-        {
-            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
-            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
-            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
-            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
-            image.RotateFlip(value);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// UpdateImageText
         /// 
         /// <summary>
@@ -1382,8 +1404,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void UpdateImageText(int first, int last = -1)
         {
-            if (last == -1) last = _images.Count - 1;
-            for (int i = first; i <= last; ++i) _images[i].Text = (i + 1).ToString();
+            if (last == -1) last = _images.RawCount - 1;
+            for (int i = first; i <= last; ++i) _images.RawAt(i).Text = (i + 1).ToString();
         }
 
         /* ----------------------------------------------------------------- */
@@ -1516,7 +1538,8 @@ namespace CubePdf.Wpf
         private int _width = 0;
         private int _maxundo = 30;
         private bool _modified = false;
-        private ObservableCollection<CubePdf.Drawing.ImageContainer> _images = new ObservableCollection<CubePdf.Drawing.ImageContainer>();
+        private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
+        private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
         private CommandStatus _status = CommandStatus.End;
