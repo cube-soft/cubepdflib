@@ -111,9 +111,9 @@ namespace CubePdf.Wpf
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
                 AssociatedObject.CaptureMouse();
+                RefreshDragSelection(_position, _position);
+                _canvas.Visibility = Visibility.Visible;
             }
-            RefreshDragSelection(_position, _position);
-            _canvas.Visibility = Visibility.Visible;
         }
 
         /* ----------------------------------------------------------------- */
