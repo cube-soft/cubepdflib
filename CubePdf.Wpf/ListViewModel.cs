@@ -314,11 +314,19 @@ namespace CubePdf.Wpf
             {
                 BeginCommand();
                 CreateEngine(reader);
-                foreach (var page in reader.Pages)
+                lock (_requests) DeleteRequest(index);
+                lock (_pages)
+                lock (_images)
                 {
-                    var item = new CubePdf.Data.Page(page);
-                    Insert(index, item);
-                    ++index;
+                    var first = index;
+                    foreach (var page in reader.Pages)
+                    {
+                        _pages.Insert(index, page);
+                        _images.Insert(index, new Drawing.ImageContainer());
+                        UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                        ++index;
+                    }
+                    UpdateImageText(first);
                 }
             }
             finally { EndCommand(); }
@@ -835,9 +843,10 @@ namespace CubePdf.Wpf
             _source_status = reader.EncryptionStatus;
             _source_method = reader.EncryptionMethod;
             _source_permission = reader.Permission;
+            _pages.Capacity = reader.PageCount + 1;
 
             CreateEngine(reader);
-            foreach (var page in reader.Pages) Add(page);
+            Add(reader);
 
             // Properties for IDocumentWriter
             var encrypt = new CubePdf.Data.Encryption();
@@ -1098,7 +1107,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
-            if (index < 0 || index >= ProvideItemsCount()) return null;
+            if (index < 0 || index >= _images.RawCount) return null;
             lock (_images)
             {
                 var element = _images.RawAt(index);

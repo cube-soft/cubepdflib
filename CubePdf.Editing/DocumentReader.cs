@@ -317,6 +317,7 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path)
         {
+            _pages.Capacity = reader.NumberOfPages + 1;
             for (int i = 0; i < reader.NumberOfPages; ++i)
             {
                 var page = new CubePdf.Data.Page();
@@ -379,7 +380,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
         private CubePdf.Data.IPermission _permission = null;
-        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }
