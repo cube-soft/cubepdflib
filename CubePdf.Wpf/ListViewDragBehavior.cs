@@ -172,14 +172,7 @@ namespace CubePdf.Wpf
             _ondrag = false;
 
             var pos = e.GetPosition(AssociatedObject);
-            _target = GetItemIndex(pos);
-            if (_target == -1)
-            {
-                var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
-                var margin = (pos.X <= _position.X) ? lvi.Margin.Left : -lvi.Margin.Right;
-                pos.X += margin;
-                _target = GetItemIndex(pos);
-            }
+            _target = GetTargetItemIndex(pos);
 
             if (_source != -1 && _target != -1 && _source != _target) MoveItems();
             AssociatedObject.AllowDrop = false;
@@ -202,7 +195,7 @@ namespace CubePdf.Wpf
         {
             var result = VisualTreeHelper.HitTest(AssociatedObject, position);
             if (result == null) return -1;
-
+            
             var item = result.VisualHit;
             while (item != null)
             {
@@ -210,6 +203,38 @@ namespace CubePdf.Wpf
                 item = VisualTreeHelper.GetParent(item);
             }
             return (item != null) ? AssociatedObject.Items.IndexOf(((ListViewItem)item).Content) : -1;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetTargetItemIndex
+        ///
+        /// <summary>
+        /// マウスカーソルのある項目のインデックスを取得します。
+        /// マウスカーソルが項目間にポイントされている場合は、直近に存在
+        /// する項目のインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetTargetItemIndex(Point position)
+        {
+            var dest = GetItemIndex(position);
+            if (dest == -1)
+            {
+                var rect = GetItemBounds(AssociatedObject.Items[0]);
+                if (AssociatedObject.ActualWidth - position.X < rect.Width)
+                {
+                    position.X = AssociatedObject.ActualWidth - rect.Width;
+                }
+                else
+                {
+                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
+                    var margin = (position.X <= _position.X) ? lvi.Margin.Left : -lvi.Margin.Right;
+                    position.X += margin;
+                }
+                dest = GetItemIndex(position);
+            }
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */
