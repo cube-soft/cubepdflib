@@ -59,6 +59,8 @@ namespace CubePdf.Wpf
             _rect.Background = SystemColors.HotTrackBrush.Clone();
             _rect.Background.Opacity = 0.1;
             _rect.CornerRadius = new CornerRadius(1);
+            _rect.DragOver += (sender, e) => { this.OnDragOver(sender, e); };
+            _rect.Drop += (sender, e) => { this.OnDrop(sender, e); };
             _canvas.Children.Add(_rect);
         }
 
@@ -100,6 +102,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            _ondrag = true;
             _position = e.GetPosition(AssociatedObject);
             _source = GetItemIndex(_position);
             _target = -1;
@@ -108,9 +111,9 @@ namespace CubePdf.Wpf
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
                 AssociatedObject.CaptureMouse();
-                RefreshDragSelection(_position, _position);
-                _canvas.Visibility = Visibility.Visible;
             }
+            RefreshDragSelection(_position, _position);
+            _canvas.Visibility = Visibility.Visible;
         }
 
         /* ----------------------------------------------------------------- */
@@ -125,10 +128,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            _canvas.Visibility = Visibility.Collapsed;
+            if (!_ondrag) return;
+            _ondrag = false;
+
             if (_source == -1)
             {
                 AssociatedObject.ReleaseMouseCapture();
-                _canvas.Visibility = Visibility.Collapsed;
                 SelectRange();
             }
         }
@@ -144,11 +150,28 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (!_ondrag) return;
+
+            if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
             {
-                if (_source >= 0) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
-                else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
+                DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
             }
+            else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnDrop
+        ///
+        /// <summary>
+        /// マウスのドラッグ時の挙動を記述するためのイベントハンドラです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OnDragOver(object sender, DragEventArgs e)
+        {
+            if (!_ondrag) return;
+            RefreshMovingPosition(e.GetPosition(AssociatedObject));
         }
 
         /* ----------------------------------------------------------------- */
@@ -162,17 +185,11 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDrop(object sender, DragEventArgs e)
         {
-            var pos = e.GetPosition(AssociatedObject);
-            _target = GetItemIndex(pos);
-            if (_target == -1)
-            {
-                var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
-                var margin = (pos.X <= _position.X) ? lvi.Margin.Left : -lvi.Margin.Right;
-                pos.X += margin;
-                _target = GetItemIndex(pos);
-            }
+            _canvas.Visibility = Visibility.Collapsed;
+            if (!_ondrag) return;
+            _ondrag = false;
 
-            if (_source != -1 && _target != -1 && _source != _target) MoveItems();
+            if (_source != -1) MoveItems(e.GetPosition(AssociatedObject));
             AssociatedObject.AllowDrop = false;
         }
 
@@ -189,11 +206,11 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private int GetItemIndex(Point position)
+        private int GetItemIndex(Point current)
         {
-            var result = VisualTreeHelper.HitTest(AssociatedObject, position);
+            var result = VisualTreeHelper.HitTest(AssociatedObject, current);
             if (result == null) return -1;
-
+            
             var item = result.VisualHit;
             while (item != null)
             {
@@ -201,6 +218,73 @@ namespace CubePdf.Wpf
                 item = VisualTreeHelper.GetParent(item);
             }
             return (item != null) ? AssociatedObject.Items.IndexOf(((ListViewItem)item).Content) : -1;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetTargetItemIndex
+        ///
+        /// <summary>
+        /// マウスカーソルのある項目のインデックスを取得します。
+        /// マウスカーソルが項目間にポイントされている場合は、直近に存在
+        /// する項目のインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetTargetItemIndex(Point current)
+        {
+            var dest = GetItemIndex(current);
+            if (dest == -1)
+            {
+                var rect = GetItemBounds(AssociatedObject.Items[0]);
+                if (AssociatedObject.ActualWidth - current.X < rect.Width)
+                {
+                    current.X = AssociatedObject.ActualWidth - rect.Width;
+                }
+                else
+                {
+                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
+                    if (lvi != null) current.X -= lvi.Margin.Right;
+                }
+                dest = GetItemIndex(current);
+            }
+            return dest;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RefreshMovingPosition
+        /// 
+        /// <summary>
+        /// ドロップ時に挿入される位置の表示を更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void RefreshMovingPosition(Point current)
+        {
+            var index = GetTargetItemIndex(current);
+            if (_source == -1 || index == -1 || _source == index)
+            {
+                _canvas.Visibility = Visibility.Collapsed;
+                return;
+            }
+            _canvas.Visibility = Visibility.Visible;
+            current = PointToWindow(current);
+
+            var item   = AssociatedObject.Items[index];
+            var lvi    = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(index) as ListViewItem;
+            var rect   = GetItemBounds(item);
+            var center = PointToWindow(new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
+
+            double width = rect.Width + lvi.Margin.Right + lvi.Padding.Right + lvi.BorderThickness.Left + lvi.BorderThickness.Right;
+            double height = rect.Height / 2.0;
+            double x = (current.X >= center.X) ? center.X : center.X - width;
+            double y = center.Y - rect.Height / 4.0;
+
+            Canvas.SetLeft(_rect, x - CURSOR_ADJUSTMENT);
+            Canvas.SetTop(_rect, y - CURSOR_ADJUSTMENT);
+            _rect.Width = width;
+            _rect.Height = height;
         }
 
         /* ----------------------------------------------------------------- */
@@ -213,18 +297,25 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void MoveItems()
+        private void MoveItems(Point current)
         {
-            var delta = _target - _source;
+            var index = GetTargetItemIndex(current);
+            if (index == -1) return;
+
+            var rect = GetItemBounds(AssociatedObject.Items[index]);
+            var center = PointToWindow(new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
+            var pos = PointToWindow(current);
+
+            if (_source < index && pos.X < center.X) _target = Math.Max(index - 1, 0);
+            else if (_source > index && pos.X >= center.X) _target = Math.Min(index + 1, AssociatedObject.Items.Count);
+            else _target = index;
+            if (_source == _target) return;
 
             try
             {
+                var delta = _target - _source;
                 var indices = new List<int>();
-                foreach (var item in AssociatedObject.SelectedItems)
-                {
-                    var index = ViewModel.Items.IndexOf(item as System.Drawing.Image);
-                    indices.Add(index);
-                }
+                foreach (var item in AssociatedObject.SelectedItems) indices.Add(ViewModel.IndexOf(item));
                 
                 ViewModel.BeginCommand();
                 var sorted = (delta < 0) ? indices.OrderBy(i => i) : indices.OrderByDescending(i => i);
@@ -232,7 +323,7 @@ namespace CubePdf.Wpf
                 {
                     if (oldindex < 0) continue;
                     var newindex = oldindex + delta;
-                    if (newindex < 0 || newindex >= ViewModel.ItemCount) continue;
+                    if (newindex < 0 || newindex >= ViewModel.PageCount) continue;
                     ViewModel.Move(oldindex, newindex);
                 }
             }
@@ -262,8 +353,8 @@ namespace CubePdf.Wpf
             double width = (start.X < last.X) ? last.X - start.X : start.X - last.X;
             double height = (start.Y < last.Y) ? last.Y - start.Y : start.Y - last.Y;
 
-            Canvas.SetLeft(_rect, x);
-            Canvas.SetTop(_rect, y);
+            Canvas.SetLeft(_rect, x - CURSOR_ADJUSTMENT);
+            Canvas.SetTop(_rect, y - CURSOR_ADJUSTMENT);
             _rect.Width = width;
             _rect.Height = height;
         }
@@ -360,8 +451,9 @@ namespace CubePdf.Wpf
         protected override void OnAttached()
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnMouseLeftButtonDown;
-            AssociatedObject.PreviewMouseMove += OnMouseMove;
-            AssociatedObject.PreviewMouseLeftButtonUp += OnMouseLeftButtonUp;
+            AssociatedObject.MouseMove += OnMouseMove;
+            AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
+            AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
 
             var panel = Application.Current.MainWindow.Content as Panel;
@@ -376,8 +468,9 @@ namespace CubePdf.Wpf
         protected override void OnDetaching()
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnMouseLeftButtonDown;
-            AssociatedObject.PreviewMouseMove -= OnMouseMove;
-            AssociatedObject.PreviewMouseLeftButtonUp -= OnMouseLeftButtonUp;
+            AssociatedObject.MouseMove -= OnMouseMove;
+            AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
+            AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
 
             var panel = Application.Current.MainWindow.Content as Panel;
@@ -399,6 +492,7 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Variables
+        private bool _ondrag = false;
         private Canvas _canvas = new Canvas();
         private Border _rect = new Border();
         private Point _position = new Point();
@@ -408,6 +502,7 @@ namespace CubePdf.Wpf
 
         #region Constant variables
         private static readonly int SCROLLBAR_WIDTH = 18;
+        private static readonly int CURSOR_ADJUSTMENT = 7;
         #endregion
     }
 }

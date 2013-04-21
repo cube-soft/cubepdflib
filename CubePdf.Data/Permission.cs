@@ -35,7 +35,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Permission : IReadOnlyPermission
+    public class Permission : IPermission
     {
         #region Initialization and Termination
 
@@ -60,7 +60,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Permission(IReadOnlyPermission cp)
+        public Permission(IPermission cp)
         {
             this.Printing = cp.Printing;
             this.Assembly = cp.Assembly;

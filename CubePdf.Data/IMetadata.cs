@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// ImageEventArgs.cs
+/// IMetadata.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -19,100 +19,100 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
-using System.Drawing;
 
-namespace CubePdf.Drawing
+namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// ImageEventArgs
+    /// IMetadata
     /// 
     /// <summary>
-    /// ImageCreated イベントのデータを提供するためのクラスです。
+    /// PDF ファイルのメタデータを提供するためのインターフェースです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class ImageEventArgs : EventArgs
+    public interface IMetadata
     {
-        #region Initialization and Termination
-
         /* ----------------------------------------------------------------- */
         ///
-        /// ImageEventArgs (constructor)
+        /// Version
         /// 
         /// <summary>
-        /// 規定の値で ImageEventArgs クラスを初期化します。
+        /// PDF ファイルのバージョンを取得します。現時点で有効な
+        /// PDF バージョンは 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7,
+        /// 1.7 Adobe Extension Level 3, 1.7 Adobe Extension Level 5 の
+        /// 10 種類です。Adobe Extension Level の値は Build プロパティで
+        /// 保持する事とします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ImageEventArgs() : base() { }
+        Version Version { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// ImageEventArgs (constructor)
-        /// 
+        /// Author
+        ///
         /// <summary>
-        /// 生成するイメージのページ情報を指定して ImageEventArgs クラスを
-        /// 初期化します。
+        /// 著者を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ImageEventArgs(CubePdf.Data.Page page)
-            : base()
-        {
-            _page = page;
-        }
-
-        #endregion
-
-        #region Properties
+        string Author { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Image
-        /// 
+        /// Title
+        ///
         /// <summary>
-        /// 生成されたイメージを取得、または設定します。
+        /// タイトルを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Image Image
-        {
-            get { return _image; }
-            set { _image = value; }
-        }
+        string Title { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Image
-        /// 
+        /// Subtitle
+        ///
         /// <summary>
-        /// 生成されたイメージのページ情報を取得、または設定します。
+        /// サブタイトルを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage Page
-        {
-            get { return _page; }
-            set { _page = value; }
-        }
+        string Subtitle { get; }
 
-        #endregion
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Keywords
+        /// 
+        /// <summary>
+        /// キーワードを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Keywords { get; }
 
-        #region Variables
-        private Image _image = null;
-        private CubePdf.Data.IPage _page = null;
-        #endregion
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Creator
+        ///
+        /// <summary>
+        /// PDF の作成・編集を行うアプリケーション名を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Creator { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Producer
+        ///
+        /// <summary>
+        /// PDF の作成・編集を行う際に使用したプリンタドライバ、ライブラリ等
+        /// の名前を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string Producer { get; }
     }
-
-    /* --------------------------------------------------------------------- */
-    ///
-    /// ImageEventHandler
-    /// 
-    /// <summary>
-    /// ImageEventArgus が必要なイベントのためのデリゲート型です。
-    /// </summary>
-    ///
-    /* --------------------------------------------------------------------- */
-    public delegate void ImageEventHandler(object sender, ImageEventArgs e);
 }

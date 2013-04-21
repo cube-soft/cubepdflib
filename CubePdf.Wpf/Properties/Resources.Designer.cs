@@ -61,11 +61,65 @@ namespace CubePdf.Wpf.Properties {
         }
         
         /// <summary>
+        ///   セキュリティ に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string EncryptionText {
+            get {
+                return ResourceManager.GetString("EncryptionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   単一の履歴に複数のコマンドを含める事はできません。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string HistoryCommandException {
             get {
                 return ResourceManager.GetString("HistoryCommandException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   挿入 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string InsertText {
+            get {
+                return ResourceManager.GetString("InsertText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   文書プロパティ に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MetadataText {
+            get {
+                return ResourceManager.GetString("MetadataText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   移動 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MoveText {
+            get {
+                return ResourceManager.GetString("MoveText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   削除 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string RemoveText {
+            get {
+                return ResourceManager.GetString("RemoveText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   回転 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string RotateText {
+            get {
+                return ResourceManager.GetString("RotateText", resourceCulture);
             }
         }
     }

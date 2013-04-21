@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// ImageEventArgs.cs
+/// IListProxy.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -19,100 +19,88 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
-using System.Drawing;
+using System.ComponentModel;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 
-namespace CubePdf.Drawing
+namespace CubePdf.Wpf
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// ImageEventArgs
+    /// IListProxy
     /// 
     /// <summary>
-    /// ImageCreated イベントのデータを提供するためのクラスです。
+    /// ListBox や ListView 等のコンポーネントにリスト内の要素を表示する
+    /// 際に、必要な要素（画面に表示されている要素）のみをメモリー上に確保
+    /// して仮想化するためのプロキシークラスのインターフェースです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class ImageEventArgs : EventArgs
+    public interface IListProxy<T> : IList<T>, IList, INotifyCollectionChanged
     {
-        #region Initialization and Termination
-
         /* ----------------------------------------------------------------- */
         ///
-        /// ImageEventArgs (constructor)
+        /// IItemsProvider
         /// 
         /// <summary>
-        /// 規定の値で ImageEventArgs クラスを初期化します。
+        /// 添え字によるアクセスが発生した際に、経由させるオブジェクトを
+        /// 取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ImageEventArgs() : base() { }
+        IItemsProvider<T> ItemsProvider { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// ImageEventArgs (constructor)
+        /// RawCount
         /// 
         /// <summary>
-        /// 生成するイメージのページ情報を指定して ImageEventArgs クラスを
-        /// 初期化します。
+        /// IItemsProvider を経由せずに内部バッファの Count プロパティの
+        /// を値を直接取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ImageEventArgs(CubePdf.Data.Page page)
-            : base()
-        {
-            _page = page;
-        }
-
-        #endregion
-
-        #region Properties
+        int RawCount { get; }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Image
+        /// RawAt
         /// 
         /// <summary>
-        /// 生成されたイメージを取得、または設定します。
+        /// IItemsProvider を経由せずに内部バッファの該当要素を直接取得
+        /// します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Image Image
-        {
-            get { return _image; }
-            set { _image = value; }
-        }
+        T RawAt(int index);
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Image
+        /// Move
         /// 
         /// <summary>
-        /// 生成されたイメージのページ情報を取得、または設定します。
+        /// oldindex 番目の項目を newindex へ移動します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage Page
-        {
-            get { return _page; }
-            set { _page = value; }
-        }
+        void Move(int oldIndex, int newIndex);
 
-        #endregion
-
-        #region Variables
-        private Image _image = null;
-        private CubePdf.Data.IPage _page = null;
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Re-definition methods
+        /// 
+        /// <summary>
+        /// IList(T) と IList のどちらのメソッドを呼び出すか解決できないため、
+        /// 曖昧さを解決するために ILIstProxy で再定義します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        #region Re-definition methods
+        new int Count { get; }
+        new T this[int index] { get; set; }
+        new void Clear();
+        new void RemoveAt(int index);
         #endregion
     }
-
-    /* --------------------------------------------------------------------- */
-    ///
-    /// ImageEventHandler
-    /// 
-    /// <summary>
-    /// ImageEventArgus が必要なイベントのためのデリゲート型です。
-    /// </summary>
-    ///
-    /* --------------------------------------------------------------------- */
-    public delegate void ImageEventHandler(object sender, ImageEventArgs e);
 }

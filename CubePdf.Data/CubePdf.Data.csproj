@@ -58,15 +58,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Encryption.cs" />
+    <Compile Include="EncryptionException.cs" />
     <Compile Include="EncryptionMethod.cs" />
     <Compile Include="EncryptionStatus.cs" />
+    <Compile Include="IDocumentWriter.cs" />
     <Compile Include="SystemEnvironment.cs" />
     <Compile Include="FileIOWrapper.cs" />
     <Compile Include="IDocumentReader.cs" />
-    <Compile Include="IReadOnlyEncryption.cs" />
-    <Compile Include="IReadOnlyMetadata.cs" />
-    <Compile Include="IReadOnlyPage.cs" />
-    <Compile Include="IReadOnlyPermission.cs" />
+    <Compile Include="IEncryption.cs" />
+    <Compile Include="IMetadata.cs" />
+    <Compile Include="IPage.cs" />
+    <Compile Include="IPermission.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="Permission.cs" />

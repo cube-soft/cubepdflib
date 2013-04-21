@@ -33,14 +33,43 @@ namespace CubePdf.Wpf
     /// <summary>
     /// ListView に CubePdf.Drawing.BitmapEngine で生成される各 PDF ページ
     /// のサムネイルを表示、および各種操作を行うためのインターフェースです。
-    /// T には System.Windows.Media.ImageSource クラス、またはその継承
-    /// クラスが指定される事を想定しています。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : IItemsProvider<Image>
+    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter, IItemsProvider<CubePdf.Drawing.ImageContainer>
     {
         #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Metadata
+        /// 
+        /// <summary>
+        /// PDF のメタ情報を取得します。Metadata プロパティは、IDocumentReader
+        /// インターフェースでは get のみ、IDocumentWriter インターフェース
+        /// では get/set 両方とも許可されています。IListViewModel
+        /// インターフェースでは、IDocumentWriter インターフェースのものを
+        /// 引き継ぐ事とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        new CubePdf.Data.IMetadata Metadata { get; set; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Pages
+        /// 
+        /// <summary>
+        /// PDF の各ページ情報を参照するための反復子を取得します。
+        /// Pages プロパティは、IDocumentReader インターフェースでは
+        /// IEnumerable(T) クラス、IDocumentWriter インターフェースでは
+        /// ICollection(T) クラスを戻り値としています。IListViewModel
+        /// インターフェースでは、IDocumentReader インターフェースのものを
+        /// 引き継ぐ事とします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        new IEnumerable<CubePdf.Data.IPage> Pages { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -56,88 +85,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// パスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        string FilePath { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FileSize
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// ファイルサイズを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        long FileSize { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreationTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// 作成日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        DateTime CreationTime { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UpdateTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// 更新日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        DateTime UpdateTime { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// AccessTime
-        /// 
-        /// <summary>
-        /// ベースとなる PDF ファイル（Open メソッドで指定されたファイル）の
-        /// アクセス日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        DateTime AccessTime { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Metadata
-        /// 
-        /// <summary>
-        /// PDF ファイルの文書プロパティを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        CubePdf.Data.Metadata Metadata { get; set; }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Encryption
-        /// 
-        /// <summary>
-        /// PDF ファイルのセキュリティに関する情報を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        CubePdf.Data.Encryption Encryption { get; set; }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// ItemWidth
         /// 
         /// <summary>
@@ -149,15 +96,14 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// ItemCount
+        /// ItemVisibility
         /// 
         /// <summary>
-        /// 現在、開いている（または各種操作を行った結果の）PDF ファイルに
-        /// 含まれるページ数を取得します。
+        /// ListView で表示されるサムネイルの表示方法を取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        int ItemCount { get; }
+        ListViewItemVisibility ItemVisibility { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -170,7 +116,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ObservableCollection<Image> Items { get; }
+        IListProxy<CubePdf.Drawing.ImageContainer> Items { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -192,7 +138,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ReadOnlyCollection<CommandElement> History { get; }
+        ObservableCollection<CommandElement> History { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -203,7 +149,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ReadOnlyCollection<CommandElement> UndoHistory { get; }
+        ObservableCollection<CommandElement> UndoHistory { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -226,36 +172,23 @@ namespace CubePdf.Wpf
         /// Open
         /// 
         /// <summary>
-        /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
-        /// ための準備を行います。
+        /// 引数に指定された IDocumentReader オブジェクトからページ情報を
+        /// 読み込んで、ListView へ表示可能な状態にします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Open(string path, string password = "");
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Close
-        /// 
-        /// <summary>
-        /// 現在開いている PDF ファイルを閉じます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        void Close();
+        void Open(CubePdf.Data.IDocumentReader reader);
 
         /* ----------------------------------------------------------------- */
         ///
         /// Save
         /// 
         /// <summary>
-        /// 現在のページ構成でファイルに保存します。引数に null が指定された
-        /// 場合、Open メソッドにより開いたファイルに対して上書き保存を
-        /// 試みます。
+        /// 現在のページ構成でファイルを上書き保存します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Save(string path = null);
+        void Save();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -266,7 +199,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Add(CubePdf.Data.Page item);
+        void Add(CubePdf.Data.IPage item);
+        void Add(CubePdf.Data.IDocumentReader reader);
         void Add(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
@@ -279,7 +213,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Insert(int index, CubePdf.Data.Page item);
+        void Insert(int index, CubePdf.Data.IPage item);
+        void Insert(int index, CubePdf.Data.IDocumentReader raeder);
         void Insert(int index, string path, string password = "");
 
         /* ----------------------------------------------------------------- */
@@ -292,7 +227,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Extract(IList<CubePdf.Data.Page> pages, string path);
+        void Extract(IList<CubePdf.Data.IPage> pages, string path);
         void Extract(IList items, string path);
 
         /* ----------------------------------------------------------------- */
@@ -305,7 +240,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Split(IList<CubePdf.Data.Page> pages, string directory);
+        void Split(IList<CubePdf.Data.IPage> pages, string directory);
         void Split(IList items, string directory);
 
         /* ----------------------------------------------------------------- */
@@ -317,7 +252,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Remove(CubePdf.Data.Page item);
+        void Remove(CubePdf.Data.IPage item);
         void Remove(object item);
 
         /* ----------------------------------------------------------------- */
@@ -343,7 +278,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Rotate(CubePdf.Data.Page item, int degree);
+        void Rotate(CubePdf.Data.IPage item, int degree);
         void Rotate(object item, int degree);
 
         /* ----------------------------------------------------------------- */
@@ -440,8 +375,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         int IndexOf(object item);
-        int IndexOf(Image item);
-        int IndexOf(CubePdf.Data.Page page);
+        int IndexOf(CubePdf.Data.IPage page);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -453,9 +387,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.Page ToPage(object item);
-        CubePdf.Data.Page ToPage(Image item);
-        CubePdf.Data.Page ToPage(int index);
+        CubePdf.Data.IPage ToPage(object item);
 
         #endregion
     }

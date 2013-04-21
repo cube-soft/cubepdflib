@@ -93,7 +93,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
 
                 var dest = System.IO.Path.Combine(_dest, "TestPageBinderCopy.pdf");
@@ -129,7 +129,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
                 binder.Save(dest);
                 Assert.IsTrue(System.IO.File.Exists(dest));
@@ -144,7 +144,7 @@ namespace CubePdfTests.Editing
                 binder.Metadata = new CubePdf.Data.Metadata(reader.Metadata);
                 foreach (var page in reader.Pages)
                 {
-                    binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
                 binder.Save(tmp);
                 Assert.IsTrue(System.IO.File.Exists(tmp));
@@ -174,14 +174,14 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page.Value));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderFullMerge.pdf");
@@ -209,20 +209,20 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(9, reader.Pages.Count);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[3]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[5]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[7]));
+                Assert.AreEqual(9, reader.PageCount);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(3)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(5)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(7)));
             }
 
             src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(2, reader.Pages.Count);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[1]));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.Pages[2]));
+                Assert.AreEqual(2, reader.PageCount);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
             }
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderPartMerge.pdf");
@@ -232,7 +232,7 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(6, reader.Pages.Count);
+                Assert.AreEqual(6, reader.PageCount);
             }
         }
 
@@ -254,29 +254,29 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(9, reader.Pages.Count);
+                Assert.AreEqual(9, reader.PageCount);
 
-                var page = new CubePdf.Data.Page(reader.Pages[1]);
+                var page = new CubePdf.Data.Page(reader.GetPage(1));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 90;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[2]);
+                page = new CubePdf.Data.Page(reader.GetPage(2));
                 Assert.AreEqual(90, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[3]);
+                page = new CubePdf.Data.Page(reader.GetPage(3));
                 Assert.AreEqual(180, page.Rotation);
                 page.Rotation = 0;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[5]);
+                page = new CubePdf.Data.Page(reader.GetPage(5));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 180;
                 binder.Pages.Add(page);
 
-                page = new CubePdf.Data.Page(reader.Pages[6]);
+                page = new CubePdf.Data.Page(reader.GetPage(6));
                 Assert.AreEqual(0, page.Rotation);
                 page.Rotation += 270;
                 binder.Pages.Add(page);
@@ -289,12 +289,12 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(5,   reader.Pages.Count);
-                Assert.AreEqual(90,  reader.Pages[1].Rotation);
-                Assert.AreEqual(270, reader.Pages[2].Rotation);
-                Assert.AreEqual(0,   reader.Pages[3].Rotation);
-                Assert.AreEqual(180, reader.Pages[4].Rotation);
-                Assert.AreEqual(270, reader.Pages[5].Rotation);
+                Assert.AreEqual(5,   reader.PageCount);
+                Assert.AreEqual(90,  reader.GetPage(1).Rotation);
+                Assert.AreEqual(270, reader.GetPage(2).Rotation);
+                Assert.AreEqual(0,   reader.GetPage(3).Rotation);
+                Assert.AreEqual(180, reader.GetPage(4).Rotation);
+                Assert.AreEqual(270, reader.GetPage(5).Rotation);
             }
         }
 
@@ -321,14 +321,14 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                Assert.AreEqual(0,   reader.Pages[1].Rotation);
-                Assert.AreEqual(90,  reader.Pages[2].Rotation);
-                Assert.AreEqual(180, reader.Pages[3].Rotation);
-                Assert.AreEqual(270, reader.Pages[4].Rotation);
+                Assert.AreEqual(0,   reader.GetPage(1).Rotation);
+                Assert.AreEqual(90,  reader.GetPage(2).Rotation);
+                Assert.AreEqual(180, reader.GetPage(3).Rotation);
+                Assert.AreEqual(270, reader.GetPage(4).Rotation);
 
                 for (int i = 1; i <= 4; ++i)
                 {
-                    var page = new CubePdf.Data.Page(reader.Pages[i]);
+                    var page = new CubePdf.Data.Page(reader.GetPage(i));
                     page.Rotation = degree;
                     binder.Pages.Add(page);
                 }
@@ -342,10 +342,10 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(degree, reader.Pages[1].Rotation);
-                Assert.AreEqual(degree, reader.Pages[2].Rotation);
-                Assert.AreEqual(degree, reader.Pages[3].Rotation);
-                Assert.AreEqual(degree, reader.Pages[4].Rotation);
+                Assert.AreEqual(degree, reader.GetPage(1).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(2).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(3).Rotation);
+                Assert.AreEqual(degree, reader.GetPage(4).Rotation);
             }
         }
 
@@ -371,25 +371,26 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
             // 新しい情報の設定テスト
-            binder.Metadata.Version = new Version("1.7");
-            binder.Metadata.Title = "TestPageBinderMetadata";
-            binder.Metadata.Author = "キューブ・ソフト";
-            binder.Metadata.Subtitle = "文書プロパティ編集テスト";
-            binder.Metadata.Keywords = "Cube,PDF,編集";
+            var metadata = new CubePdf.Data.Metadata(binder.Metadata);
+            metadata.Version = new Version("1.7");
+            metadata.Title = "TestPageBinderMetadata";
+            metadata.Author = "キューブ・ソフト";
+            metadata.Subtitle = "文書プロパティ編集テスト";
+            metadata.Keywords = "Cube,PDF,編集";
+            binder.Metadata = metadata;
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderMetadata.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
-
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                //Assert.AreEqual(1, reader.Metadata.Version.Major);
-                //Assert.AreEqual(7, reader.Metadata.Version.Minor);
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(7, reader.Metadata.Version.Minor);
                 Assert.AreEqual("TestPageBinderMetadata", reader.Metadata.Title);
                 Assert.AreEqual("キューブ・ソフト", reader.Metadata.Author);
                 Assert.AreEqual("文書プロパティ編集テスト", reader.Metadata.Subtitle);
@@ -397,11 +398,13 @@ namespace CubePdfTests.Editing
             }
 
             // 情報の消去テスト
-            binder.Metadata.Version = new Version("1.5");
-            binder.Metadata.Title = "";
-            binder.Metadata.Author = "";
-            binder.Metadata.Subtitle = "";
-            binder.Metadata.Keywords = "";
+            metadata = new CubePdf.Data.Metadata(binder.Metadata);
+            metadata.Version = new Version("1.5");
+            metadata.Title = "";
+            metadata.Author = "";
+            metadata.Subtitle = "";
+            metadata.Keywords = "";
+            binder.Metadata = metadata;
 
             dest = System.IO.Path.Combine(_dest, "TestPageBinderMetadataDeleted.pdf");
             System.IO.File.Delete(dest);
@@ -410,8 +413,8 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
             {
-                //Assert.AreEqual(1, reader.Metadata.Version.Major);
-                //Assert.AreEqual(5, reader.Metadata.Version.Minor);
+                Assert.AreEqual(1, reader.Metadata.Version.Major);
+                Assert.AreEqual(5, reader.Metadata.Version.Minor);
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Title));
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Author));
                 Assert.IsTrue(String.IsNullOrEmpty(binder.Metadata.Subtitle));
@@ -427,9 +430,9 @@ namespace CubePdfTests.Editing
         /// PageBinder クラスを用いて暗号化に関する情報を設定するテストを
         /// 行います。
         /// 
-        /// NOTE: EncryptionMethod, および Permission の各値のテストに
-        /// ついては DocumentReader の実装がまだのため、コメントアウトして
-        /// います。
+        /// TODO: EncryptionMethod のテストについては DocumentReader の実装が
+        /// まだのため、コメントアウト。修正終了後、コメントを外してテスト
+        /// 行う。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -442,25 +445,27 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
-            binder.Encryption.IsEnabled = true;
-            binder.Encryption.OwnerPassword = "password";
-            binder.Encryption.IsUserPasswordEnabled = true;
-            binder.Encryption.UserPassword = "view";
-            binder.Encryption.Method = CubePdf.Data.EncryptionMethod.Aes128;
-            binder.Encryption.Permission.Printing = true;
-            binder.Encryption.Permission.DegradedPrinting = true;
-            binder.Encryption.Permission.ModifyContents = true;
-            binder.Encryption.Permission.Assembly = true;
-            binder.Encryption.Permission.CopyContents = true;
-            binder.Encryption.Permission.ExtractPage = true;
-            binder.Encryption.Permission.Accessibility = true;
-            binder.Encryption.Permission.ModifyAnnotations = true;
-            binder.Encryption.Permission.InputFormFields = true;
-            binder.Encryption.Permission.Signature = true;
-            binder.Encryption.Permission.TemplatePage = true;
+            var encrypt = new CubePdf.Data.Encryption(binder.Encryption);
+            encrypt.IsEnabled = true;
+            encrypt.OwnerPassword = "password";
+            encrypt.IsUserPasswordEnabled = true;
+            encrypt.UserPassword = "view";
+            encrypt.Method = CubePdf.Data.EncryptionMethod.Aes128;
+            encrypt.Permission.Printing = true;
+            encrypt.Permission.DegradedPrinting = true;
+            encrypt.Permission.ModifyContents = true;
+            encrypt.Permission.Assembly = true;
+            encrypt.Permission.CopyContents = true;
+            encrypt.Permission.ExtractPage = true;
+            encrypt.Permission.Accessibility = true;
+            encrypt.Permission.ModifyAnnotations = true;
+            encrypt.Permission.InputFormFields = true;
+            encrypt.Permission.Signature = true;
+            encrypt.Permission.TemplatePage = true;
+            binder.Encryption = encrypt;
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderEncryption.pdf");
             System.IO.File.Delete(dest);
@@ -471,32 +476,34 @@ namespace CubePdfTests.Editing
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
                 //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
-                //Assert.IsTrue(reader.Permission.Printing);
-                //Assert.IsTrue(reader.Permission.DegradedPrinting);
-                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                //Assert.IsTrue(reader.Permission.Assembly);
-                //Assert.IsTrue(reader.Permission.CopyContents);
-                //Assert.IsTrue(reader.Permission.ExtractPage);
-                //Assert.IsTrue(reader.Permission.Accessibility);
-                //Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                //Assert.IsTrue(reader.Permission.InputFormFields);
+                Assert.IsTrue(reader.Permission.Printing);
+                Assert.IsTrue(reader.Permission.DegradedPrinting);
+                Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Permission.Assembly);
+                Assert.IsTrue(reader.Permission.CopyContents);
+                Assert.IsTrue(reader.Permission.Accessibility);
+                Assert.IsTrue(reader.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Permission.InputFormFields);
 
-                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsTrue(reader.Permission.ExtractPage);
                 // Assert.IsTrue(reader.Permission.Signature);
                 // Assert.IsTrue(reader.Permission.TemplatePage);
             }
 
-            binder.Encryption.Permission.Printing = false;
-            binder.Encryption.Permission.DegradedPrinting = false;
-            binder.Encryption.Permission.ModifyContents = false;
-            binder.Encryption.Permission.Assembly = false;
-            binder.Encryption.Permission.CopyContents = false;
-            binder.Encryption.Permission.ExtractPage = false;
-            binder.Encryption.Permission.Accessibility = false;
-            binder.Encryption.Permission.ModifyAnnotations = false;
-            binder.Encryption.Permission.InputFormFields = false;
-            binder.Encryption.Permission.Signature = false;
-            binder.Encryption.Permission.TemplatePage = false;
+            encrypt = new CubePdf.Data.Encryption(binder.Encryption);
+            encrypt.Permission.Printing = false;
+            encrypt.Permission.DegradedPrinting = false;
+            encrypt.Permission.ModifyContents = false;
+            encrypt.Permission.Assembly = false;
+            encrypt.Permission.CopyContents = false;
+            encrypt.Permission.ExtractPage = false;
+            encrypt.Permission.Accessibility = false;
+            encrypt.Permission.ModifyAnnotations = false;
+            encrypt.Permission.InputFormFields = false;
+            encrypt.Permission.Signature = false;
+            encrypt.Permission.TemplatePage = false;
+            binder.Encryption = encrypt;
 
             dest = System.IO.Path.Combine(_dest, "TestPageBinderNoPermission.pdf");
             System.IO.File.Delete(dest);
@@ -505,21 +512,21 @@ namespace CubePdfTests.Editing
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
-                //Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
+                Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
                 //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
-                //Assert.IsFalse(reader.Permission.Printing);
-                //Assert.IsFalse(reader.Permission.DegradedPrinting);
-                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                //Assert.IsFalse(reader.Permission.Assembly);
-                //Assert.IsFalse(reader.Permission.CopyContents);
-                //Assert.IsFalse(reader.Permission.ExtractPage);
-                //Assert.IsFalse(reader.Permission.Accessibility);
-                //Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                //Assert.IsFalse(reader.Permission.InputFormFields);
+                Assert.IsFalse(reader.Permission.Printing);
+                Assert.IsFalse(reader.Permission.DegradedPrinting);
+                Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Permission.Assembly);
+                Assert.IsFalse(reader.Permission.CopyContents);
+                Assert.IsFalse(reader.Permission.Accessibility);
+                Assert.IsFalse(reader.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Permission.InputFormFields);
 
-                // NOTE: Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
-                // Assert.IsTrue(reader.Permission.Signature);
-                // Assert.IsTrue(reader.Permission.TemplatePage);
+                // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
+                // Assert.IsFalse(reader.Permission.ExtractPage);
+                // Assert.IsFalse(reader.Permission.Signature);
+                // Assert.IsFalse(reader.Permission.TemplatePage);
             }
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "view"))
@@ -561,14 +568,16 @@ namespace CubePdfTests.Editing
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
-                foreach (var page in reader.Pages.Values) binder.Pages.Add(new CubePdf.Data.Page(page));
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
             }
 
-            binder.Encryption.IsEnabled = false;
-            binder.Encryption.OwnerPassword = "password";
-            binder.Encryption.IsUserPasswordEnabled = true;
-            binder.Encryption.UserPassword = "view";
-            binder.Encryption.Method = CubePdf.Data.EncryptionMethod.Aes128;
+            var encrypt = new CubePdf.Data.Encryption(binder.Encryption);
+            encrypt.IsEnabled = false;
+            encrypt.OwnerPassword = "password";
+            encrypt.IsUserPasswordEnabled = true;
+            encrypt.UserPassword = "view";
+            encrypt.Method = CubePdf.Data.EncryptionMethod.Aes128;
+            binder.Encryption = encrypt;
 
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderNoEncryption.pdf");
             System.IO.File.Delete(dest);
@@ -580,8 +589,10 @@ namespace CubePdfTests.Editing
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, reader.EncryptionStatus);
             }
 
-            binder.Encryption.IsEnabled = true;
-            binder.Encryption.IsUserPasswordEnabled = false;
+            encrypt = new CubePdf.Data.Encryption(binder.Encryption);
+            encrypt.IsEnabled = true;
+            encrypt.IsUserPasswordEnabled = false;
+            binder.Encryption = encrypt;
 
             dest = System.IO.Path.Combine(_dest, "TestPageBinderNoEncryptionUserPassword.pdf");
             System.IO.File.Delete(dest);
@@ -599,6 +610,144 @@ namespace CubePdfTests.Editing
                 Assert.Fail();
             }
             catch (Exception /* err */) { Assert.Pass(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestPermission
+        /// 
+        /// <summary>
+        /// 各パーミッションのみを許可した場合のテストを行います。通常テスト
+        /// の他、生成されたファイルは、パーミッションが Adobe Reader でどの
+        /// ように表示されるかを確認されるために使用されます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestPermission()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+            var encrypt = new CubePdf.Data.Encryption();
+            encrypt.IsEnabled = true;
+            encrypt.OwnerPassword = "owner";
+            encrypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
+
+            var src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+            }
+
+            // Printing
+            var permission = new CubePdf.Data.Permission();
+            permission.Printing = true;
+            var dest = System.IO.Path.Combine(_dest, "TestPermissionPrinting.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // DegradedPrinting
+            permission = new CubePdf.Data.Permission();
+            permission.DegradedPrinting = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionDegradedPrinting.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Assembly
+            permission = new CubePdf.Data.Permission();
+            permission.Assembly = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionAssembly.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ModifyContents
+            permission = new CubePdf.Data.Permission();
+            permission.ModifyContents = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionModifyContents.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // CopyContents
+            permission = new CubePdf.Data.Permission();
+            permission.CopyContents = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionCopyContents.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Accessibility
+            permission = new CubePdf.Data.Permission();
+            permission.Accessibility = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionAccessibility.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ModifyAnnotations
+            permission = new CubePdf.Data.Permission();
+            permission.ModifyAnnotations = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionModifyAnnotations.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // InputFormFields
+            permission = new CubePdf.Data.Permission();
+            permission.InputFormFields = true;
+            dest = System.IO.Path.Combine(_dest, "TestPermissionInputFormFields.pdf");
+            System.IO.File.Delete(dest);
+            encrypt.Permission = permission;
+            binder.Encryption = encrypt;
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // ExtractPage
+            //permission = new CubePdf.Data.Permission();
+            //permission.ExtractPage = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionExtractPage.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Signature
+            //permission = new CubePdf.Data.Permission();
+            //permission.Signature = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionSignature.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // TemplatePage
+            //permission = new CubePdf.Data.Permission();
+            //permission.TemplatePage = true;
+            //dest = System.IO.Path.Combine(_dest, "TestPermissionTemplatePage.pdf");
+            //System.IO.File.Delete(dest);
+            //encrypt.Permission = permission;
+            //binder.Encryption = encrypt;
+            //binder.Save(dest);
+            //Assert.IsTrue(System.IO.File.Exists(dest));
         }
 
         #endregion

@@ -31,7 +31,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Encryption : IReadOnlyEncryption
+    public class Encryption : IEncryption
     {
         #region Initialization and Termination
 
@@ -56,7 +56,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Encryption(IReadOnlyEncryption cp)
+        public Encryption(IEncryption cp)
         {
             IsEnabled = cp.IsEnabled;
             IsUserPasswordEnabled = cp.IsUserPasswordEnabled;

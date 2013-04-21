@@ -126,15 +126,23 @@ namespace CubePdf.Editing
         public void Open(string path, string password = "")
         {
             if (_core != null) this.Close();
-            _core = password.Length > 0 ?
-                new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
-                new iTextSharp.text.pdf.PdfReader(path);
-            _path = path;
-            _password = password;
 
-            ExtractPages(_core, _path);
-            ExtractMetadata(_core, _path);
-            ExtractEncryption(_core, _password);
+            try
+            {
+                _core = password.Length > 0 ?
+                    new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
+                    new iTextSharp.text.pdf.PdfReader(path);
+                _path = path;
+                _password = password;
+
+                ExtractPages(_core, _path);
+                ExtractMetadata(_core, _path);
+                ExtractEncryption(_core, _password);
+            }
+            catch (iTextSharp.text.pdf.BadPasswordException err)
+            {
+                throw new CubePdf.Data.EncryptionException(err.Message, err);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -158,8 +166,21 @@ namespace CubePdf.Editing
             _metadata = null;
             _permission = null;
             _path = string.Empty;
-            _size = 0;
             _pages.Clear();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetPage
+        /// 
+        /// <summary>
+        /// 指定されたページ番号に対応するページ情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IPage GetPage(int pagenum)
+        {
+            return _pages[pagenum - 1];
         }
 
         #endregion
@@ -198,58 +219,16 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FileSize
+        /// PageCount
         /// 
         /// <summary>
-        /// PDF ファイルのファイルサイズを取得します。
+        /// PDF ファイルのページ数を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public long FileSize
+        public int PageCount
         {
-            get { return _size; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreationTime
-        /// 
-        /// <summary>
-        /// PDF ファイルの作成日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime CreationTime
-        {
-            get { return _create; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UpdateTime
-        /// 
-        /// <summary>
-        /// PDF ファイルの更新日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime UpdateTime
-        {
-            get { return _update; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// AccessTime
-        /// 
-        /// <summary>
-        /// PDF ファイルへのアクセス日時を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public DateTime AccessTime
-        {
-            get { return _access; }
+            get { return _pages.Count; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -261,7 +240,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IReadOnlyMetadata Metadata
+        public CubePdf.Data.IMetadata Metadata
         {
             get { return _metadata; }
         }
@@ -304,7 +283,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IReadOnlyPermission Permission
+        public CubePdf.Data.IPermission Permission
         {
             get { return _permission; }
         }
@@ -314,11 +293,11 @@ namespace CubePdf.Editing
         /// Pages
         /// 
         /// <summary>
-        /// PDF ファイルの各ページの情報を取得します。
+        /// PDF ファイルの各ページ情報へアクセスするための反復子を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public SortedDictionary<int, CubePdf.Data.IReadOnlyPage> Pages
+        public IEnumerable<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -346,7 +325,7 @@ namespace CubePdf.Editing
                 page.OriginalSize = Translator.ToSize(reader.GetPageSize(i + 1));
                 page.Rotation = reader.GetPageRotation(i + 1);
                 page.Power = 1.0;
-                _pages.Add(i + 1, page);
+                _pages.Add(page);
             }
         }
 
@@ -361,12 +340,6 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private void ExtractMetadata(iTextSharp.text.pdf.PdfReader reader, string path)
         {
-            var info = new System.IO.FileInfo(path);
-            _size   = info.Length;
-            _create = info.CreationTime;
-            _update = info.LastWriteTime;
-            _access = info.LastAccessTime;
-
             var metadata = new CubePdf.Data.Metadata();
             metadata.Version  = new Version(1, Int32.Parse(reader.PdfVersion.ToString()), 0, 0);
             metadata.Author   = reader.Info.ContainsKey("Author")   ? reader.Info["Author"] : "";
@@ -402,15 +375,11 @@ namespace CubePdf.Editing
         private iTextSharp.text.pdf.PdfReader _core = null;
         private string _path = string.Empty;
         private string _password = string.Empty;
-        private long _size = 0;
-        private DateTime _create = new DateTime();
-        private DateTime _update = new DateTime();
-        private DateTime _access = new DateTime();
-        private CubePdf.Data.IReadOnlyMetadata _metadata = null;
+        private CubePdf.Data.IMetadata _metadata = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
-        private CubePdf.Data.IReadOnlyPermission _permission = null;
-        private SortedDictionary<int, CubePdf.Data.IReadOnlyPage> _pages = new SortedDictionary<int, CubePdf.Data.IReadOnlyPage>();
+        private CubePdf.Data.IPermission _permission = null;
+        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }

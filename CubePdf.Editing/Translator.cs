@@ -108,12 +108,12 @@ namespace CubePdf.Editing
         /// 引数に指定された CubePdf.Data.Permission オブジェクトをに対応
         /// する（iTextSharp で定義されている）値を返します。
         /// 
-        /// NOTE: Signature, TemplatePage のパーミッションに関しては、
-        /// iTextSharp が未実装なので無視します。
+        /// NOTE: ExtractPage, Signature, TemplatePage のパーミッションに
+        /// 関しては、iTextSharp が未実装なので無視します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static int ToIText(Permission value)
+        public static int ToIText(IPermission value)
         {
             int dest = 0;
 
@@ -125,6 +125,7 @@ namespace CubePdf.Editing
             if (value.InputFormFields)   dest |= PdfWriter.AllowFillIn;
             if (value.ModifyAnnotations) dest |= PdfWriter.AllowModifyAnnotations;
             if (value.Accessibility)     dest |= PdfWriter.AllowScreenReaders;
+            // if (value.ExtractPage) dest |= ???
             // if (value.Signature) dest |= ???
             // if (value.TemplatePage) dest |= ???
 
@@ -138,15 +139,12 @@ namespace CubePdf.Editing
         /// <summary>
         /// 引数に指定された値に対応する CubePdf.Data.Permission オブジェクト
         /// を返します。
-        /// 
-        /// TODO: うまく機能してない？原因等を調査する。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public static Permission ToPermission(int value)
         {
             var dest = new Permission();
-
             if ((value & PdfWriter.AllowPrinting) != 0)          dest.Printing = true;
             if ((value & PdfWriter.AllowDegradedPrinting) != 0)  dest.DegradedPrinting = true;
             if ((value & PdfWriter.AllowAssembly) != 0)          dest.Assembly = true;
@@ -155,10 +153,11 @@ namespace CubePdf.Editing
             if ((value & PdfWriter.AllowFillIn) != 0)            dest.InputFormFields = true;
             if ((value & PdfWriter.AllowModifyAnnotations) != 0) dest.ModifyAnnotations = true;
             if ((value & PdfWriter.AllowScreenReaders) != 0)     dest.Accessibility = true;
+            // if ((value & ???) != 0) dest.ExtractPage = false;
             // if ((value & ???) != 0) dest.Signature = true;
             // if ((value & ???) != 0) dest.TemplatePage = true;
-            
-            return new CubePdf.Data.Permission();
+
+            return dest;
         }
     }
 }

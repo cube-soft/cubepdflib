@@ -32,7 +32,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class Page : IReadOnlyPage
+    public class Page : IPage
     {
         #region Initialization and Termination
 
@@ -72,7 +72,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Page(IReadOnlyPage cp)
+        public Page(IPage cp)
         {
             _path = cp.FilePath;
             _pagenum = cp.PageNumber;
@@ -202,7 +202,8 @@ namespace CubePdf.Data
         public override string ToString()
         {
             if (_path.Length == 0) return "(empty instance of the CubePdf.Data.Page)";
-            return String.Format("{0}({1})", _path, _pagenum);
+            return String.Format("{0}({1}): Width => {2}, Height => {3}, Rotation => {4}",
+                _path, _pagenum, _size.Width, _size.Height, _rotation);
         }
 
         #endregion
@@ -212,7 +213,7 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         /// Equals
         /* ----------------------------------------------------------------- */
-        public bool Equals(IReadOnlyPage other)
+        public bool Equals(IPage other)
         {
             return FilePath == other.FilePath && PageNumber == other.PageNumber;
         }
@@ -225,7 +226,7 @@ namespace CubePdf.Data
             if (object.ReferenceEquals(obj, null)) return false;
             if (object.ReferenceEquals(this, obj)) return true;
 
-            var other = obj as IReadOnlyPage;
+            var other = obj as IPage;
             if (other == null) return false;
 
             return this.Equals(other);

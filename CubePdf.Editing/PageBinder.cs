@@ -33,7 +33,7 @@ namespace CubePdf.Editing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class PageBinder
+    public class PageBinder : CubePdf.Data.IDocumentWriter
     {
         #region Initialization and Termination
 
@@ -85,7 +85,6 @@ namespace CubePdf.Editing
             var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
             if (writer == null) return;
 
-            writer.Open();
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
             if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
             {
@@ -97,59 +96,26 @@ namespace CubePdf.Editing
 
             doc.Open();
             var wdc = writer.DirectContent;
+            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
             foreach (var page in _pages)
             {
-                var reader = new iTextSharp.text.pdf.PdfReader(page.FilePath); 
-
-                // RV: ページサイズに関しては多分下記で問題ない。テストは行うこと (tsugawa)
-                // doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
-
-                switch (page.Rotation)
+                if (!readers.ContainsKey(page.FilePath))
                 {
-                    case 0:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber));//WithRotation
-                        break;
-                    case 90:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate());//WithRotation
-                        break;
-                    case 180:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate());//WithRotation
-                        break;
-                    case 270:
-                        doc.SetPageSize(reader.GetPageSize(page.PageNumber).Rotate().Rotate().Rotate());//WithRotation
-                        break;
+                    readers.Add(page.FilePath, new iTextSharp.text.pdf.PdfReader(page.FilePath));
                 }
+                var reader = readers[page.FilePath];
+
+                doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
                 doc.NewPage();
 
-                //RV: AddTemplate の2～4個目の引数には回転行列を、5, 6個目の引数には平行移動用の値を指定する。
-                //回転行列の指定方法に関しては、例えば、下記のようになる
-                //System.Drawing.Drawing2D.Matrix で指定する方法もあるらしい。
-                //平行移動の(x, y)座標の指定の仕方が現時点ではよくわからないので、要調査。
-                //0→270度と90→270度で結果が異なるので、平行移動に関しては元の度数も考慮する必要がある様子。(tsugawa)
-                //
-                //var radian = Math.PI * page.Rotation / 180.0;
-                //var sin = (float)Math.Sin(radian);
-                //var cos = (float)Math.Cos(radian);
-                //var x = ???;
-                //var y = ???;
-                //wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, 0, 0);
+                var radian = Math.PI * page.Rotation / 180.0;
+                var sin = (float)Math.Sin(radian);
+                var cos = (float)Math.Cos(radian);
+                var original = reader.GetPageSize(page.PageNumber);
+                var x = (original.Width * Math.Abs(cos) + original.Height * Math.Abs(sin)) * (-sin - cos + 1) / 2;
+                var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
 
-                switch (page.Rotation)
-                {
-                    case 0:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 1f, 0f, 0f, 1f, 0f, 0f);
-                        break;
-                    case 90:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, -1f, 1f, 0f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Width);
-                        break;
-                    case 180:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), -1f, 0f, 0f, -1f, reader.GetPageSizeWithRotation(page.PageNumber).Width, reader.GetPageSizeWithRotation(page.PageNumber).Height);
-                        break;
-                    case 270:
-                        wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), 0f, 1f, -1f, 0f, reader.GetPageSizeWithRotation(page.PageNumber).Height, 0f);
-                        break;
-                }
-                reader.Close();
+                wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
             }
 
             doc.AddAuthor(_metadata.Author);
@@ -160,7 +126,8 @@ namespace CubePdf.Editing
             doc.AddProducer();
 
             doc.Close();
-            writer.Close();
+            foreach (var reader in readers.Values) reader.Close();
+            readers.Clear();
         }
 
         #endregion
@@ -168,27 +135,45 @@ namespace CubePdf.Editing
         #region Properties
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Metadata
+        /// 
+        /// <summary>
+        /// PDF ファイルのメタデータを取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Metadata Metadata
+        public CubePdf.Data.IMetadata Metadata
         {
             get { return _metadata; }
             set { _metadata = value; }
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Encryption
+        /// 
+        /// <summary>
+        /// 暗号化に関する情報をを取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Encryption Encryption
+        public CubePdf.Data.IEncryption Encryption
         {
             get { return _encrypt; }
             set { _encrypt = value; }
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Pages
+        /// 
+        /// <summary>
+        /// PDF ファイルの各ページ情報を取得、または設定します。
+        /// </summary>
+        ///
         /* ----------------------------------------------------------------- */
-        public ICollection<CubePdf.Data.Page> Pages
+        public ICollection<CubePdf.Data.IPage> Pages
         {
             get { return _pages; }
         }
@@ -196,9 +181,9 @@ namespace CubePdf.Editing
         #endregion
 
         #region Variables
-        private CubePdf.Data.Metadata _metadata = new CubePdf.Data.Metadata();
-        private CubePdf.Data.Encryption _encrypt = new CubePdf.Data.Encryption();
-        private List<CubePdf.Data.Page> _pages = new List<CubePdf.Data.Page>();
+        private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
+        private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }

@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// IItemsProvider.cs
+/// EncryptionException.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -20,45 +20,51 @@
 /* ------------------------------------------------------------------------- */
 using System;
 
-namespace CubePdf.Wpf
+namespace CubePdf.Data
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// IItemsProvider
+    /// EncryptionException
     /// 
     /// <summary>
-    /// ListView で表示されるデータを仮想化するために、IListViewModel
-    /// オブジェクトとコレクションオブジェクトの間でやり取りするための
-    /// インターフェースです。
-    /// 
-    /// TODO: IItemsProvider を使用する事になる IListProxy インターフェース
-    /// でも内部に要素を保持する可能性があるので、その情報へ参照できるように
-    /// した方が良いか検討する。
+    /// 暗号化に関する例外を送出するためのクラスです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IItemsProvider<T>
+    public class EncryptionException : Exception
     {
         /* ----------------------------------------------------------------- */
         ///
-        /// ProvideItemsCount
-        ///
+        /// EncryptionException (constructor)
+        /// 
         /// <summary>
-        /// ListView で表示されるはずの要素数を取得します。
+        /// 既定の値でオブジェクトを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        int ProvideItemsCount();
+        public EncryptionException() : base() { }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// ProvideItem
-        ///
+        /// EncryptionException (constructor)
+        /// 
         /// <summary>
-        /// ListView の index 番目に対応するデータを取得します。
+        /// 指定したエラーメッセージを使用して、オブジェクトを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        T ProvideItem(int index);
+        public EncryptionException(string message) : base(message) { }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EncryptionException (constructor)
+        /// 
+        /// <summary>
+        /// 指定したエラーメッセージと、この例外の原因である内部例外への
+        /// 参照を使用して、オブジェクトを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public EncryptionException(string message, Exception innerException) : base(message, innerException) { }
     }
 }
