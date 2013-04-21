@@ -470,10 +470,7 @@ namespace CubePdf.Wpf
                 var page = _pages[oldindex];
                 _pages.RemoveAt(oldindex);
                 _pages.Insert(newindex, page);
-
-                var image = _images.RawAt(oldindex);
-                _images.RemoveAt(oldindex);
-                _images.Insert(newindex, image);
+                _images.Move(oldindex, newindex);
 
                 if (oldindex <= newindex) UpdateImageText(oldindex, newindex);
                 else UpdateImageText(newindex, oldindex);

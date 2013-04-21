@@ -125,6 +125,20 @@ namespace CubePdf.Wpf
             return _buffer[index];
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Move
+        /// 
+        /// <summary>
+        /// oldindex 番目の項目を newindex へ移動します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Move(int oldindex, int newindex)
+        {
+            _buffer.Move(oldindex, newindex);
+        }
+
         #endregion
 
         #region Proxy methods
