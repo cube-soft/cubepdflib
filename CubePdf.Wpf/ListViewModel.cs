@@ -1307,17 +1307,20 @@ namespace CubePdf.Wpf
         /// GetDummyImage
         /// 
         /// <summary>
-        /// ListView に本来表示される画像とサイズのみ等しいダミー画像を
-        /// 取得します。
+        /// ListView に本来表示される画像と縦横比の等しいダミー画像を取得
+        /// します。生成された画像の縦横比は、小数点以下の関係で若干ずれる
+        /// 事があります。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
-            var power = GetPower(page);
-            var width = (int)(page.ViewSize.Width * power);
-            var height = (int)(page.ViewSize.Height * power);
-            return new Bitmap(width, height);
+            var width  = page.ViewSize.Width;
+            var height = page.ViewSize.Height;
+            var narrow = Math.Min(Math.Min(10, width), height);
+            return (width < height) ?
+                new Bitmap(narrow, (int)(narrow * height / (double)width)) :
+                new Bitmap((int)(narrow * width / (double)height), narrow);
         }
 
         /* ----------------------------------------------------------------- */
