@@ -271,6 +271,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Add(CubePdf.Data.IPage item) { Insert(_pages.Count, item); }
+        public void Add(CubePdf.Data.IDocumentReader reader) { Insert(_pages.Count, reader); }
         public void Add(string path, string password = "") { Insert(_pages.Count, path, password); }
 
         /* ----------------------------------------------------------------- */
@@ -302,30 +303,43 @@ namespace CubePdf.Wpf
         /// Insert
         /// 
         /// <summary>
+        /// 引数に指定された IDocumentReader オブジェクトの各ページを index
+        /// の位置に挿入します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Insert(int index, CubePdf.Data.IDocumentReader reader)
+        {
+            try
+            {
+                BeginCommand();
+                CreateEngine(reader);
+                foreach (var page in reader.Pages)
+                {
+                    var item = new CubePdf.Data.Page(page);
+                    Insert(index, item);
+                    ++index;
+                }
+            }
+            finally { EndCommand(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Insert
+        /// 
+        /// <summary>
         /// 引数に指定された PDF ファイルの各ページを index の位置に挿入
         /// します。
-        /// 
-        /// TODO: リクエストの調整。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public void Insert(int index, string path, string password = "")
         {
-            try
+            using (var reader = new CubePdf.Editing.DocumentReader(path, password))
             {
-                BeginCommand();
-                using (var reader = new CubePdf.Editing.DocumentReader(path, password))
-                {
-                    CreateEngine(reader);
-                    foreach (var page in reader.Pages)
-                    {
-                        var item = new CubePdf.Data.Page(page);
-                        Insert(index, item);
-                        ++index;
-                    }
-                }
+                Insert(index, reader);
             }
-            finally { EndCommand(); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -808,6 +822,43 @@ namespace CubePdf.Wpf
         /// Open
         /// 
         /// <summary>
+        /// 引数に指定された IDocumentReader オブジェクトからページ情報を
+        /// 読み込んで、ListView へ表示可能な状態にします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Open(CubePdf.Data.IDocumentReader reader)
+        {
+            if (_pages.Count > 0) Close();
+
+            // Properties for IDocumentReader
+            _path = reader.FilePath;
+            _password = reader.Password;
+            _metadata = reader.Metadata;
+            _source_status = reader.EncryptionStatus;
+            _source_method = reader.EncryptionMethod;
+            _source_permission = reader.Permission;
+
+            CreateEngine(reader);
+            foreach (var page in reader.Pages) Add(page);
+
+            // Properties for IDocumentWriter
+            var encrypt = new CubePdf.Data.Encryption();
+            encrypt.Method = _source_method;
+            encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
+            _encrypt = encrypt;
+
+            // Properties for others
+            _undo.Clear();
+            _redo.Clear();
+            _modified = false;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Open
+        /// 
+        /// <summary>
         /// 引数に指定された PDF ファイルを開き、画面に表示可能な状態にする
         /// ための準備を行います（IDocumentReader から継承されます）。
         /// </summary>
@@ -818,27 +869,7 @@ namespace CubePdf.Wpf
             if (_pages.Count > 0) Close();
             using (var reader = new CubePdf.Editing.DocumentReader(path, password))
             {
-                // Properties for IDocumentReader
-                _path = reader.FilePath;
-                _password = reader.Password;
-                _metadata = reader.Metadata;
-                _source_status = reader.EncryptionStatus;
-                _source_method = reader.EncryptionMethod;
-                _source_permission = reader.Permission;
-
-                CreateEngine(reader);
-                foreach (var page in reader.Pages) Add(page);
-
-                // Properties for IDocumentWriter
-                var encrypt = new CubePdf.Data.Encryption();
-                encrypt.Method = _source_method;
-                encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
-                _encrypt = encrypt;
-
-                // Properties for others
-                _undo.Clear();
-                _redo.Clear();
-                _modified = false;
+                Open(reader);
             }
         }
 

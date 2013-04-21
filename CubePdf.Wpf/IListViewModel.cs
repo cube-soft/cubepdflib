@@ -169,6 +169,18 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Open
+        /// 
+        /// <summary>
+        /// 引数に指定された IDocumentReader オブジェクトからページ情報を
+        /// 読み込んで、ListView へ表示可能な状態にします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        void Open(CubePdf.Data.IDocumentReader reader);
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Save
         /// 
         /// <summary>
@@ -188,6 +200,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Add(CubePdf.Data.IPage item);
+        void Add(CubePdf.Data.IDocumentReader reader);
         void Add(string path, string password = "");
 
         /* ----------------------------------------------------------------- */
@@ -201,6 +214,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Insert(int index, CubePdf.Data.IPage item);
+        void Insert(int index, CubePdf.Data.IDocumentReader raeder);
         void Insert(int index, string path, string password = "");
 
         /* ----------------------------------------------------------------- */
