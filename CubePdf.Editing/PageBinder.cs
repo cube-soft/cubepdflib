@@ -81,53 +81,63 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
-            var doc = new iTextSharp.text.Document();
-            var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
-            if (writer == null) return;
-
-            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
-            if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
+            try
             {
-                var method = Translator.ToIText(_encrypt.Method);
-                var permission = Translator.ToIText(_encrypt.Permission);
-                var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
-                writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
-            }
+                var doc = new iTextSharp.text.Document();
+                var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
+                if (writer == null) return;
 
-            doc.Open();
-            var wdc = writer.DirectContent;
-            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
-            foreach (var page in _pages)
-            {
-                if (!readers.ContainsKey(page.FilePath))
+                writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
+                if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
                 {
-                    readers.Add(page.FilePath, new iTextSharp.text.pdf.PdfReader(page.FilePath));
+                    var method = Translator.ToIText(_encrypt.Method);
+                    var permission = Translator.ToIText(_encrypt.Permission);
+                    var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
+                    writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
                 }
-                var reader = readers[page.FilePath];
 
-                doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
-                doc.NewPage();
+                doc.Open();
+                var wdc = writer.DirectContent;
+                var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+                foreach (var page in _pages)
+                {
+                    if (!readers.ContainsKey(page.FilePath))
+                    {
+                        var item = page.Password.Length > 0 ?
+                            new iTextSharp.text.pdf.PdfReader(page.FilePath, System.Text.Encoding.UTF8.GetBytes(page.Password)) :
+                            new iTextSharp.text.pdf.PdfReader(page.FilePath);
+                        readers.Add(page.FilePath, item);
+                    }
+                    var reader = readers[page.FilePath];
 
-                var radian = Math.PI * page.Rotation / 180.0;
-                var sin = (float)Math.Sin(radian);
-                var cos = (float)Math.Cos(radian);
-                var original = reader.GetPageSize(page.PageNumber);
-                var x = (original.Width * Math.Abs(cos) + original.Height * Math.Abs(sin)) * (-sin - cos + 1) / 2;
-                var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
+                    doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
+                    doc.NewPage();
 
-                wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
+                    var radian = Math.PI * page.Rotation / 180.0;
+                    var sin = (float)Math.Sin(radian);
+                    var cos = (float)Math.Cos(radian);
+                    var original = reader.GetPageSize(page.PageNumber);
+                    var x = (original.Width * Math.Abs(cos) + original.Height * Math.Abs(sin)) * (-sin - cos + 1) / 2;
+                    var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
+
+                    wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
+                }
+
+                doc.AddAuthor(_metadata.Author);
+                doc.AddTitle(_metadata.Title);
+                doc.AddSubject(_metadata.Subtitle);
+                doc.AddKeywords(_metadata.Keywords);
+                doc.AddCreator(_metadata.Creator);
+                doc.AddProducer();
+
+                doc.Close();
+                foreach (var reader in readers.Values) reader.Close();
+                readers.Clear();
             }
-
-            doc.AddAuthor(_metadata.Author);
-            doc.AddTitle(_metadata.Title);
-            doc.AddSubject(_metadata.Subtitle);
-            doc.AddKeywords(_metadata.Keywords);
-            doc.AddCreator(_metadata.Creator);
-            doc.AddProducer();
-
-            doc.Close();
-            foreach (var reader in readers.Values) reader.Close();
-            readers.Clear();
+            catch (iTextSharp.text.pdf.BadPasswordException err)
+            {
+                throw new CubePdf.Data.EncryptionException(err.Message, err);
+            }
         }
 
         #endregion

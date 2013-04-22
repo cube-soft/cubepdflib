@@ -75,6 +75,7 @@ namespace CubePdf.Data
         public Page(IPage cp)
         {
             _path = cp.FilePath;
+            _password = cp.Password;
             _pagenum = cp.PageNumber;
             _size = cp.OriginalSize;
             _rotation = cp.Rotation;
