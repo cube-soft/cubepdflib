@@ -135,7 +135,7 @@ namespace CubePdf.Editing
                 _path = path;
                 _password = password;
 
-                ExtractPages(_core, _path);
+                ExtractPages(_core, _path, _password);
                 ExtractMetadata(_core, _path);
                 ExtractEncryption(_core, _password);
             }
@@ -315,13 +315,14 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path)
+        private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path, string password)
         {
             _pages.Capacity = reader.NumberOfPages + 1;
             for (int i = 0; i < reader.NumberOfPages; ++i)
             {
                 var page = new CubePdf.Data.Page();
                 page.FilePath = path;
+                page.Password = password;
                 page.PageNumber = i + 1;
                 page.OriginalSize = Translator.ToSize(reader.GetPageSize(i + 1));
                 page.Rotation = reader.GetPageRotation(i + 1);

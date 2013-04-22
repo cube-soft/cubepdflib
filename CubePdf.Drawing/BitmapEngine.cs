@@ -628,6 +628,7 @@ namespace CubePdf.Drawing
                     if (!_core.Pages.TryGetValue(i + 1, out obj)) return;
 
                     var page = new CubePdf.Data.Page(_path, i + 1);
+                    page.Password = _password;
                     page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
                     page.Rotation = obj.Rotation;
                     if (i >= _pages.Count) _pages.Add(page);
