@@ -263,6 +263,23 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// SaveOnClose
+        /// 
+        /// <summary>
+        /// ファイルを閉じる際に、現在の状態で保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void SaveOnClose(string path = "")
+        {
+            if (String.IsNullOrEmpty(path)) path = _path;
+            var binder = new CubePdf.Editing.PageBinder();
+            SaveDocument(path, binder);
+            Close();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Add
         /// 
         /// <summary>
