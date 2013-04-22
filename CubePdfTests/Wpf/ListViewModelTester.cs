@@ -601,16 +601,18 @@ namespace CubePdfTests.Wpf
             // Remove
             Assert.AreEqual(11, viewmodel.PageCount);
             viewmodel.RemoveAt(0);
+            Assert.AreEqual(3, count);
             viewmodel.BeginCommand();
             viewmodel.RemoveAt(0);
             viewmodel.RemoveAt(0);
             viewmodel.RemoveAt(0);
             viewmodel.EndCommand();
-            Assert.AreEqual(7, viewmodel.PageCount);
             Assert.AreEqual(4, count);
+            Assert.AreEqual(7, viewmodel.PageCount);
 
             // Move
             viewmodel.Move(0, 1);
+            Assert.AreEqual(5, count);
             viewmodel.BeginCommand();
             viewmodel.Move(1, 3);
             viewmodel.Move(3, 4);
@@ -621,13 +623,14 @@ namespace CubePdfTests.Wpf
             // Rotate
             Assert.AreEqual(0, viewmodel.GetPage(1).Rotation);
             viewmodel.RotateAt(0, 180);
+            Assert.AreEqual(7, count);
             viewmodel.BeginCommand();
             viewmodel.RotateAt(0, 90);
             viewmodel.RotateAt(0, 270);
             viewmodel.RotateAt(0, -90);
             viewmodel.EndCommand();
-            Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
             Assert.AreEqual(8, count);
+            Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
 
             // Extract
             IList<CubePdf.Data.IPage> pages = new List<CubePdf.Data.IPage>();
@@ -637,8 +640,8 @@ namespace CubePdfTests.Wpf
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedExtract.pdf");
             System.IO.File.Delete(dest);
             viewmodel.Extract(pages, dest);
-            Assert.IsTrue(System.IO.File.Exists(dest)); 
             Assert.AreEqual(9, count);
+            Assert.IsTrue(System.IO.File.Exists(dest)); 
 
             // Split
             viewmodel.Split(pages, _dest);
@@ -670,8 +673,8 @@ namespace CubePdfTests.Wpf
             dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedSave.pdf");
             System.IO.File.Delete(dest);
             viewmodel.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
             Assert.AreEqual(16, count);
+            Assert.IsTrue(System.IO.File.Exists(dest));
 
             // Close
             viewmodel.Close();
