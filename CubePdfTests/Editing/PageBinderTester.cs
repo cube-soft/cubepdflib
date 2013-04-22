@@ -204,8 +204,10 @@ namespace CubePdfTests.Editing
         public void TestParsePassword()
         {
             var binder = new CubePdf.Editing.PageBinder();
+
+            // OwnerPassword
             var src = System.IO.Path.Combine(_src, "password.pdf");
-            var password = "password"; // OwnerPassword
+            var password = "password";
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src, password))
             {
@@ -225,9 +227,10 @@ namespace CubePdfTests.Editing
                 Assert.IsTrue(System.IO.File.Exists(dest));
             }
             catch (Exception err) { Assert.Fail(err.ToString()); }
-
             binder.Pages.Clear();
-            password = "view"; // UserPassword
+
+            // UserPassword
+            password = "view";
             using (var reader = new CubePdf.Editing.DocumentReader(src, password))
             {
                 foreach (var page in reader.Pages)
@@ -237,6 +240,15 @@ namespace CubePdfTests.Editing
                     binder.Pages.Add(new CubePdf.Data.Page(page));
                 }
             }
+
+            try
+            {
+                var dest = System.IO.Path.Combine(_dest, "TestParsePassword.pdf");
+                System.IO.File.Delete(dest);
+                binder.Save(dest);
+                Assert.Fail("never reached");
+            }
+            catch (Exception /* err */) { Assert.Pass(); }
         }
 
         /* ----------------------------------------------------------------- */
