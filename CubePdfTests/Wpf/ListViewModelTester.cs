@@ -162,6 +162,29 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestSaveOnClose
+        /// 
+        /// <summary>
+        /// PDF ファイルを閉じる際に、保存処理を行うテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestSaveOnClose()
+        {
+            var viewmodel = CreateViewModel();
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelTestSaveOnClose.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.SaveOnClose(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            Assert.IsTrue(String.IsNullOrEmpty(viewmodel.FilePath));
+            Assert.AreEqual(0, viewmodel.PageCount);
+            Assert.AreEqual(0, viewmodel.History.Count);
+            Assert.AreEqual(0, viewmodel.UndoHistory.Count);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestInsert
         /// 
         /// <summary>
