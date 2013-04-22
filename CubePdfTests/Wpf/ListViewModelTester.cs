@@ -569,6 +569,117 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestRunCompleted
+        /// 
+        /// <summary>
+        /// RunCompleted イベントのテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRunCompleted()
+        {
+            var count = 0;
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.RunCompleted += (sender, e) => {
+                ++count;
+            };
+
+            // Open
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Open(src);
+            Assert.AreEqual(1, count);
+
+            // Add
+            src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Add(src);
+            Assert.AreEqual(2, count);
+
+            // Remove
+            Assert.AreEqual(11, viewmodel.PageCount);
+            viewmodel.RemoveAt(0);
+            viewmodel.BeginCommand();
+            viewmodel.RemoveAt(0);
+            viewmodel.RemoveAt(0);
+            viewmodel.RemoveAt(0);
+            viewmodel.EndCommand();
+            Assert.AreEqual(7, viewmodel.PageCount);
+            Assert.AreEqual(4, count);
+
+            // Move
+            viewmodel.Move(0, 1);
+            viewmodel.BeginCommand();
+            viewmodel.Move(1, 3);
+            viewmodel.Move(3, 4);
+            viewmodel.Move(4, 5);
+            viewmodel.EndCommand();
+            Assert.AreEqual(6, count);
+
+            // Rotate
+            Assert.AreEqual(0, viewmodel.GetPage(1).Rotation);
+            viewmodel.RotateAt(0, 180);
+            viewmodel.BeginCommand();
+            viewmodel.RotateAt(0, 90);
+            viewmodel.RotateAt(0, 270);
+            viewmodel.RotateAt(0, -90);
+            viewmodel.EndCommand();
+            Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
+            Assert.AreEqual(8, count);
+
+            // Extract
+            IList<CubePdf.Data.IPage> pages = new List<CubePdf.Data.IPage>();
+            pages.Add(viewmodel.GetPage(1));
+            pages.Add(viewmodel.GetPage(2));
+            pages.Add(viewmodel.GetPage(3));
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedExtract.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Extract(pages, dest);
+            Assert.IsTrue(System.IO.File.Exists(dest)); 
+            Assert.AreEqual(9, count);
+
+            // Split
+            viewmodel.Split(pages, _dest);
+            Assert.AreEqual(10, count);
+
+            // Reset
+            viewmodel.Reset();
+            Assert.AreEqual(11, count);
+
+            // Undo
+            viewmodel.Undo();
+            Assert.AreEqual(12, count);
+
+            // Redo
+            viewmodel.Redo();
+            Assert.AreEqual(13, count);
+
+            // Metadata
+            var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
+            viewmodel.Metadata = metadata;
+            Assert.AreEqual(14, count);
+
+            // Encryption
+            var encrypt = new CubePdf.Data.Encryption(viewmodel.Encryption);
+            viewmodel.Encryption = encrypt;
+            Assert.AreEqual(15, count);
+
+            // Save
+            dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedSave.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            Assert.AreEqual(16, count);
+
+            // Close
+            viewmodel.Close();
+            Assert.AreEqual(17, count);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestInterface
         /// 
         /// <summary>
