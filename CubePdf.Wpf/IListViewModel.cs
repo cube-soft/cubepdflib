@@ -401,5 +401,24 @@ namespace CubePdf.Wpf
         CubePdf.Data.IPage ToPage(object item);
 
         #endregion
+
+        #region Events
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RunCompleted
+        /// 
+        /// <summary>
+        /// IListView クラスの各種メソッドの処理が終了した時に発生する
+        /// イベントです。RunCompleted イベントが発生するタイミングは、
+        /// BeginCommand メソッドを実行した場合は EndCommand メソッドを
+        /// 実行した直後、それ以外は各メソッドを実行の実行が終了した時と
+        /// なります。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        event EventHandler RunCompleted;
+
+        #endregion
     }
 }
