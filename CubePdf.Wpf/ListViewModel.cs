@@ -532,21 +532,18 @@ namespace CubePdf.Wpf
         {
             if (index < 0 || index >= _pages.Count) return;
 
-            var item = new CubePdf.Data.Page(_pages[index]);
-            item.Rotation += degree;
-            if (item.Rotation < 0) item.Rotation += 360;
-            if (item.Rotation >= 360) item.Rotation -= 360;
-            var image = _engines[item.FilePath].CreateImage(item.PageNumber, GetPower(item));
-            if (image == null) return;
+            lock (_pages)
+            lock (_images)
+            {
+                var page = new CubePdf.Data.Page(_pages[index]);
+                page.Rotation += degree;
+                if (page.Rotation < 0) page.Rotation += 360;
+                if (page.Rotation >= 360) page.Rotation -= 360;
+                _pages[index] = page;
 
-            var delta = item.Rotation - _engines[item.FilePath].GetPage(item.PageNumber).Rotation;
-            if (delta < 0) delta += 360;
-            if (delta >= 360) delta -= 360;
-
-            RotateImage(image, delta);
-            _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
-            _pages[index] = item;
-            UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
+                _images.RawAt(index).DeleteImage();
+                UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
+            }
 
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
@@ -1131,9 +1128,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
-            var index = _pages.IndexOf((CubePdf.Data.Page)e.Page); // TODO: 修正
-            if (e.Image != null && index >= 0)
+            var index = _pages.IndexOf(e.Page);
+            if (e.Image != null && index >= 0 && index < _pages.Count)
             {
+                RotateImage(e.Image, _pages[index], e.Page);
                 lock (_images)
                 {
                     _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
@@ -1534,6 +1532,27 @@ namespace CubePdf.Wpf
         /// RotateImage
         /// 
         /// <summary>
+        /// 現在のページ情報とオリジナル（BitmapEngine オブジェクトが保持
+        /// しているページ情報）を比較して、必要であればイメージを回転
+        /// させます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void RotateImage(Image image, CubePdf.Data.IPage current, CubePdf.Data.IPage original)
+        {
+            var delta = current.Rotation - original.Rotation;
+            if (delta < 0) delta += 360;
+            if (delta >= 360) delta -= 360;
+            if (delta == 0) return;
+
+            RotateImage(image, delta);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RotateImage
+        /// 
+        /// <summary>
         /// 引数に指定された image を degree 度だけ回転させます。
         /// 
         /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
@@ -1542,7 +1561,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void RotateImage(System.Drawing.Image image, int degree)
+        private void RotateImage(Image image, int degree)
         {
             var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
             if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
