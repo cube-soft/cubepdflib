@@ -224,7 +224,7 @@ namespace CubePdf.Data
 
         #endregion
 
-        #region Implementations for IEquatable<IReadOnlyPage>
+        #region Implementations for IEquatable<IPage>
 
         /* ----------------------------------------------------------------- */
         /// Equals
