@@ -655,7 +655,9 @@ namespace CubePdf.Wpf
             lock (_engines)
             {
                 var engine = _engines[page.FilePath];
-                return engine.CreateImage(page.PageNumber, power);
+                var image = engine.CreateImage(page.PageNumber, power);
+                RotateImage(image, page, engine.GetPage(page.PageNumber));
+                return image;
             }
         }
 
