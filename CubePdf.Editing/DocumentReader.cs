@@ -129,9 +129,9 @@ namespace CubePdf.Editing
 
             try
             {
-                _core = password.Length > 0 ?
-                    new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
-                    new iTextSharp.text.pdf.PdfReader(path);
+                var file = new iTextSharp.text.pdf.RandomAccessFileOrArray(path, true);
+                var obj = password.Length > 0 ? System.Text.Encoding.UTF8.GetBytes(password) : null;
+                _core = new iTextSharp.text.pdf.PdfReader(file, obj);
                 _path = path;
                 _password = password;
 

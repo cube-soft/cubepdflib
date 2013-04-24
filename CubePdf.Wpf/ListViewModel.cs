@@ -1396,19 +1396,19 @@ namespace CubePdf.Wpf
         {
             CreateEngine(reader);
             lock (_requests) DeleteRequest(index);
-            lock (_pages)
-            lock (_images)
+            var first = index;
+            foreach (var page in reader.Pages)
             {
-                var first = index;
-                foreach (var page in reader.Pages)
+                lock (_pages)
+                lock (_images)
                 {
                     _pages.Insert(index, page);
                     _images.Insert(index, new Drawing.ImageContainer());
-                    UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
-                    ++index;
                 }
-                UpdateImageText(first);
+                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                ++index;
             }
+            UpdateImageText(first);
         }
 
         #endregion
