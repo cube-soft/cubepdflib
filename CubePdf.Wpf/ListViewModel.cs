@@ -137,19 +137,19 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public bool IsModified
         {
-            get { return _modified; }
+            get { return _modified || _undo.Count > 0; }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// HistoryLimit
+        /// MaxHistoryCount
         /// 
         /// <summary>
         /// 記録可能な履歴の最大値を取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int HistoryLimit
+        public int MaxHistoryCount
         {
             get { return _maxundo; }
             set
@@ -1766,12 +1766,17 @@ namespace CubePdf.Wpf
             if (_status != CommandStatus.Continue) history.Insert(0, new CommandElement(command));
             var element = history[0];
             if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
+
             foreach (var param in parameters) element.Parameters.Add(param);
             element.Text = GetCommandText(element);
-            if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;
-            if (_undo.Count > _maxundo) _undo.RemoveAt(_undo.Count - 1);
+
+            if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;            
             if (_undostatus == UndoStatus.Normal) _redo.Clear();
-            _modified = true;
+            if (_undo.Count > _maxundo)
+            {
+                _undo.RemoveAt(_undo.Count - 1);
+                _modified = true;
+            }
         }
 
         /* ----------------------------------------------------------------- */

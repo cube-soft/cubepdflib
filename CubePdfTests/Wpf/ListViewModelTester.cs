@@ -569,6 +569,34 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestIsModified
+        /// 
+        /// <summary>
+        /// 編集されたかどうかの判定条件のテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestIsModified()
+        {
+            var viewmodel = CreateViewModel();
+            viewmodel.MaxHistoryCount = 10;
+
+            for (int i = 0; i < 10; ++i) viewmodel.Move(0, 1);
+            Assert.IsTrue(viewmodel.IsModified);
+
+            for (int i = 0; i < 10; ++i) viewmodel.Undo();
+            Assert.IsFalse(viewmodel.IsModified);
+
+            for (int i = 0; i < 20; ++i) viewmodel.Move(0, 1);
+            Assert.IsTrue(viewmodel.IsModified);
+
+            for (int i = 0; i < 20; ++i) viewmodel.Undo();
+            Assert.IsTrue(viewmodel.IsModified);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestRunCompleted
         /// 
         /// <summary>
