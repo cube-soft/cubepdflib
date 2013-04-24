@@ -378,7 +378,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PreviewImage
+        /// GetImage
         /// 
         /// <summary>
         /// ListView で表示されているサムネイルに対応するプレビュー用の
@@ -386,7 +386,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        Image PreviewImage(int index, Size bound);
+        Image GetImage(int index, Size bound);
 
         /* ----------------------------------------------------------------- */
         ///
