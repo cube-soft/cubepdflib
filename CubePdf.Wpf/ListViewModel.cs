@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections;
@@ -151,7 +152,11 @@ namespace CubePdf.Wpf
         public int HistoryLimit
         {
             get { return _maxundo; }
-            set { _maxundo = value; }
+            set
+            {
+                _maxundo = value;
+                OnPropertyChanged("HistoryLimit");
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -194,7 +199,26 @@ namespace CubePdf.Wpf
         public int ItemWidth
         {
             get { return _width; }
-            set { _width = value; }
+            set
+            {
+                _width = value;
+                OnPropertyChanged("ItemWidth");
+                OnPropertyChanged("MaxItemHeight");
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// MaxItemHeight
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの高さの最大値を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int MaxItemHeight
+        {
+            get { return (int)(_width * _ratio); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -209,7 +233,11 @@ namespace CubePdf.Wpf
         public ListViewItemVisibility ItemVisibility
         {
             get { return _visibility; }
-            set { _visibility = value; }
+            set
+            {
+                _visibility = value;
+                OnPropertyChanged("ItemVisibility");
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -311,6 +339,7 @@ namespace CubePdf.Wpf
             {
                 DeleteRequest(index);
                 _pages.Insert(index, item);
+                UpdateImageSizeRatio(item);
                 _images.Insert(index, new Drawing.ImageContainer());
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, item));
@@ -1115,6 +1144,29 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Implementation for INotifyPropertyChanged
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// PropertyChanged
+        ///
+        /// <summary>
+        /// ListViewModel のプロパティに変更があると発生するイベントです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = this.PropertyChanged as PropertyChangedEventHandler;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion
+
         #region Event handlers for BitmapEngine
 
         /* ----------------------------------------------------------------- */
@@ -1202,8 +1254,8 @@ namespace CubePdf.Wpf
             var height = page.ViewSize.Height;
             var narrow = Math.Min(Math.Min(10, width), height);
             return (width < height) ?
-                new Bitmap(narrow, (int)(narrow * height / (double)width)) :
-                new Bitmap((int)(narrow * width / (double)height), narrow);
+                new Bitmap(narrow, (int)(narrow * height / (double)width + 0.5)) :
+                new Bitmap((int)(narrow * width / (double)height + 0.5), narrow);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1403,6 +1455,7 @@ namespace CubePdf.Wpf
                 lock (_images)
                 {
                     _pages.Insert(index, page);
+                    UpdateImageSizeRatio(page);
                     _images.Insert(index, new Drawing.ImageContainer());
                 }
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
@@ -1508,6 +1561,26 @@ namespace CubePdf.Wpf
             lock (_images)
             {
                 for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateImageSizeRatio
+        /// 
+        /// <summary>
+        /// イメージの縦横比を更新します。ListViewModel で保持するのは、
+        /// 登録されているページの中での縦横比の最大値です。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateImageSizeRatio(CubePdf.Data.IPage page)
+        {
+            var ratio = page.ViewSize.Height / (double)page.ViewSize.Width;
+            if (ratio > _ratio)
+            {
+                _ratio = ratio;
+                OnPropertyChanged("MaxItemHeight");
             }
         }
 
@@ -1885,6 +1958,7 @@ namespace CubePdf.Wpf
         #region Others
         private bool _disposed = false;
         private int _width = 0;
+        private double _ratio = 0.0;
         private int _maxundo = 30;
         private bool _modified = false;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;

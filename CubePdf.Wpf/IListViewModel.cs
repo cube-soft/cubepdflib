@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.ComponentModel;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,7 +37,8 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter, IItemsProvider<CubePdf.Drawing.ImageContainer>
+    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter,
+        IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged
     {
         #region Properties
 
