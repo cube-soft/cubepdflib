@@ -1254,8 +1254,8 @@ namespace CubePdf.Wpf
             var height = page.ViewSize.Height;
             var narrow = Math.Min(Math.Min(10, width), height);
             return (width < height) ?
-                new Bitmap(narrow, (int)(narrow * height / (double)width + 0.5)) :
-                new Bitmap((int)(narrow * width / (double)height + 0.5), narrow);
+                new Bitmap(narrow, (int)(narrow * height / (double)width)) :
+                new Bitmap((int)(narrow * width / (double)height), narrow);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1421,6 +1421,7 @@ namespace CubePdf.Wpf
             _source_method = Data.EncryptionMethod.Unknown;
             _source_permission = null;
             _encrypt = null;
+            _ratio = 0.0;
             _undo.Clear();
             _redo.Clear();
 
