@@ -570,7 +570,13 @@ namespace CubePdf.Wpf
                 if (page.Rotation >= 360) page.Rotation -= 360;
                 _pages[index] = page;
 
-                _images.RawAt(index).DeleteImage();
+                // TODO: DeleteImage の場合、ImageCreated イベントで更新した結果が
+                // ListView に反映されない。対応策を検討する。
+                // ※暫定的に同期的にイメージを作成する事とする。
+                // _images.RawAt(index).DeleteImage();
+                var image = (_visibility == ListViewItemVisibility.Minimum) ?
+                    GetDummyImage(page) : GetImage(index, new Size(_width, _width));
+                _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
 
@@ -664,7 +670,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PreviewImage
+        /// GetImage
         /// 
         /// <summary>
         /// ListView で表示されているサムネイルに対応するプレビュー用の
@@ -672,7 +678,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Image PreviewImage(int index, Size bound)
+        public Image GetImage(int index, Size bound)
         {
             if (index < 0 || index >= _pages.Count) return null;
 
