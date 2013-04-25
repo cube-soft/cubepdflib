@@ -104,10 +104,15 @@ namespace CubePdf.Wpf
         {
             _ondrag = true;
             _position = e.GetPosition(AssociatedObject);
-            _source = GetItemIndex(_position);
+            var item = GetItem(_position);
+            _source = (item != null) ? AssociatedObject.Items.IndexOf(item) : -1;
             _target = -1;
 
-            if (_source >= 0) AssociatedObject.AllowDrop = true;
+            if (_source >= 0)
+            {
+                AssociatedObject.AllowDrop = true;
+                if (AssociatedObject.SelectedItems.Contains(item)) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+            }
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
                 AssociatedObject.CaptureMouse();
@@ -154,7 +159,6 @@ namespace CubePdf.Wpf
 
             if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
             {
-                AssociatedObject.CaptureMouse();
                 DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
             }
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
@@ -190,7 +194,6 @@ namespace CubePdf.Wpf
         private void OnDrop(object sender, DragEventArgs e)
         {
             _canvas.Visibility = Visibility.Collapsed;
-            AssociatedObject.ReleaseMouseCapture();
             if (!_ondrag) return;
             _ondrag = false;
 
@@ -201,55 +204,6 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Methods for moving items
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetItemIndex
-        ///
-        /// <summary>
-        /// マウスカーソルのある項目のインデックスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private int GetItemIndex(Point current)
-        {
-            var result = VisualTreeHelper.HitTest(AssociatedObject, current);
-            if (result == null) return -1;
-
-            var item = FindVisualParent < ListViewItem>(result.VisualHit);
-            return (item != null) ? AssociatedObject.Items.IndexOf(((ListViewItem)item).Content) : -1;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetTargetItemIndex
-        ///
-        /// <summary>
-        /// マウスカーソルのある項目のインデックスを取得します。
-        /// マウスカーソルが項目間にポイントされている場合は、直近に存在
-        /// する項目のインデックスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private int GetTargetItemIndex(Point current)
-        {
-            var dest = GetItemIndex(current);
-            if (dest == -1)
-            {
-                var rect = GetItemBounds(AssociatedObject.Items[0]);
-                if (AssociatedObject.ActualWidth - current.X < rect.Width)
-                {
-                    current.X = AssociatedObject.ActualWidth - rect.Width;
-                }
-                else
-                {
-                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
-                    if (lvi != null) current.X -= lvi.Margin.Right;
-                }
-                dest = GetItemIndex(current);
-            }
-            return dest;
-        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -480,7 +434,6 @@ namespace CubePdf.Wpf
         {
             while (obj != null)
             {
-                Debug.WriteLine(obj.GetType().ToString());
                 if (obj is T) break;
                 obj = VisualTreeHelper.GetParent(obj);
             }
@@ -512,6 +465,73 @@ namespace CubePdf.Wpf
             return null;
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetItem
+        ///
+        /// <summary>
+        /// マウスカーソルのある項目を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private object GetItem(Point current)
+        {
+            var result = VisualTreeHelper.HitTest(AssociatedObject, current);
+            if (result == null) return null;
+
+            var item = FindVisualParent<ListViewItem>(result.VisualHit);
+            return (item != null) ? item.Content : null;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetItemIndex
+        ///
+        /// <summary>
+        /// マウスカーソルのある項目のインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetItemIndex(Point current)
+        {
+            var result = VisualTreeHelper.HitTest(AssociatedObject, current);
+            if (result == null) return -1;
+
+            var item = FindVisualParent<ListViewItem>(result.VisualHit);
+            return (item != null) ? AssociatedObject.Items.IndexOf(item.Content) : -1;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetTargetItemIndex
+        ///
+        /// <summary>
+        /// マウスカーソルのある項目のインデックスを取得します。
+        /// マウスカーソルが項目間にポイントされている場合は、直近に存在
+        /// する項目のインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetTargetItemIndex(Point current)
+        {
+            var dest = GetItemIndex(current);
+            if (dest == -1)
+            {
+                var rect = GetItemBounds(AssociatedObject.Items[0]);
+                if (AssociatedObject.ActualWidth - current.X < rect.Width)
+                {
+                    current.X = AssociatedObject.ActualWidth - rect.Width;
+                }
+                else
+                {
+                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
+                    if (lvi != null) current.X -= lvi.Margin.Right;
+                }
+                dest = GetItemIndex(current);
+            }
+            return dest;
+        }
+
         #endregion
 
         #region Attached/Detach methods
@@ -529,7 +549,6 @@ namespace CubePdf.Wpf
 
             var panel = FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
-            else Debug.WriteLine("nullp!");
 
             base.OnAttached();
         }
