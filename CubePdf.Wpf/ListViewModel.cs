@@ -577,6 +577,7 @@ namespace CubePdf.Wpf
                 var image = (_visibility == ListViewItemVisibility.Minimum) ?
                     GetDummyImage(page) : GetImage(index, new Size(_width, _width));
                 _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
+                UpdateImageSizeRatio(page);
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
 
@@ -1070,6 +1071,10 @@ namespace CubePdf.Wpf
                 ClearImage();
                 _requests.Clear();
             }
+
+            _ratio = 0.0;
+            OnPropertyChanged("MaxItemHeight");
+
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1138,7 +1143,13 @@ namespace CubePdf.Wpf
             {
                 var element = _images.RawAt(index);
                 if (element.Status == Drawing.ImageStatus.Created) return element;
-                if (element.Status == Drawing.ImageStatus.None) element.UpdateImage(GetDummyImage(_pages[index]), Drawing.ImageStatus.Dummy);
+                if (element.Status == Drawing.ImageStatus.None)
+                {
+                    var page = _pages[index];
+                    element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
+                    UpdateImageSizeRatio(page);
+                }
+
                 if (element.Status == Drawing.ImageStatus.Dummy)
                 {
                     UpdateRequest(index, _pages[index]);
@@ -1256,12 +1267,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
-            var width  = page.ViewSize.Width;
-            var height = page.ViewSize.Height;
-            var narrow = Math.Min(Math.Min(10, width), height);
-            return (width < height) ?
-                new Bitmap(narrow, (int)(narrow * height / (double)width)) :
-                new Bitmap((int)(narrow * width / (double)height), narrow);
+            var power  = GetPower(page);
+            var width  = page.ViewSize.Width * power;
+            var height = page.ViewSize.Height * power;
+            return new Bitmap((int)width, (int)height);
         }
 
         /* ----------------------------------------------------------------- */
