@@ -71,6 +71,7 @@
     <Compile Include="IListProxy.cs" />
     <Compile Include="IListViewModel.cs" />
     <Compile Include="ImageConverter.cs" />
+    <Compile Include="IsEnabledToVisibilityConverter.cs" />
     <Compile Include="ListProxy.cs" />
     <Compile Include="ListViewCommands.cs" />
     <Compile Include="CommandElement.cs" />
