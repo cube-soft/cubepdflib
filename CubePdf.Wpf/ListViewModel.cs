@@ -1300,7 +1300,6 @@ namespace CubePdf.Wpf
             var size = new Size((int)width, (int)height);
             var dest = new Bitmap(size.Width, size.Height);
             var graphic = Graphics.FromImage(dest);
-            graphic.FillRectangle(Brushes.White, new Rectangle(pos, size));
             graphic.DrawImage(image, pos);
             return dest;
         }
