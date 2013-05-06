@@ -87,6 +87,27 @@ namespace CubePdf.Wpf.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap LoadingLarge {
+            get {
+                object obj = ResourceManager.GetObject("LoadingLarge", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap LoadingMiddle {
+            get {
+                object obj = ResourceManager.GetObject("LoadingMiddle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap LoadingSmall {
+            get {
+                object obj = ResourceManager.GetObject("LoadingSmall", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         /// <summary>
         ///   文書プロパティ に類似しているローカライズされた文字列を検索します。
         /// </summary>
