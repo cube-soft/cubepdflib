@@ -33,6 +33,7 @@ namespace CubePdf.Drawing
     /// None    : イメージは設定されていません (null)
     /// Created : 本来、設定されているべきイメージが設定済みです
     /// Dummy   : ダミーイメージ（サイズのみ同じ）が設定されています
+    /// Loading : ロード中を表すイメージが設定されます
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
@@ -41,5 +42,6 @@ namespace CubePdf.Drawing
         None,
         Created,
         Dummy,
+        Loading,
     }
 }

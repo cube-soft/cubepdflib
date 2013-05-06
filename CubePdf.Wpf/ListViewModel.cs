@@ -1146,11 +1146,12 @@ namespace CubePdf.Wpf
                 if (element.Status == Drawing.ImageStatus.None)
                 {
                     var page = _pages[index];
-                    element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
+                    if (_visibility == ListViewItemVisibility.Minimum) element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
+                    else element.UpdateImage(GetLoadingImage(page), Drawing.ImageStatus.Loading);
                     UpdateImageSizeRatio(page);
                 }
 
-                if (element.Status == Drawing.ImageStatus.Dummy)
+                if (element.Status == Drawing.ImageStatus.Loading)
                 {
                     UpdateRequest(index, _pages[index]);
                     FetchRequest();
@@ -1271,6 +1272,37 @@ namespace CubePdf.Wpf
             var width  = page.ViewSize.Width * power;
             var height = page.ViewSize.Height * power;
             return new Bitmap((int)width, (int)height);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetLoadingImage
+        /// 
+        /// <summary>
+        /// ListView に本来表示される画像と縦横比の等しいローディング中を
+        /// 表す画像を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Image GetLoadingImage(CubePdf.Data.IPage page)
+        {
+            var image = (ItemWidth > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
+                        (ItemWidth > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
+                Properties.Resources.LoadingSmall;
+
+            var power = GetPower(page);
+            var width = page.ViewSize.Width * power;
+            var height = page.ViewSize.Height * power;
+            var x = Math.Max((width - image.Width) / 2.0, 0);
+            var y = Math.Max((height - image.Height) / 2.0, 0);
+
+            var pos = new Point((int)x, (int)y);
+            var size = new Size((int)width, (int)height);
+            var dest = new Bitmap(size.Width, size.Height);
+            var graphic = Graphics.FromImage(dest);
+            graphic.FillRectangle(Brushes.White, new Rectangle(pos, size));
+            graphic.DrawImage(image, pos);
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */
