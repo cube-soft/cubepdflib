@@ -1301,6 +1301,7 @@ namespace CubePdf.Wpf
             var dest = new Bitmap(size.Width, size.Height);
             var graphic = Graphics.FromImage(dest);
             graphic.DrawImage(image, pos);
+            graphic.Dispose();
             return dest;
         }
 
