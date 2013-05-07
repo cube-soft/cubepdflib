@@ -503,6 +503,7 @@ namespace CubePdf.Drawing
         protected virtual void OnImageCreated(ImageEventArgs e)
         {
             if (ImageCreated != null) ImageCreated(this, e);
+            else if (e.Image != null) e.Image.Dispose();
         }
 
         #endregion
@@ -548,13 +549,17 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         private void CreateImageAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (_creator.CancellationPending) return;
+            var args = e.Result as ImageEventArgs;
+            if (_creator.CancellationPending)
+            {
+                if (args != null && args.Image != null) args.Image.Dispose();
+                return;
+            }
+
             lock (_creating)
             {
                 if (_creating.Count > 0) _creator.RunWorkerAsync();
             }
-
-            var args = e.Result as ImageEventArgs;
             if (args != null) this.OnImageCreated(args);
         }
 

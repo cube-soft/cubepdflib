@@ -1210,6 +1210,7 @@ namespace CubePdf.Wpf
                     Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
                 }
             }
+            else if (e.Image != null) e.Image.Dispose();
             FetchRequest();
         }
 
@@ -1236,6 +1237,22 @@ namespace CubePdf.Wpf
                 if (engine.UnderImageCreation) return engine;
             }
             return null;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetSize
+        /// 
+        /// <summary>
+        /// 引数に指定されたページオブジェクトの縦横比を保ったまま、
+        /// ItemWidth をベースとしたサイズを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Size GetSize(CubePdf.Data.IPage page)
+        {
+            var height = page.ViewSize.Height * (_width / (double)page.ViewSize.Width);
+            return new Size(_width, (int)height);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1268,10 +1285,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
-            var power  = GetPower(page);
-            var width  = page.ViewSize.Width * power;
-            var height = page.ViewSize.Height * power;
-            return new Bitmap((int)width, (int)height);
+            var size = GetSize(page);
+            return new Bitmap(size.Width, size.Height);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1290,14 +1305,10 @@ namespace CubePdf.Wpf
                         (ItemWidth > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
                 Properties.Resources.LoadingSmall;
 
-            var power = GetPower(page);
-            var width = page.ViewSize.Width * power;
-            var height = page.ViewSize.Height * power;
-            var x = Math.Max((width - image.Width) / 2.0, 0);
-            var y = Math.Max((height - image.Height) / 2.0, 0);
-
+            var size = GetSize(page);
+            var x = Math.Max((size.Width - image.Width) / 2.0, 0);
+            var y = Math.Max((size.Height - image.Height) / 2.0, 0);
             var pos = new Point((int)x, (int)y);
-            var size = new Size((int)width, (int)height);
             var dest = new Bitmap(size.Width, size.Height);
             var graphic = Graphics.FromImage(dest);
             graphic.DrawImage(image, pos);
