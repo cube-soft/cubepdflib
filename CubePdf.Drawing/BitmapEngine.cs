@@ -558,7 +558,7 @@ namespace CubePdf.Drawing
 
             lock (_creating)
             {
-                if (_creating.Count > 0) _creator.RunWorkerAsync();
+                if (_creating.Count > 0 && !_creator.IsBusy) _creator.RunWorkerAsync();
             }
             if (args != null) this.OnImageCreated(args);
         }
