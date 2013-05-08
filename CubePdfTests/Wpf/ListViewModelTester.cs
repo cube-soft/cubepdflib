@@ -204,7 +204,7 @@ namespace CubePdfTests.Wpf
             var folder = System.IO.Path.Combine(_dest, "Backup");
             var backup = System.IO.Path.Combine(folder, String.Format("{0}{1:D2}{2:D2}\\{3}",
                 DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, filename));
-            System.IO.Directory.Delete(folder, true);
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
 
             var viewmodel = CreateViewModel(src);
             viewmodel.Save();
@@ -244,7 +244,7 @@ namespace CubePdfTests.Wpf
                 DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day));
             var old = System.IO.Path.Combine(folder, "19830214");
             System.IO.Directory.CreateDirectory(old);
-            System.IO.Directory.Delete(today, true);
+            if (System.IO.Directory.Exists(today)) System.IO.Directory.Delete(today, true);
 
             using (var viewmodel = new CubePdf.Wpf.ListViewModel())
             {
@@ -258,7 +258,22 @@ namespace CubePdfTests.Wpf
             }
 
             Assert.IsTrue(System.IO.Directory.Exists(today));
-            Assert.IsFalse(System.IO.Directory.Exists(old)); 
+            Assert.IsFalse(System.IO.Directory.Exists(old));
+
+            try
+            {
+                System.IO.Directory.Delete(folder, true);
+                using (var viewmodel = new CubePdf.Wpf.ListViewModel())
+                {
+                    viewmodel.ItemWidth = 64;
+                    viewmodel.BackupFolder = folder;
+                    viewmodel.BackupDays = 30;
+                }
+            }
+            catch (Exception err)
+            {
+                Assert.Fail(err.ToString());
+            }
         }
 
         /* ----------------------------------------------------------------- */

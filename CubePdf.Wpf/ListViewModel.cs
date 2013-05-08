@@ -1875,7 +1875,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void DeleteBackup()
         {
-            if (String.IsNullOrEmpty(_backup) || _maxbackup <= 0) return;
+            if (String.IsNullOrEmpty(_backup) || !System.IO.Directory.Exists(_backup) || _maxbackup <= 0) return;
 
             var expire = DateTime.Today.AddDays(-_maxbackup);
             var folder = String.Format("{0}{1:D2}{2:D2}", expire.Year, expire.Month, expire.Day);
