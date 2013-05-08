@@ -102,7 +102,11 @@ namespace CubePdf.Wpf
         {
             if (_disposed) return;
             _disposed = true;
-            if (disposing) CloseDocument();
+            if (disposing)
+            {
+                CloseDocument();
+                DeleteBackup();
+            }
         }
 
         #endregion
@@ -254,6 +258,39 @@ namespace CubePdf.Wpf
         public IListProxy<CubePdf.Drawing.ImageContainer> Items
         {
             get { return _images; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BackupFolder
+        /// 
+        /// <summary>
+        /// 上書き保存を行う際、上書き前のファイルのバックアップを保存する
+        /// フォルダを取得、または設定します。バックアップファイルを作成
+        /// しない場合は空文字（または、BackupDays に 0)を設定して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string BackupFolder
+        {
+            get { return _backup; }
+            set { _backup = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BackupDays
+        /// 
+        /// <summary>
+        /// バックアップファイルを残す日数を取得、または設定します。
+        /// バックアップファイルを作成しない場合は 0 を設定して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int BackupDays
+        {
+            get { return _maxbackup; }
+            set { _maxbackup = value; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1419,6 +1456,7 @@ namespace CubePdf.Wpf
 
                 var tmp = System.IO.Path.GetTempFileName();
                 binder.Save(tmp);
+                if (path == _path) CreateBackup();
                 CubePdf.Data.FileIOWrapper.Move(tmp, path);
             }
         }
@@ -1799,6 +1837,59 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Private methods for backup
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateBackup
+        /// 
+        /// <summary>
+        /// 現在、開いているファイルのバックアップを作成します。
+        /// バックアップファイルは日付毎に管理し、既に同名のファイルが存在
+        /// している場合は上書き処理等は行いません。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void CreateBackup()
+        {
+            if (String.IsNullOrEmpty(_backup) || _maxbackup <= 0) return;
+
+            var today = System.DateTime.Today;
+            var branch = String.Format("{0}{1:D2}{2:D2}", today.Year, today.Month, today.Day);
+            var dir = System.IO.Path.Combine(_backup, branch);
+            if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+
+            var filename = System.IO.Path.GetFileName(_path);
+            var dest = System.IO.Path.Combine(dir, filename);
+            if (!System.IO.File.Exists(dest)) System.IO.File.Move(_path, dest);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DeleteBackup
+        /// 
+        /// <summary>
+        /// バックアップ保存期間の過ぎているファイルを消去します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void DeleteBackup()
+        {
+            if (String.IsNullOrEmpty(_backup) || _maxbackup <= 0) return;
+
+            var expire = DateTime.Today.AddDays(-_maxbackup);
+            var folder = String.Format("{0}{1:D2}{2:D2}", expire.Year, expire.Month, expire.Day);
+
+            foreach (var path in System.IO.Directory.GetDirectories(_backup))
+            {
+                var leaf = System.IO.Path.GetFileName(path);
+                if (leaf.CompareTo(folder) >= 0) continue;
+                System.IO.Directory.Delete(path, true);
+            }
+        }
+
+        #endregion
+
         #region Private methods for Undo/Redo
 
         /* ----------------------------------------------------------------- */
@@ -2024,6 +2115,8 @@ namespace CubePdf.Wpf
         private double _ratio = 0.0;
         private int _maxundo = 30;
         private bool _modified = false;
+        private string _backup = string.Empty;
+        private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
