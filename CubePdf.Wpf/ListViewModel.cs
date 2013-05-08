@@ -1541,7 +1541,6 @@ namespace CubePdf.Wpf
         {
             if (_engines.ContainsKey(path)) return _engines[path];
             var engine = new CubePdf.Drawing.BitmapEngine();
-            engine.Open(path, password);
             return RegisterEngine(path, engine);
         }
 
