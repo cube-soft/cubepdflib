@@ -33,6 +33,7 @@ namespace CubePdfTests.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
+    [TestFixture]
     public class ListProxyTester
     {
         #region Test methods

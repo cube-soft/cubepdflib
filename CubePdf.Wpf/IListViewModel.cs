@@ -19,6 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.ComponentModel;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,7 +37,8 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter, IItemsProvider<CubePdf.Drawing.ImageContainer>
+    public interface IListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter,
+        IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged
     {
         #region Properties
 
@@ -96,6 +98,17 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// MaxItemHeight
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの高さの最大値を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        int MaxItemHeight { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ItemVisibility
         /// 
         /// <summary>
@@ -120,14 +133,14 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// HistoryLimit
+        /// MaxHistoryCount
         /// 
         /// <summary>
         /// 記録可能な履歴の最大値を取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        int HistoryLimit { get; set; }
+        int MaxHistoryCount { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -150,6 +163,31 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         ObservableCollection<CommandElement> UndoHistory { get; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BackupFolder
+        /// 
+        /// <summary>
+        /// 上書き保存を行う際、上書き前のファイルのバックアップを保存する
+        /// フォルダを取得、または設定します。バックアップファイルを作成
+        /// しない場合は空文字（または、BackupDays に 0)を設定して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        string BackupFolder { get; set; }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BackupDays
+        /// 
+        /// <summary>
+        /// バックアップファイルを残す日数を取得、または設定します。
+        /// バックアップファイルを作成しない場合は 0 を設定して下さい。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        int BackupDays { get; set; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -189,6 +227,17 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         void Save();
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CloseOnSave
+        /// 
+        /// <summary>
+        /// ファイルを閉じる際に、現在の状態で保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        void SaveOnClose(string path = "");
 
         /* ----------------------------------------------------------------- */
         ///
@@ -354,7 +403,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PreviewImage
+        /// GetImage
         /// 
         /// <summary>
         /// ListView で表示されているサムネイルに対応するプレビュー用の
@@ -362,7 +411,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        Image PreviewImage(int index, Size bound);
+        Image GetImage(int index, Size bound);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -388,6 +437,25 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         CubePdf.Data.IPage ToPage(object item);
+
+        #endregion
+
+        #region Events
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RunCompleted
+        /// 
+        /// <summary>
+        /// IListView クラスの各種メソッドの処理が終了した時に発生する
+        /// イベントです。RunCompleted イベントが発生するタイミングは、
+        /// BeginCommand メソッドを実行した場合は EndCommand メソッドを
+        /// 実行した直後、それ以外は各メソッドを実行の実行が終了した時と
+        /// なります。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        event EventHandler RunCompleted;
 
         #endregion
     }

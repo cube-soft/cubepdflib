@@ -162,6 +162,120 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestSaveOnClose
+        /// 
+        /// <summary>
+        /// PDF ファイルを閉じる際に、保存処理を行うテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestSaveOnClose()
+        {
+            var viewmodel = CreateViewModel();
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelSaveOnClose.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.SaveOnClose(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+            Assert.IsTrue(String.IsNullOrEmpty(viewmodel.FilePath));
+            Assert.AreEqual(0, viewmodel.PageCount);
+            Assert.AreEqual(0, viewmodel.History.Count);
+            Assert.AreEqual(0, viewmodel.UndoHistory.Count);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestBackup
+        /// 
+        /// <summary>
+        /// バックアップファイルの作成を行うテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestBackup()
+        {
+            var filename = "TestListViewModelBackup.pdf";
+            var original = System.IO.Path.Combine(_src, "rotated.pdf");
+            var src = System.IO.Path.Combine(_dest, filename);
+            System.IO.File.Copy(original, src, true);
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var folder = System.IO.Path.Combine(_dest, "Backup");
+            var backup = System.IO.Path.Combine(folder, String.Format("{0}\\{1}", DateTime.Today.ToString("yyyymmdd"), filename));
+            if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
+
+            var viewmodel = CreateViewModel(src);
+            viewmodel.Save();
+            Assert.IsFalse(System.IO.File.Exists(backup));
+
+            viewmodel.BackupFolder = folder;
+            viewmodel.BackupDays = 30;
+            viewmodel.Save();
+            Assert.IsTrue(System.IO.File.Exists(backup));
+
+            System.IO.File.Delete(backup);
+            Assert.IsFalse(System.IO.File.Exists(backup));
+            viewmodel.SaveOnClose();
+            Assert.IsTrue(System.IO.File.Exists(backup));
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestDeleteBackup
+        /// 
+        /// <summary>
+        /// バックアップ保存期間の過ぎたファイルを消去するテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestDeleteBackup()
+        {
+            var filename = "TestListViewModelDeleteBackup.pdf";
+            var original = System.IO.Path.Combine(_src, "rotated.pdf");
+            var src = System.IO.Path.Combine(_dest, filename);
+            System.IO.File.Copy(original, src, true);
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            var folder = System.IO.Path.Combine(_dest, "Backup");
+            var today = System.IO.Path.Combine(folder, DateTime.Today.ToString("yyyymmdd"));
+            var old = System.IO.Path.Combine(folder, "19830214");
+            System.IO.Directory.CreateDirectory(old);
+            if (System.IO.Directory.Exists(today)) System.IO.Directory.Delete(today, true);
+
+            using (var viewmodel = new CubePdf.Wpf.ListViewModel())
+            {
+                viewmodel.ItemWidth = 64;
+                viewmodel.BackupFolder = folder;
+                viewmodel.BackupDays = 30;
+                viewmodel.Open(src);
+                viewmodel.SaveOnClose();
+                Assert.IsTrue(System.IO.Directory.Exists(today));
+                Assert.IsTrue(System.IO.Directory.Exists(old));
+            }
+
+            Assert.IsTrue(System.IO.Directory.Exists(today));
+            Assert.IsFalse(System.IO.Directory.Exists(old));
+
+            try
+            {
+                System.IO.Directory.Delete(folder, true);
+                using (var viewmodel = new CubePdf.Wpf.ListViewModel())
+                {
+                    viewmodel.ItemWidth = 64;
+                    viewmodel.BackupFolder = folder;
+                    viewmodel.BackupDays = 30;
+                }
+            }
+            catch (Exception err)
+            {
+                Assert.Fail(err.ToString());
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestInsert
         /// 
         /// <summary>
@@ -542,6 +656,148 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
 
             viewmodel.Close();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestIsModified
+        /// 
+        /// <summary>
+        /// 編集されたかどうかの判定条件のテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestIsModified()
+        {
+            var viewmodel = CreateViewModel();
+            viewmodel.MaxHistoryCount = 10;
+
+            for (int i = 0; i < 10; ++i) viewmodel.Move(0, 1);
+            Assert.IsTrue(viewmodel.IsModified);
+
+            for (int i = 0; i < 10; ++i) viewmodel.Undo();
+            Assert.IsFalse(viewmodel.IsModified);
+
+            for (int i = 0; i < 20; ++i) viewmodel.Move(0, 1);
+            Assert.IsTrue(viewmodel.IsModified);
+
+            for (int i = 0; i < 20; ++i) viewmodel.Undo();
+            Assert.IsTrue(viewmodel.IsModified);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestRunCompleted
+        /// 
+        /// <summary>
+        /// RunCompleted イベントのテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRunCompleted()
+        {
+            var count = 0;
+            var viewmodel = new CubePdf.Wpf.ListViewModel();
+            viewmodel.ItemWidth = 64;
+            viewmodel.RunCompleted += (sender, e) => {
+                ++count;
+            };
+
+            // Open
+            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Open(src);
+            Assert.AreEqual(1, count);
+
+            // Add
+            src = System.IO.Path.Combine(_src, "readme.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            viewmodel.Add(src);
+            Assert.AreEqual(2, count);
+
+            // Remove
+            Assert.AreEqual(11, viewmodel.PageCount);
+            viewmodel.RemoveAt(0);
+            Assert.AreEqual(3, count);
+            viewmodel.BeginCommand();
+            viewmodel.RemoveAt(0);
+            viewmodel.RemoveAt(0);
+            viewmodel.RemoveAt(0);
+            viewmodel.EndCommand();
+            Assert.AreEqual(4, count);
+            Assert.AreEqual(7, viewmodel.PageCount);
+
+            // Move
+            viewmodel.Move(0, 1);
+            Assert.AreEqual(5, count);
+            viewmodel.BeginCommand();
+            viewmodel.Move(1, 3);
+            viewmodel.Move(3, 4);
+            viewmodel.Move(4, 5);
+            viewmodel.EndCommand();
+            Assert.AreEqual(6, count);
+
+            // Rotate
+            Assert.AreEqual(0, viewmodel.GetPage(1).Rotation);
+            viewmodel.RotateAt(0, 180);
+            Assert.AreEqual(7, count);
+            viewmodel.BeginCommand();
+            viewmodel.RotateAt(0, 90);
+            viewmodel.RotateAt(0, 270);
+            viewmodel.RotateAt(0, -90);
+            viewmodel.EndCommand();
+            Assert.AreEqual(8, count);
+            Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
+
+            // Extract
+            IList<CubePdf.Data.IPage> pages = new List<CubePdf.Data.IPage>();
+            pages.Add(viewmodel.GetPage(1));
+            pages.Add(viewmodel.GetPage(2));
+            pages.Add(viewmodel.GetPage(3));
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedExtract.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Extract(pages, dest);
+            Assert.AreEqual(9, count);
+            Assert.IsTrue(System.IO.File.Exists(dest)); 
+
+            // Split
+            viewmodel.Split(pages, _dest);
+            Assert.AreEqual(10, count);
+
+            // Reset
+            viewmodel.Reset();
+            Assert.AreEqual(11, count);
+
+            // Undo
+            viewmodel.Undo();
+            Assert.AreEqual(12, count);
+
+            // Redo
+            viewmodel.Redo();
+            Assert.AreEqual(13, count);
+
+            // Metadata
+            var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
+            viewmodel.Metadata = metadata;
+            Assert.AreEqual(14, count);
+
+            // Encryption
+            var encrypt = new CubePdf.Data.Encryption(viewmodel.Encryption);
+            viewmodel.Encryption = encrypt;
+            Assert.AreEqual(15, count);
+
+            // Save
+            dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedSave.pdf");
+            System.IO.File.Delete(dest);
+            viewmodel.Save(dest);
+            Assert.AreEqual(16, count);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            // Close
+            viewmodel.Close();
+            Assert.AreEqual(17, count);
         }
 
         /* ----------------------------------------------------------------- */

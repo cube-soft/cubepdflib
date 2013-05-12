@@ -192,10 +192,16 @@ namespace CubePdf.Drawing
         /// の各ページに対応するイメージを生成可能な状態にします。
         /// </summary>
         ///
+        /// <remarks>
+        /// イメージ生成に際したパフォーマンスの関係で、始めにパスワード無で
+        /// 開けるかどうかを試行します。
+        /// </remarks>
+        ///
         /* ----------------------------------------------------------------- */
         public void Open(CubePdf.Data.IDocumentReader other)
         {
-            OpenFile(other.FilePath, other.Password);
+            try { OpenFile(other.FilePath, ""); }
+            catch (Exception /* err */) { OpenFile(other.FilePath, other.Password); }
             foreach (var page in other.Pages) _pages.Add(page);
         }
 
@@ -205,10 +211,13 @@ namespace CubePdf.Drawing
         /// 
         /// <summary>
         /// 現在、開いている PDF ファイルを閉じます。
-        /// NOTE: PDFWrapper クラスのファイルハンドラの解法タイミングの関係
-        /// で、一時ファイルの削除に失敗する事があります。削除に失敗した
-        /// 一時ファイルは GC のタイミングで再度削除を試します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// PDFWrapper クラスのファイルハンドラの解法タイミングの関係で、
+        /// 一時ファイルの削除に失敗する事があります。削除に失敗した
+        /// 一時ファイルは GC のタイミングで再度削除を試します。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void Close()
@@ -302,10 +311,12 @@ namespace CubePdf.Drawing
         /// CreateImageAsync() メソッドで指定したイメージの生成が終了
         /// すると ImageGenerated イベントが発生するので、ユーザはこの
         /// イベントを監視する事で生成されたイメージを取得する事ができます。
+        /// </summary>
         /// 
+        /// <remarks>
         /// TODO: CubePDF Viewer ではキューに上限値を設けていた。同様の
         /// 処理が必要かどうかを検討する。
-        /// </summary>
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void CreateImageAsync(int pagenum, double power = 1.0)
@@ -503,6 +514,7 @@ namespace CubePdf.Drawing
         protected virtual void OnImageCreated(ImageEventArgs e)
         {
             if (ImageCreated != null) ImageCreated(this, e);
+            else if (e.Image != null) e.Image.Dispose();
         }
 
         #endregion
@@ -548,13 +560,17 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         private void CreateImageAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (_creator.CancellationPending) return;
-            lock (_creating)
+            var args = e.Result as ImageEventArgs;
+            if (_creator.CancellationPending)
             {
-                if (_creating.Count > 0) _creator.RunWorkerAsync();
+                if (args != null && args.Image != null) args.Image.Dispose();
+                return;
             }
 
-            var args = e.Result as ImageEventArgs;
+            lock (_creating)
+            {
+                if (_creating.Count > 0 && !_creator.IsBusy) _creator.RunWorkerAsync();
+            }
             if (args != null) this.OnImageCreated(args);
         }
 
@@ -628,6 +644,7 @@ namespace CubePdf.Drawing
                     if (!_core.Pages.TryGetValue(i + 1, out obj)) return;
 
                     var page = new CubePdf.Data.Page(_path, i + 1);
+                    page.Password = _password;
                     page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
                     page.Rotation = obj.Rotation;
                     if (i >= _pages.Count) _pages.Add(page);

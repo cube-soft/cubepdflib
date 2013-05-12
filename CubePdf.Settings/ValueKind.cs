@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// ImageStatus.cs
+/// DocumentReader.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -20,28 +20,30 @@
 /* ------------------------------------------------------------------------- */
 using System;
 
-namespace CubePdf.Drawing
+namespace CubePdf.Settings
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// ImageStatus
+    /// ValueKind
     /// 
     /// <summary>
-    /// ImageContainer クラスの Image プロパティの状態を定義した列挙型です。
+    /// Settings プロジェクトで扱える値の種類を定義した列挙型です。
     /// 各値の意味は以下の通りです。
     /// 
-    /// None    : イメージは設定されていません (null)
-    /// Created : 本来、設定されているべきイメージが設定済みです
-    /// Dummy   : ダミーイメージ（サイズのみ同じ）が設定されています
-    /// Loading : ロード中を表すイメージが設定されます
+    /// NodeSet : 複数の値のコレクション
+    /// String  : 文字列
+    /// Number  : 整数値
+    /// Bool    : 真偽値
+    /// Unknown : 不明（エラー）
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public enum ImageStatus
+    public enum ValueKind : int
     {
-        None,
-        Created,
-        Dummy,
-        Loading,
+        NodeSet,
+        String,
+        Number,
+        Bool,
+        Unknown = -1,
     }
 }

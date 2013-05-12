@@ -129,13 +129,13 @@ namespace CubePdf.Editing
 
             try
             {
-                _core = password.Length > 0 ?
-                    new iTextSharp.text.pdf.PdfReader(path, System.Text.Encoding.UTF8.GetBytes(password)) :
-                    new iTextSharp.text.pdf.PdfReader(path);
+                var file = new iTextSharp.text.pdf.RandomAccessFileOrArray(path, true);
+                var obj = password.Length > 0 ? System.Text.Encoding.UTF8.GetBytes(password) : null;
+                _core = new iTextSharp.text.pdf.PdfReader(file, obj);
                 _path = path;
                 _password = password;
 
-                ExtractPages(_core, _path);
+                ExtractPages(_core, _path, _password);
                 ExtractMetadata(_core, _path);
                 ExtractEncryption(_core, _password);
             }
@@ -315,12 +315,14 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path)
+        private void ExtractPages(iTextSharp.text.pdf.PdfReader reader, string path, string password)
         {
+            _pages.Capacity = reader.NumberOfPages + 1;
             for (int i = 0; i < reader.NumberOfPages; ++i)
             {
                 var page = new CubePdf.Data.Page();
                 page.FilePath = path;
+                page.Password = password;
                 page.PageNumber = i + 1;
                 page.OriginalSize = Translator.ToSize(reader.GetPageSize(i + 1));
                 page.Rotation = reader.GetPageRotation(i + 1);
@@ -379,7 +381,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
         private CubePdf.Data.IPermission _permission = null;
-        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }

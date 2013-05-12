@@ -75,6 +75,7 @@ namespace CubePdf.Data
         public Page(IPage cp)
         {
             _path = cp.FilePath;
+            _password = cp.Password;
             _pagenum = cp.PageNumber;
             _size = cp.OriginalSize;
             _rotation = cp.Rotation;
@@ -98,6 +99,21 @@ namespace CubePdf.Data
         {
             get { return _path; }
             set { _path = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Password
+        /// 
+        /// <summary>
+        /// 該当ページの PDF ファイルのパスワードを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public string Password
+        {
+            get { return _password; }
+            set { _password = value; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -208,7 +224,7 @@ namespace CubePdf.Data
 
         #endregion
 
-        #region Implementations for IEquatable<IReadOnlyPage>
+        #region Implementations for IEquatable<IPage>
 
         /* ----------------------------------------------------------------- */
         /// Equals
@@ -244,6 +260,7 @@ namespace CubePdf.Data
 
         #region Variables
         private string _path = string.Empty;
+        private string _password = string.Empty;
         private int _pagenum = 1;
         private Size _size = new Size();
         private int _rotation = 0;

@@ -5,14 +5,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}</ProjectGuid>
+    <ProjectGuid>{0E3F9DF4-DAC5-4C36-B82A-5C8AA45A4E2D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CubePdf.Wpf</RootNamespace>
-    <AssemblyName>CubePdf.Wpf</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RootNamespace>CubePdf.Settings</RootNamespace>
+    <AssemblyName>CubePdf.Settings</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,8 +51,6 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <BaseAddress>1610612736</BaseAddress>
-    <DocumentationFile>
-    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -82,67 +80,17 @@
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Interactivity, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlToTagConverter.cs" />
-    <Compile Include="EnumToIntConverter.cs" />
-    <Compile Include="IItemsProvider.cs" />
-    <Compile Include="IListProxy.cs" />
-    <Compile Include="IListViewModel.cs" />
-    <Compile Include="ImageConverter.cs" />
-    <Compile Include="IsEnabledToVisibilityConverter.cs" />
-    <Compile Include="ListProxy.cs" />
-    <Compile Include="ListViewCommands.cs" />
-    <Compile Include="CommandElement.cs" />
-    <Compile Include="ListViewDragBehavior.cs" />
-    <Compile Include="ListViewItemVisibility.cs" />
-    <Compile Include="ListViewModel.cs" />
-    <Compile Include="MultiAndConverter.cs" />
+    <Compile Include="Document.cs" />
+    <Compile Include="Node.cs" />
+    <Compile Include="NodeSet.cs" />
+    <Compile Include="ValueKind.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="StringToIntConverter.cs" />
-    <Compile Include="WindowMenuBehavior.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CubePdf.Data\CubePdf.Data.csproj">
-      <Project>{0D7B710B-67CA-4E55-844A-31C6ACEADFED}</Project>
-      <Name>CubePdf.Data</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CubePdf.Drawing\CubePdf.Drawing.csproj">
-      <Project>{FDC7F8BE-E421-45F9-9544-FFFC7A0CC2AE}</Project>
-      <Name>CubePdf.Drawing</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CubePdf.Editing\CubePdf.Editing.csproj">
-      <Project>{6E397197-250C-404A-9FE9-BA8397C518C1}</Project>
-      <Name>CubePdf.Editing</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="CubePdf.snk" />
-    <None Include="Resources\LoadingMiddle.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\LoadingLarge.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\LoadingSmall.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
