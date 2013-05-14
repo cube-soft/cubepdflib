@@ -436,7 +436,9 @@ namespace CubePdf.Wpf
         {
             var binder = new CubePdf.Editing.PageBinder();
             foreach (var page in pages) binder.Pages.Add(page);
-            binder.Save(path);
+            var tmp = System.IO.Path.GetTempFileName();
+            binder.Save(tmp);
+            CubePdf.Data.FileIOWrapper.Move(tmp, path);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1434,7 +1436,10 @@ namespace CubePdf.Wpf
             var format = String.Format("{{0}}-{{1:D{0}}}.pdf", _pages.Count.ToString().Length);
             var filename = String.Format(format, System.IO.Path.GetFileNameWithoutExtension(_path), index + 1);
             var dest = System.IO.Path.Combine(directory, filename);
-            binder.Save(dest);
+
+            var tmp = System.IO.Path.GetTempFileName();
+            binder.Save(tmp);
+            CubePdf.Data.FileIOWrapper.Move(tmp, dest);
         }
 
         /* ----------------------------------------------------------------- */
