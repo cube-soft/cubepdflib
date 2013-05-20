@@ -611,12 +611,13 @@ namespace CubePdf.Wpf
 
                 // TODO: DeleteImage の場合、ImageCreated イベントで更新した結果が
                 // ListView に反映されない。対応策を検討する。
-                // ※暫定的に同期的にイメージを作成する事とする。
-                // _images.RawAt(index).DeleteImage();
-                var image = (_visibility == ListViewItemVisibility.Minimum) ?
-                    GetDummyImage(page) : GetImage(index, new Size(_width, _width));
-                _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
-                UpdateImageSizeRatio(page);
+                _images.RawAt(index).DeleteImage();
+
+                // ※現行版では、下記のように、暫定的に同期的にイメージを作成している。
+                // var image = (_visibility == ListViewItemVisibility.Minimum) ?
+                //    GetDummyImage(page) : GetImage(index, new Size(_width, _width));
+                // _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
+                // UpdateImageSizeRatio(page);
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
 
