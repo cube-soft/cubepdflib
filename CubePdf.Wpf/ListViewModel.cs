@@ -609,15 +609,13 @@ namespace CubePdf.Wpf
                 if (page.Rotation >= 360) page.Rotation -= 360;
                 _pages[index] = page;
 
-                // TODO: DeleteImage の場合、ImageCreated イベントで更新した結果が
-                // ListView に反映されない。対応策を検討する。
-                _images.RawAt(index).DeleteImage();
+                // NOTE: 非同期で内容（イメージ）の差し替えを行うと、GUI への
+                // 反応が遅れるので、暫定的に Remove&Insert を行っている。
+                var image = _images.RawAt(index);
+                _images.RemoveAt(index);
+                if (image != null) image.Dispose();
+                _images.Insert(index, new Drawing.ImageContainer());
 
-                // ※現行版では、下記のように、暫定的に同期的にイメージを作成している。
-                // var image = (_visibility == ListViewItemVisibility.Minimum) ?
-                //    GetDummyImage(page) : GetImage(index, new Size(_width, _width));
-                // _images.RawAt(index).UpdateImage(image, Drawing.ImageStatus.Created);
-                // UpdateImageSizeRatio(page);
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
 
