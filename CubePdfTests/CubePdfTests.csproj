@@ -103,6 +103,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\DocumentTester.cs" />
     <Compile Include="Settings\NodeTester.cs" />
+    <Compile Include="Settings\UpdateCheckerTester.cs" />
     <Compile Include="Wpf\ListProxyTester.cs" />
     <Compile Include="Wpf\ListViewModelTester.cs" />
     <Compile Include="Wpf\MultiValueConverterTester.cs" />
