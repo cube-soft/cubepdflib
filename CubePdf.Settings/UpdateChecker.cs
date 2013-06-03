@@ -118,6 +118,20 @@ namespace CubePdf.Settings
             set { _interval = value; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// LastCheckUpdate
+        /// 
+        /// <summary>
+        /// 最後にアップデートの確認を行った日時を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DateTime LastCheckUpdate
+        {
+            get { return _last; }
+        }
+
         #endregion
 
         #region Public methods
@@ -178,10 +192,11 @@ namespace CubePdf.Settings
             }
             finally
             {
+                _last = DateTime.Now;
                 if (!string.IsNullOrEmpty(_subkey))
                 {
                     var registry = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(_subkey);
-                    registry.SetValue(REG_LASTCHECK, DateTime.Now.ToString());
+                    registry.SetValue(REG_LASTCHECK, _last.ToString());
                 }
             }
         }
@@ -202,17 +217,20 @@ namespace CubePdf.Settings
         /* ----------------------------------------------------------------- */
         private void InitializeVariables(string subkey)
         {
+            _subkey = subkey;
+
             try
             {
-                _subkey = subkey;
+                var registry = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(subkey, false);
+                _version = (string)registry.GetValue(REG_VERSION, string.Empty);
+                registry.Close();
+            }
+            catch (Exception err) { Trace.TraceError(err.ToString()); }
 
-                var hklm = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(subkey, false);
-                _version = (string)hklm.GetValue(REG_VERSION, string.Empty);
-                hklm.Close();
-                
-                var hkcu = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(subkey, false);
-                var date = (string)hkcu.GetValue(REG_LASTCHECK, string.Empty);
-                if (string.IsNullOrEmpty(date)) _last = DateTime.Parse(date);
+            try {
+                var registry = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(subkey, false);
+                var date = (string)registry.GetValue(REG_LASTCHECK, string.Empty);
+                if (!string.IsNullOrEmpty(date)) _last = DateTime.Parse(date);
             }
             catch (Exception err) { Trace.TraceError(err.ToString()); }
         }

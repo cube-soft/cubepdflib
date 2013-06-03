@@ -49,7 +49,7 @@ namespace CubePdfTests.Settings
         public void TestNotify()
         {
             try
-            {
+            {                
                 var checker = new CubePdf.Settings.UpdateChecker();
                 checker.ProductName = "cubepdf";
                 checker.Version = "1.0.0RC4";
@@ -74,11 +74,19 @@ namespace CubePdfTests.Settings
         [Test]
         public void TestGetResponse()
         {
+            var date = DateTime.Now;
+
             var checker = new CubePdf.Settings.UpdateChecker();
             checker.ProductName = "cubepdf";
             checker.Version = "0.9.1β";
+            checker.CheckInterval = 0;
             var response = checker.GetResponse();
             Assert.NotNull(response);
+            Assert.IsTrue(date <= checker.LastCheckUpdate);
+
+            checker.CheckInterval = 1;
+            response = checker.GetResponse();
+            Assert.IsNull(response);
         }
     }
 }
