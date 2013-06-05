@@ -36,7 +36,7 @@ namespace CubePdf.Settings
     /* --------------------------------------------------------------------- */
     public class UpdateChecker
     {
-        #region Initializing and Terminating
+        #region Initialization and Termination
 
         /* ----------------------------------------------------------------- */
         ///
@@ -249,7 +249,9 @@ namespace CubePdf.Settings
             var url = string.Format("http://{0}/{1}/update.php?ver={2}",
                 Properties.Resources.DomainName, _product, System.Web.HttpUtility.UrlEncode(_version));
             if (!string.IsNullOrEmpty(suffix)) url += "&" + suffix;
-            return System.Net.WebRequest.Create(url);
+            var dest = System.Net.WebRequest.Create(url);
+            dest.Proxy = null;
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */
