@@ -1858,7 +1858,7 @@ namespace CubePdf.Wpf
         {
             if (String.IsNullOrEmpty(_backup) || _maxbackup <= 0) return;
 
-            var dir = System.IO.Path.Combine(_backup, DateTime.Today.ToString("yyyymmdd"));
+            var dir = System.IO.Path.Combine(_backup, DateTime.Today.ToString("yyyyMMdd"));
             if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
 
             var filename = System.IO.Path.GetFileName(_path);
@@ -1879,7 +1879,7 @@ namespace CubePdf.Wpf
         {
             if (String.IsNullOrEmpty(_backup) || !System.IO.Directory.Exists(_backup) || _maxbackup <= 0) return;
 
-            var expire = DateTime.Today.AddDays(-_maxbackup).ToString("yyyymmdd");
+            var expire = DateTime.Today.AddDays(-_maxbackup).ToString("yyyyMMdd");
             foreach (var path in System.IO.Directory.GetDirectories(_backup))
             {
                 var leaf = System.IO.Path.GetFileName(path);
