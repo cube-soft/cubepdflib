@@ -202,7 +202,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var folder = System.IO.Path.Combine(_dest, "Backup");
-            var backup = System.IO.Path.Combine(folder, String.Format("{0}\\{1}", DateTime.Today.ToString("yyyymmdd"), filename));
+            var backup = System.IO.Path.Combine(folder, String.Format("{0}\\{1}", DateTime.Today.ToString("yyyyMMdd"), filename));
             if (System.IO.Directory.Exists(folder)) System.IO.Directory.Delete(folder, true);
 
             var viewmodel = CreateViewModel(src);
@@ -239,7 +239,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var folder = System.IO.Path.Combine(_dest, "Backup");
-            var today = System.IO.Path.Combine(folder, DateTime.Today.ToString("yyyymmdd"));
+            var today = System.IO.Path.Combine(folder, DateTime.Today.ToString("yyyyMMdd"));
             var old = System.IO.Path.Combine(folder, "19830214");
             System.IO.Directory.CreateDirectory(old);
             if (System.IO.Directory.Exists(today)) System.IO.Directory.Delete(today, true);
