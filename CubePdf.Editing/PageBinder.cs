@@ -20,6 +20,7 @@
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
+using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
 {
@@ -109,7 +110,7 @@ namespace CubePdf.Editing
                         readers.Add(page.FilePath, item);
                     }
                     var reader = readers[page.FilePath];
-
+                    
                     doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
                     doc.NewPage();
 
@@ -121,6 +122,7 @@ namespace CubePdf.Editing
                     var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
 
                     wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
+                    CopyAnnotation(writer, reader, page.PageNumber);
                 }
 
                 doc.AddAuthor(_metadata.Author);
@@ -137,6 +139,38 @@ namespace CubePdf.Editing
             catch (iTextSharp.text.pdf.BadPasswordException err)
             {
                 throw new CubePdf.Data.EncryptionException(err.Message, err);
+            }
+        }
+
+        #endregion
+
+        #region Other methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CopyAnnotations
+        /// 
+        /// <summary>
+        /// 元の PDF ファイルにある注釈をコピーします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void CopyAnnotations(PdfWriter dest, PdfReader src, int pagenum)
+        {
+            var page = src.GetPageN(pagenum);
+            if (page == null) return;
+
+            var annots = page.GetAsArray(PdfName.ANNOTS);
+            if (annots == null) return;
+
+            for (int i = 0; i < annots.Size; ++i)
+            {
+                var dic = PdfReader.GetPdfObject(annots[i]) as PdfDictionary;
+                if (dic != null)
+                {
+                    var annotation = new PdfAnnotation(dest, null);
+                    annotation.PutAll(dic);
+                }
             }
         }
 
