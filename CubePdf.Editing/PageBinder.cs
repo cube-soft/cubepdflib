@@ -122,7 +122,7 @@ namespace CubePdf.Editing
                     var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
 
                     wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
-                    CopyAnnotation(writer, reader, page.PageNumber);
+                    CopyAnnotations(writer, reader, page.PageNumber);
                 }
 
                 doc.AddAuthor(_metadata.Author);
