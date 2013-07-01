@@ -124,7 +124,6 @@ namespace CubePdf.Editing
                     wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
                     CopyAnnotations(writer, reader, page.PageNumber);
                 }
-
                 doc.AddAuthor(_metadata.Author);
                 doc.AddTitle(_metadata.Title);
                 doc.AddSubject(_metadata.Subtitle);
@@ -163,17 +162,17 @@ namespace CubePdf.Editing
             var annots = page.GetAsArray(PdfName.ANNOTS);
             if (annots == null) return;
 
-            for (int i = 0; i < annots.Size; ++i)
+            for (int i = 0; i < annots.Size; i+=2)
             {
                 var dic = PdfReader.GetPdfObject(annots[i]) as PdfDictionary;
                 if (dic != null)
                 {
                     var annotation = new PdfAnnotation(dest, null);
                     annotation.PutAll(dic);
+                    dest.AddAnnotation(annotation);
                 }
             }
         }
-
         #endregion
 
         #region Properties
