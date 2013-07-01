@@ -84,6 +84,11 @@ namespace CubePdf.Settings
             Read(root, _root);
         }
 
+        public void Read(string path, FileFormat format)
+        {
+            throw new NotImplementedException();
+        }
+
         /* ----------------------------------------------------------------- */
         ///
         /// Write
@@ -96,6 +101,11 @@ namespace CubePdf.Settings
         public void Write(RegistryKey root)
         {
             Write(_root, root);
+        }
+
+        public void Write(string path, FileFormat format)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
