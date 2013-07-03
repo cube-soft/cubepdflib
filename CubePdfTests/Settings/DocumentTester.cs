@@ -225,7 +225,40 @@ namespace CubePdfTests.Settings
         [Test]
         public void TestWriteXml()
         {
+            var src = System.IO.Path.Combine(_src, "setting.xml");
+            Assert.IsTrue(System.IO.File.Exists(src));
 
+            var dest = System.IO.Path.Combine(_dest, "TestWriteXml.xml");
+            System.IO.File.Delete(dest);
+
+            try
+            {
+                var doc = new CubePdf.Settings.Document();
+                doc.Read(src, CubePdf.Settings.FileFormat.Xml);
+                doc.Root.Add(new CubePdf.Settings.Node("文字列を追加", "新しい文字列"));
+                doc.Root.Add(new CubePdf.Settings.Node("数値を追加", -123456));
+                doc.Root.Add(new CubePdf.Settings.Node("論理値を追加", true));
+                Assert.AreEqual(8, doc.Root.Count);
+
+                doc.Write(dest, CubePdf.Settings.FileFormat.Xml);
+                doc.Root.Clear();
+                Assert.AreEqual(0, doc.Root.Count);
+                doc.Read(dest, CubePdf.Settings.FileFormat.Xml);
+                Assert.AreEqual(8, doc.Root.Count);
+
+                Assert.AreEqual("文字列を追加", doc.Root[5].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.String, doc.Root[5].ValueKind);
+                Assert.AreEqual("新しい文字列", doc.Root[5].GetValue(string.Empty));
+
+                Assert.AreEqual("数値を追加", doc.Root[6].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.Number, doc.Root[6].ValueKind);
+                Assert.AreEqual(-123456, doc.Root[6].GetValue(0));
+
+                Assert.AreEqual("論理値を追加", doc.Root[7].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.Bool, doc.Root[7].ValueKind);
+                Assert.AreEqual(true, doc.Root[7].GetValue(false));
+            }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
         }
 
         #endregion
