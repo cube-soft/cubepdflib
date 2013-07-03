@@ -86,6 +86,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLine.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="FileFormat.cs" />
     <Compile Include="Node.cs" />
