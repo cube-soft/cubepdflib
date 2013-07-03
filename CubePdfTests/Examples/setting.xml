@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Settings>
+  <example type="NodeSet">
+    <string type="String">こんにちはこんにちは！</string>
+    <number type="Number">24</number>
+    <boolean type="Bool">True</boolean>
+  </example>
+  <日本語のサブキー type="NodeSet"/>
+  <文字列サンプル type="String">Hello, world!</文字列サンプル>
+  <数値サンプル type="Number">1024</数値サンプル>
+  <論理値サンプル type="Bool">False</論理値サンプル>
+</Settings>

@@ -46,6 +46,11 @@ namespace CubePdfTests.Settings
         public void Setup() {
             var subkey = Registry.CurrentUser.CreateSubKey(_root);
             if (subkey == null) throw new ArgumentException("setup");
+
+            var current = System.Environment.CurrentDirectory;
+            _src = System.IO.Path.Combine(current, "Examples");
+            _dest = System.IO.Path.Combine(current, "Results");
+            if (!System.IO.Directory.Exists(_dest)) System.IO.Directory.CreateDirectory(_dest);
         }
 
         /* ----------------------------------------------------------------- */
@@ -59,7 +64,7 @@ namespace CubePdfTests.Settings
 
         #endregion
 
-        #region Test methods
+        #region Test registry
 
         /* ----------------------------------------------------------------- */
         ///
@@ -157,6 +162,74 @@ namespace CubePdfTests.Settings
 
         #endregion
 
+        #region Test XML
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestReadXml
+        /// 
+        /// <summary>
+        /// XML から設定を読み込むテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestReadXml()
+        {
+            var src = System.IO.Path.Combine(_src, "setting.xml");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            try
+            {
+                var doc = new CubePdf.Settings.Document();
+                doc.Read(src, CubePdf.Settings.FileFormat.Xml);
+
+                Assert.AreEqual(5, doc.Root.Count);
+
+                Assert.AreEqual("example", doc.Root[0].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.NodeSet, doc.Root[0].ValueKind);
+                var nodeset = doc.Root[0].Value as CubePdf.Settings.NodeSet;
+                Assert.NotNull(nodeset);
+                Assert.AreEqual(3, nodeset.Count);
+
+                Assert.AreEqual("日本語のサブキー", doc.Root[1].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.NodeSet, doc.Root[1].ValueKind);
+                nodeset = doc.Root[1].Value as CubePdf.Settings.NodeSet;
+                Assert.NotNull(nodeset);
+                Assert.AreEqual(0, nodeset.Count);
+
+                Assert.AreEqual("文字列サンプル", doc.Root[2].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.String, doc.Root[2].ValueKind);
+                Assert.AreEqual("Hello, world!", doc.Root[2].GetValue(string.Empty));
+
+                Assert.AreEqual("数値サンプル", doc.Root[3].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.Number, doc.Root[3].ValueKind);
+                Assert.AreEqual(1024, doc.Root[3].GetValue(0));
+
+                Assert.AreEqual("論理値サンプル", doc.Root[4].Name);
+                Assert.AreEqual(CubePdf.Settings.ValueKind.Bool, doc.Root[4].ValueKind);
+                Assert.AreEqual(false, doc.Root[4].GetValue(true));
+            }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestWriteXml
+        /// 
+        /// <summary>
+        /// XML へ設定を保存するテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestWriteXml()
+        {
+
+        }
+
+        #endregion
+
         #region Other methods
 
         /* ----------------------------------------------------------------- */
@@ -202,6 +275,8 @@ namespace CubePdfTests.Settings
 
         #region Variables
         private string _root = @"Software\CubeSoft\CubePdfLibTest";
+        private string _src = string.Empty;
+        private string _dest = string.Empty;
         #endregion
     }
 }
