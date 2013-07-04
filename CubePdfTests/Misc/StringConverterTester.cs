@@ -41,6 +41,32 @@ namespace CubePdfTests.Misc
 
         /* ----------------------------------------------------------------- */
         ///
+        /// FormatByteSize
+        /// 
+        /// <summary>
+        /// バイト数を表示するための文字列に変換するテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [TestCase("1.20 KB", 1234)]
+        [TestCase("12.0 KB", 12345)]
+        [TestCase("120 KB",  123456)]
+        [TestCase("1.17 MB", 1234567)]
+        [TestCase("11.7 MB", 12345678)]
+        [TestCase("117 MB",  123456789)]
+        [TestCase("1.14 GB", 1234567890)]
+        [TestCase("11.4 GB", 12345678901)]
+        [TestCase("114 GB",  123456789012)]
+        [TestCase("1.12 TB", 1234567890123)]
+        [TestCase("964 KB",  987654)]
+        public void FormatByteSize(string expected, long filesize)
+        {
+            var result = CubePdf.Misc.StringConverter.FormatByteSize(filesize);
+            Assert.AreEqual(expected, result);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestParseRange
         /// 
         /// <summary>
