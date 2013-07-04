@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// Data/SystemEnvironmentTester.cs
+/// Misc/EnvironmentTester.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace CubePdfTests.Data
+namespace CubePdfTests.Misc
 {
     /* --------------------------------------------------------------------- */
     ///
@@ -35,7 +35,7 @@ namespace CubePdfTests.Data
     ///
     /* --------------------------------------------------------------------- */
     [TestFixture]
-    public class SystemEnvironmentTester
+    public class EnvironmentTester
     {
         #region Setup and TearDown
 
@@ -85,7 +85,7 @@ namespace CubePdfTests.Data
             using (var writer = new System.IO.StreamWriter(path)) writer.WriteLine("test");
             Win32Api.SHAddToRecentDocs(ShellAddToRecentDocsFlags.Path, path);
             using (var reader = new System.IO.StreamReader(path)) { }
-            var results = CubePdf.Data.SystemEnvironment.GetRecentFiles("*.txt");
+            var results = CubePdf.Misc.Environment.GetRecentFiles("*.txt");
             Assert.IsTrue(results.Count > 0);
             Assert.IsTrue(results.Contains(path));
         }
