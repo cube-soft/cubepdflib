@@ -100,6 +100,7 @@ namespace CubePdf.Editing
                 doc.Open();
                 var wdc = writer.DirectContent;
                 var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+                int pagenum = 1;
                 foreach (var page in _pages)
                 {
                     if (!readers.ContainsKey(page.FilePath))
@@ -123,7 +124,9 @@ namespace CubePdf.Editing
 
                     wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
                     CopyAnnotations(writer, reader, page.PageNumber);
+                    AddBookmarks(reader, page.PageNumber, pagenum++);
                 }
+                CopyBookmarks(writer);
                 doc.AddAuthor(_metadata.Author);
                 doc.AddTitle(_metadata.Title);
                 doc.AddSubject(_metadata.Subtitle);
@@ -172,6 +175,45 @@ namespace CubePdf.Editing
                     dest.AddAnnotation(annotation);
                 }
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AddBookmarks
+        /// 
+        /// <summary>
+        /// 元の PDF ファイルにあるしおりをbookmarksに足します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void AddBookmarks(PdfReader src, int srcpage, int destpage)
+        {
+            var bookmarks = SimpleBookmark.GetBookmark(src);
+            if (bookmarks == null) return;
+            //SimpleBookmark.ShiftPageNumbers(bookmarks, srcpage - destpage, null);
+            foreach (var bm in bookmarks)
+            {
+                //if (bm["Page"].StartsWith(srcpage.ToString()))
+                //{
+                //    bm["Page"];
+                //    _bookmarks.Add(bm);
+                //}
+                _bookmarks.Add(bm);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CopyBookmarks
+        /// 
+        /// <summary>
+        /// しおりをコピーします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void CopyBookmarks(PdfWriter dest)
+        {
+            dest.Outlines = _bookmarks;
         }
         #endregion
 
@@ -227,6 +269,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
         private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
         private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private IList<Dictionary<String, Object>> _bookmarks = new List<Dictionary<String, Object>>();
         #endregion
     }
 }

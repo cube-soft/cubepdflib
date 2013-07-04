@@ -826,16 +826,7 @@ namespace CubePdfTests.Editing
         {
             var binder = new CubePdf.Editing.PageBinder();
 
-            var src = System.IO.Path.Combine(_src, "annotation.pdf");
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src))
-            {
-                Assert.AreEqual(2, reader.PageCount);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
-                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
-            }
-            
-            src = System.IO.Path.Combine(_src, "readme.pdf");
+            var src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
@@ -844,7 +835,48 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
             }
 
+            src = System.IO.Path.Combine(_src, "annotation.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                Assert.AreEqual(2, reader.PageCount);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
+            }
+            
+            
+
             var dest = System.IO.Path.Combine(_dest, "TestPageBinderAnnotation.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
+            {
+                var page = reader.GetPageN(3);
+                Assert.NotNull(page);
+                var annots = page.GetAsArray(iTextSharp.text.pdf.PdfName.ANNOTS);
+                Assert.NotNull(annots);
+            }
+        }
+
+        [Test]
+        public void TestRotateWithAnnotation()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "annotation.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                Assert.AreEqual(2, reader.PageCount);
+                var page = new CubePdf.Data.Page(reader.GetPage(1));
+                page.Rotation = 90;
+                binder.Pages.Add(page);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
+            }
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderRotateWithAnnotation.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
