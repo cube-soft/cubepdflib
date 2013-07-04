@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CubePdf.Data.Properties {
+namespace CubePdf.Misc.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace CubePdf.Data.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CubePdf.Data.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CubePdf.Misc.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,15 @@ namespace CubePdf.Data.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   範囲の解析に失敗しました。不適切な文字が含まれていないか確認して下さい。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string ParseRangeException {
+            get {
+                return ResourceManager.GetString("ParseRangeException", resourceCulture);
             }
         }
     }

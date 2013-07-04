@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 /*
- *  FileIOWrapper.cs
+ *  File.cs
  *
  *  Copyright (c) 2009 - 2013 CubeSoft, Inc. All rights reserved.
  *
@@ -18,26 +18,26 @@
  *  along with this program.  If not, see < http://www.gnu.org/licenses/ >.
  */
 /* ------------------------------------------------------------------------- */
-using System;
 
-namespace CubePdf.Data
+namespace CubePdf.Misc
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// FileIOWrapper
+    /// File
     /// 
     /// <summary>
     /// File の移動、コピー、削除等の処理をラップしたクラスです。
-    /// これらの処理は、使用するクラスによって細部の動きが異なる事がある
-    /// ので、プロジェクト内での動きを共通化するために、いったんラップ
-    /// します。
-    /// 
-    /// NOTE: CubePDF では Microsoft.VisualBasic.FileIO.FileSystem
-    /// クラスを使用します。
     /// </summary>
+    /// 
+    /// <remarks>
+    /// 各種、確認ダイアログを表示させるかどうかの挙動を簡単に変えるために
+    /// 各種処理をラップしています。確認ダイアログを表示させる場合は
+    /// Microsoft.VisualBasic.FileIO.FileSystem クラスを、表示させない場合は
+    /// System.IO.File クラスを使用します。
+    /// </remarks>
     ///
     /* --------------------------------------------------------------------- */
-    public class FileIOWrapper
+    public abstract class File
     {
         /* ----------------------------------------------------------------- */
         /// Exists

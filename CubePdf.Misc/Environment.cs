@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// SystemEnvironment.cs
+/// Environment.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -22,19 +22,19 @@ using System;
 using System.Collections.Generic;
 using IWshRuntimeLibrary;
 
-namespace CubePdf.Data
+namespace CubePdf.Misc
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// SystemEnvironment
+    /// Environment
     /// 
     /// <summary>
-    /// Windows システムに関連する各種処理を提供するためのメソッド群を
-    /// 定義したクラスです。
+    /// System.Environment クラスを利用した各種メソッドを定義するための
+    /// クラスです。Windows システムに関連する各種処理を提供します。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public static class SystemEnvironment
+    public static class Environment
     {
         /* ----------------------------------------------------------------- */
         ///
@@ -53,7 +53,7 @@ namespace CubePdf.Data
         {
             var dest   = new List<string>();
             var shell  = new IWshShell_Class();
-            var folder = Environment.GetFolderPath(Environment.SpecialFolder.Recent);
+            var folder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Recent);
             var links  = System.IO.Directory.GetFiles(folder + "\\", pattern + ".lnk");
 
             foreach (var link in links)

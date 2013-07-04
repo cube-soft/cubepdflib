@@ -1,6 +1,6 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// Data/StringConverterTester.cs
+/// Misc/StringConverterTester.cs
 ///
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
 
-namespace CubePdfTests.Data
+namespace CubePdfTests.Misc
 {
     /* --------------------------------------------------------------------- */
     ///
@@ -52,26 +52,26 @@ namespace CubePdfTests.Data
         public void TestParseRange()
         {
             var src  = "3";
-            var dest = CubePdf.Data.StringConverter.ParseRange(src);
+            var dest = CubePdf.Misc.StringConverter.ParseRange(src);
             Assert.AreEqual(1, dest.Count);
             Assert.AreEqual(dest[0], 3);
 
             src  = "1,2,3";
-            dest = CubePdf.Data.StringConverter.ParseRange(src);
+            dest = CubePdf.Misc.StringConverter.ParseRange(src);
             Assert.AreEqual(dest.Count, 3);
             Assert.AreEqual(dest[0], 1);
             Assert.AreEqual(dest[1], 2);
             Assert.AreEqual(dest[2], 3);
 
             src  = "1,3,5";
-            dest = CubePdf.Data.StringConverter.ParseRange(src);
+            dest = CubePdf.Misc.StringConverter.ParseRange(src);
             Assert.AreEqual(dest.Count, 3);
             Assert.AreEqual(dest[0], 1);
             Assert.AreEqual(dest[1], 3);
             Assert.AreEqual(dest[2], 5);
 
             src  = "1,2-4,6";
-            dest = CubePdf.Data.StringConverter.ParseRange(src);
+            dest = CubePdf.Misc.StringConverter.ParseRange(src);
             Assert.AreEqual(dest.Count, 5);
             Assert.AreEqual(dest[0], 1);
             Assert.AreEqual(dest[1], 2);
@@ -83,7 +83,7 @@ namespace CubePdfTests.Data
             try
             {
                 src  = "1,a,b,c,5-8";
-                dest = CubePdf.Data.StringConverter.ParseRange(src);
+                dest = CubePdf.Misc.StringConverter.ParseRange(src);
                 Assert.Fail("never reached");
             }
             catch (ArgumentException /* err */) { Assert.Pass(); }
@@ -91,7 +91,7 @@ namespace CubePdfTests.Data
             try
             {
                 src  = "1,2-4-5,6";
-                dest = CubePdf.Data.StringConverter.ParseRange(src);
+                dest = CubePdf.Misc.StringConverter.ParseRange(src);
                 Assert.Fail("never reached");
             }
             catch (ArgumentException /* err */) { Assert.Pass(); }
