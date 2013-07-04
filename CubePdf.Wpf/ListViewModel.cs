@@ -438,7 +438,7 @@ namespace CubePdf.Wpf
             foreach (var page in pages) binder.Pages.Add(page);
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, path);
+            CubePdf.Misc.File.Move(tmp, path, true);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1438,7 +1438,7 @@ namespace CubePdf.Wpf
 
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, dest);
+            CubePdf.Misc.File.Move(tmp, dest, true);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1461,7 +1461,7 @@ namespace CubePdf.Wpf
                 var tmp = System.IO.Path.GetTempFileName();
                 binder.Save(tmp);
                 if (path == _path) CreateBackup();
-                CubePdf.Misc.File.Move(tmp, path);
+                CubePdf.Misc.File.Move(tmp, path, true);
             }
         }
 

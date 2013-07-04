@@ -40,42 +40,98 @@ namespace CubePdf.Misc
     public abstract class File
     {
         /* ----------------------------------------------------------------- */
+        ///
         /// Exists
+        ///
+        /// <summary>
+        /// 引数に指定されたファイルが存在するかどうかを確認します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// Exists メソッドに関しては、単に System.IO.Exists メソッドを
+        /// 実行するだけの実装となっています。
+        /// </remarks>
+        ///
         /* ----------------------------------------------------------------- */
         public static bool Exists(string path)
         {
-            return Microsoft.VisualBasic.FileIO.FileSystem.FileExists(path);
+            return System.IO.File.Exists(path);
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Delete
+        ///
+        /// <summary>
+        /// 引数に指定されたファイルを削除します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// show_prompt が true の場合、ファイルがロックされている等の理由で
+        /// ファイルが削除できなかった際に確認ダイアログが表示されます。
+        /// </remarks>
+        ///
         /* ----------------------------------------------------------------- */
-        public static void Delete(string path)
+        public static void Delete(string path, bool show_prompt)
         {
-            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
-                Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently,
-                Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            if (show_prompt)
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently,
+                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            }
+            else System.IO.File.Delete(path);
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Copy
+        ///
+        /// <summary>
+        /// 引数 src に指定されたファイルを dest へコピーします。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// show_prompt が true の場合、ファイルがロックされている等の理由で
+        /// ファイルのコピーに失敗した際に確認ダイアログが表示されます。
+        /// </remarks>
+        ///
         /* ----------------------------------------------------------------- */
-        public static void Copy(string src, string dest)
+        public static void Copy(string src, string dest, bool show_prompt)
         {
-            Microsoft.VisualBasic.FileIO.FileSystem.CopyFile(src, dest,
-                Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            if (show_prompt)
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.CopyFile(src, dest,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            }
+            else System.IO.File.Copy(src, dest, true);
         }
 
         /* ----------------------------------------------------------------- */
+        ///
         /// Move
+        ///
+        /// <summary>
+        /// 引数 src に指定されたファイルを dest へ移動します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// show_prompt が true の場合、ファイルがロックされている等の理由で
+        /// ファイルの移動に失敗した際に確認ダイアログが表示されます。
+        /// </remarks>
+        ///
         /* ----------------------------------------------------------------- */
-        public static void Move(string src, string dest)
+        public static void Move(string src, string dest, bool show_prompt)
         {
-            Microsoft.VisualBasic.FileIO.FileSystem.MoveFile(src, dest,
-                Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            if (show_prompt)
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.MoveFile(src, dest,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+            }
+            else System.IO.File.Move(src, dest);
         }
     }
 }
