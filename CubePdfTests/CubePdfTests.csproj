@@ -98,7 +98,6 @@
     <Compile Include="Data\PageTester.cs" />
     <Compile Include="Misc\PathTester.cs" />
     <Compile Include="Misc\StringConverterTester.cs" />
-    <Compile Include="Misc\EnvironmentTester.cs" />
     <Compile Include="Drawing\BitmapEngineTester.cs" />
     <Compile Include="Editing\DocumentReaderTester.cs" />
     <Compile Include="Editing\PageBinderTester.cs" />
