@@ -43,10 +43,13 @@ namespace CubePdf.Misc
         /// <summary>
         /// システムの「最近開いたファイル」から pattern に一致するファイル
         /// 一覧を取得します（.lnk は自動的に付与されます）。
+        /// </summary>
+        /// 
+        /// <remarks>
         /// 取得されるパスは、リンク先の最終的なファイルへのパスです。
         /// 「最近開いたファイル」のうち、既に存在しないファイルは結果に
         /// 含まれません。
-        /// </summary>
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public static IList<string> GetRecentFiles(string pattern)
