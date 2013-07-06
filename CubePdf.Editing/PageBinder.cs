@@ -160,6 +160,7 @@ namespace CubePdf.Editing
         private void CopyAnnotations(PdfWriter dest, PdfReader src, int pagenum)
         {
             var page = src.GetPageN(pagenum);
+            var rotate = src.GetPageRotation(pagenum);
             if (page == null) return;
 
             var annots = page.GetAsArray(PdfName.ANNOTS);
@@ -172,6 +173,7 @@ namespace CubePdf.Editing
                 {
                     var annotation = new PdfAnnotation(dest, null);
                     annotation.PutAll(dic);
+                    annotation.MKRotation = rotate;
                     dest.AddAnnotation(annotation);
                 }
             }
