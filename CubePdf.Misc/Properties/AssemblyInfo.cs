@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("CubePdf.Data")]
+[assembly: AssemblyTitle("CubePdf.Misc")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("株式会社キューブ・ソフト")]
-[assembly: AssemblyProduct("CubePdf.Data")]
-[assembly: AssemblyCopyright("Copyright © 2013 CubeSoft, Inc.")]
+[assembly: AssemblyProduct("CubePdf.Misc")]
+[assembly: AssemblyCopyright("Copyright ©  2013 CubeSoft, Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 次の GUID は、このプロジェクトが COM に公開される場合の、typelib の ID です
-[assembly: Guid("0018604e-c22c-44d2-a3ab-e0be5035d0f1")]
+[assembly: Guid("dfa7efd7-4ad4-4049-8f9c-fc946e2b983b")]
 
 // アセンブリのバージョン情報は、以下の 4 つの値で構成されています:
 //
