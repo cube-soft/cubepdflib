@@ -126,7 +126,7 @@ namespace CubePdf.Editing
                     CopyAnnotations(writer, reader, page.PageNumber);
                     AddBookmarks(reader, page.PageNumber, pagenum++);
                 }
-                CopyBookmarks(writer);
+                writer.Outlines = _bookmarks;
                 doc.AddAuthor(_metadata.Author);
                 doc.AddTitle(_metadata.Title);
                 doc.AddSubject(_metadata.Subtitle);
@@ -166,7 +166,7 @@ namespace CubePdf.Editing
             var annots = page.GetAsArray(PdfName.ANNOTS);
             if (annots == null) return;
 
-            for (int i = 0; i < annots.Size; i+=2)
+            for (int i = 0; i < annots.Size; i += 2)
             {
                 var dic = PdfReader.GetPdfObject(annots[i]) as PdfDictionary;
                 if (dic != null)
@@ -184,7 +184,8 @@ namespace CubePdf.Editing
         /// AddBookmarks
         /// 
         /// <summary>
-        /// 元の PDF ファイルにあるしおりをbookmarksに足します。
+        /// 元の PDF ファイルにあるしおりを_bookmarksに追加します。
+        /// 実際にしおりをPDFに追加するにはOutlinesプロパティに代入が必要
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -192,31 +193,17 @@ namespace CubePdf.Editing
         {
             var bookmarks = SimpleBookmark.GetBookmark(src);
             if (bookmarks == null) return;
-            //SimpleBookmark.ShiftPageNumbers(bookmarks, srcpage - destpage, null);
+
+            SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                //if (bm["Page"].StartsWith(srcpage.ToString()))
-                //{
-                //    bm["Page"];
-                //    _bookmarks.Add(bm);
-                //}
-                _bookmarks.Add(bm);
+                if (bm["Page"].ToString().Contains(destpage.ToString()))
+                {
+                    _bookmarks.Add(bm);
+                }
             }
         }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CopyBookmarks
-        /// 
-        /// <summary>
-        /// しおりをコピーします。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void CopyBookmarks(PdfWriter dest)
-        {
-            dest.Outlines = _bookmarks;
-        }
         #endregion
 
         #region Properties
