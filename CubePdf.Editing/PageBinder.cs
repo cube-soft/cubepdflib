@@ -166,7 +166,7 @@ namespace CubePdf.Editing
             var annots = page.GetAsArray(PdfName.ANNOTS);
             if (annots == null) return;
 
-            for (int i = 0; i < annots.Size; i += 2)
+            for (int i = 0; i < annots.Size; i++)
             {
                 var dic = PdfReader.GetPdfObject(annots[i]) as PdfDictionary;
                 if (dic != null)
@@ -197,10 +197,7 @@ namespace CubePdf.Editing
             SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                if (bm["Page"].ToString().Contains(destpage.ToString()))
-                {
-                    _bookmarks.Add(bm);
-                }
+                if (bm["Page"].ToString().Contains(destpage.ToString() + " FitH")) { _bookmarks.Add(bm); }
             }
         }
 
