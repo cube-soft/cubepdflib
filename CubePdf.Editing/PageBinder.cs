@@ -124,6 +124,7 @@ namespace CubePdf.Editing
 
                     wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
                     CopyAnnotations(writer, reader, page.PageNumber);
+//                    CopyForms(writer, reader, page.PageNumber);
                     AddBookmarks(reader, page.PageNumber, pagenum++);
                 }
                 writer.Outlines = _bookmarks;
@@ -171,6 +172,7 @@ namespace CubePdf.Editing
                 var dic = PdfReader.GetPdfObject(annots[i]) as PdfDictionary;
                 if (dic != null)
                 {
+                    if (!(IsNormalAnnotationRect(pagenum, dic))) continue;
                     var annotation = new PdfAnnotation(dest, null);
                     annotation.PutAll(dic);
                     annotation.MKRotation = rotate;
@@ -178,6 +180,24 @@ namespace CubePdf.Editing
                 }
             }
         }
+        private bool IsNormalAnnotationRect(int pagenum, PdfDictionary dic)
+        {
+            var width = (Double)_pages[pagenum-1].ViewSize.Width;
+            var height = (Double)_pages[pagenum-1].ViewSize.Height;
+            var rect = dic.Get(PdfName.RECT);
+            string[] delimiter = { "[", "]", ", " };
+            var sparray = ((rect.ToString()).Split(delimiter, StringSplitOptions.RemoveEmptyEntries));
+            foreach (var tmp in sparray)
+            {
+                var tmp2 = Convert.ToDouble(tmp);
+                if (tmp2 == width | tmp2 == height)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
 
         /* ----------------------------------------------------------------- */
         ///
