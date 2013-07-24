@@ -860,6 +860,15 @@ namespace CubePdfTests.Editing
             }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestRotateWithAnnotation
+        /// 
+        /// <summary>
+        /// 注釈つきの PDF ファイルを回転するテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         [Test]
         public void TestRotateWithAnnotation()
         {
