@@ -20,6 +20,7 @@
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
@@ -84,21 +85,8 @@ namespace CubePdf.Editing
         {
             try
             {
-                var doc = new iTextSharp.text.Document();
-                var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(doc, new System.IO.FileStream(path, System.IO.FileMode.Create));
-                if (writer == null) return;
-
-                writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
-                if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
-                {
-                    var method = Translator.ToIText(_encrypt.Method);
-                    var permission = Translator.ToIText(_encrypt.Permission);
-                    var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
-                    writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
-                }
-
-                doc.Open();
-                var wdc = writer.DirectContent;
+                string tmp = Path.GetTempPath() + Path.GetFileName(path);
+                var doc = new PdfCopyFields(new FileStream(tmp, FileMode.Create));
                 var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
                 int pagenum = 1;
                 foreach (var page in _pages)
@@ -111,33 +99,15 @@ namespace CubePdf.Editing
                         readers.Add(page.FilePath, item);
                     }
                     var reader = readers[page.FilePath];
-                    
-                    doc.SetPageSize(new iTextSharp.text.Rectangle(page.ViewSize.Width, page.ViewSize.Height, page.Rotation));
-                    doc.NewPage();
-
-                    var radian = Math.PI * page.Rotation / 180.0;
-                    var sin = (float)Math.Sin(radian);
-                    var cos = (float)Math.Cos(radian);
-                    var original = reader.GetPageSize(page.PageNumber);
-                    var x = (original.Width * Math.Abs(cos) + original.Height * Math.Abs(sin)) * (-sin - cos + 1) / 2;
-                    var y = (original.Width * Math.Abs(sin) + original.Height * Math.Abs(cos)) * (sin - cos + 1) / 2;
-
-                    wdc.AddTemplate(writer.GetImportedPage(reader, page.PageNumber), cos, -sin, sin, cos, x, y);
-                    CopyAnnotations(writer, reader, page.PageNumber);
-//                    CopyForms(writer, reader, page.PageNumber);
+                    doc.AddDocument(reader, page.PageNumber.ToString());
                     AddBookmarks(reader, page.PageNumber, pagenum++);
                 }
-                writer.Outlines = _bookmarks;
-                doc.AddAuthor(_metadata.Author);
-                doc.AddTitle(_metadata.Title);
-                doc.AddSubject(_metadata.Subtitle);
-                doc.AddKeywords(_metadata.Keywords);
-                doc.AddCreator(_metadata.Creator);
-                doc.AddProducer();
-
                 doc.Close();
                 foreach (var reader in readers.Values) reader.Close();
                 readers.Clear();
+
+                EditMetadata(tmp, path);
+                File.Delete(tmp);
             }
             catch (iTextSharp.text.pdf.BadPasswordException err)
             {
@@ -148,6 +118,42 @@ namespace CubePdf.Editing
         #endregion
 
         #region Other methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// EditMetadata
+        /// 
+        /// <summary>
+        /// PdfStamperを用いて、Metadataなどを付与した新たなpdfを作ります。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void EditMetadata(string src, string dest)
+        {
+            var reader = new PdfReader(src);
+            var stamper = new PdfStamper(reader, new FileStream(dest, FileMode.Create));
+
+            var info = reader.Info;
+            info.Add("Title", _metadata.Title);
+            info.Add("Subject", _metadata.Subtitle);
+            info.Add("Keywords", _metadata.Keywords);
+            info.Add("Creator", _metadata.Creator);
+            info.Add("Author", _metadata.Author);
+            stamper.MoreInfo = info;
+
+            if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
+            {
+                var method = Translator.ToIText(_encrypt.Method);
+                var permission = Translator.ToIText(_encrypt.Permission);
+                var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
+                stamper.Writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
+            }
+            stamper.Writer.Outlines = _bookmarks;
+            stamper.Writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
+
+            stamper.Close();
+            reader.Close();
+        }
 
         /* ----------------------------------------------------------------- */
         ///
