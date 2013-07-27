@@ -173,7 +173,7 @@ namespace CubePdf.Editing
                 if (dic != null)
                 {
                     var annotation = new PdfAnnotation(dest, null);
-                    annotation.PutAll(dic);
+                    foreach (var item in dic) annotation.Put(item.Key, PdfReader.GetPdfObject(item.Value));
                     dest.AddAnnotation(annotation);
                 }
             }
