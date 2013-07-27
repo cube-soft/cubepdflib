@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Win32;
+using System.Xml;
 
 namespace CubePdf.Settings
 {
@@ -86,6 +87,46 @@ namespace CubePdf.Settings
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Read
+        /// 
+        /// <summary>
+        /// 引数に指定されたファイルを読み込み、FileFormat の指定にしたがって
+        /// 解析します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Read(string path, FileFormat format)
+        {
+            _root.Clear();
+            switch (format)
+            {
+                case FileFormat.Xml:
+                    var doc = new XmlDocument();
+                    doc.Load(path);
+                    Read(doc);
+                    break;
+                default:
+                    throw new NotImplementedException(format.ToString());
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Read
+        /// 
+        /// <summary>
+        /// XML から設定を読み込みます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Read(XmlDocument doc)
+        {
+            _root.Clear();
+            Read(doc.DocumentElement, _root);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Write
         /// 
         /// <summary>
@@ -98,9 +139,50 @@ namespace CubePdf.Settings
             Write(_root, root);
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Write
+        /// 
+        /// <summary>
+        /// 現在保持されているデータを指定された FileFormat で保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Write(string path, FileFormat format)
+        {
+            switch (format)
+            {
+                case FileFormat.Xml:
+                    var doc = new XmlDocument();
+                    Write(doc);
+                    doc.Save(path);
+                    break;
+                default:
+                    throw new NotSupportedException(format.ToString());
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Write
+        /// 
+        /// <summary>
+        /// 現在保持されている設定を XML 形式で保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Write(XmlDocument doc)
+        {
+            var decl = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            var root = doc.CreateElement("Settings");
+            doc.AppendChild(decl);
+            doc.AppendChild(root);
+            Write(doc, root, _root);
+        }
+
         #endregion
 
-        #region Other methods
+        #region Private methods for registry
 
         /* ----------------------------------------------------------------- */
         ///
@@ -187,6 +269,79 @@ namespace CubePdf.Settings
                 default:
                     break;
                 }
+            }
+        }
+
+        #endregion
+
+        #region Private methods for XML
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Read
+        ///
+        /// <summary>
+        /// XML から設定を読み込みます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void Read(XmlElement root, NodeSet dest)
+        {
+            foreach (XmlElement elem in root)
+            {
+                var attr = elem.GetAttribute("type");
+                if (attr == ValueKind.NodeSet.ToString())
+                {
+                    var value = new NodeSet();
+                    Read(elem, value);
+                    dest.Add(new Node(elem.Name, value));
+                }
+                else this.ReadValue(elem, dest);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ReadValue
+        ///
+        /// <summary>
+        /// XML ノードから値を取得します。
+        /// 値の変換方法は type 属性にしたがいます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ReadValue(XmlElement root, NodeSet dest)
+        {
+            var attr = root.GetAttribute("type");
+            if      (attr == ValueKind.String.ToString()) dest.Add(new Node(root.Name, root.InnerText));
+            else if (attr == ValueKind.Number.ToString()) dest.Add(new Node(root.Name, int.Parse(root.InnerText)));
+            else if (attr == ValueKind.Bool.ToString())   dest.Add(new Node(root.Name, root.InnerText.ToLower() == "true"));
+            else return;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Write
+        /// 
+        /// <summary>
+        /// 現在保持されている設定を XML 形式で保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void Write(XmlDocument doc, XmlElement root, NodeSet src)
+        {
+            foreach (var node in src)
+            {
+                var elem = doc.CreateElement(node.Name);
+                elem.SetAttribute("type", node.ValueKind.ToString());
+                if (node.ValueKind == ValueKind.NodeSet)
+                {
+                    var nodeset = node.Value as NodeSet;
+                    if (nodeset == null) continue;
+                    Write(doc, elem, nodeset);
+                }
+                else elem.InnerText = node.Value.ToString();
+                root.AppendChild(elem);
             }
         }
 
