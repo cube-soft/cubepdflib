@@ -825,9 +825,10 @@ namespace CubePdfTests.Editing
         /// <param name="filename">保存するファイル名</param>
         ///
         /* ----------------------------------------------------------------- */
-        [TestCase("readme.pdf",     "annotation.pdf", "TestAnnotation1.pdf")]
-        [TestCase("annotation.pdf", "readme.pdf",     "TestAnnotation2.pdf")]
-        [TestCase("annotation.pdf", "annotation.pdf", "TestAnnotation3.pdf")]
+        [TestCase("readme.pdf",     "annotation.pdf",  "TestAnnotation1.pdf")]
+        [TestCase("annotation.pdf", "readme.pdf",      "TestAnnotation2.pdf")]
+        [TestCase("annotation.pdf", "annotation.pdf",  "TestAnnotation3.pdf")]
+        [TestCase("annotation.pdf", "annotation2.pdf", "TestAnnotation4.pdf")]
         public void TestMergeWithAnnotation(string head, string tail, string filename)
         {
             var binder = new CubePdf.Editing.PageBinder();
