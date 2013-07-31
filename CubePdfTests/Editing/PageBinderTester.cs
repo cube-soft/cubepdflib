@@ -811,6 +811,95 @@ namespace CubePdfTests.Editing
             //Assert.IsTrue(System.IO.File.Exists(dest));
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestMergeWithAnnotation
+        /// 
+        /// <summary>
+        /// PageBinder クラスを用いてページ結合等を行った時に注釈の情報が
+        /// 除去されていないかどうかをテストします。
+        /// </summary>
+        /// 
+        /// <param name="head">先頭に結合するファイル名</param>
+        /// <param name="tail">末尾に結合するファイル名</param>
+        /// <param name="filename">保存するファイル名</param>
+        ///
+        /* ----------------------------------------------------------------- */
+        [TestCase("readme.pdf",     "annotation.pdf",  "TestAnnotation1.pdf")]
+        [TestCase("annotation.pdf", "readme.pdf",      "TestAnnotation2.pdf")]
+        [TestCase("annotation.pdf", "annotation.pdf",  "TestAnnotation3.pdf")]
+        [TestCase("annotation.pdf", "annotation2.pdf", "TestAnnotation4.pdf")]
+        public void TestMergeWithAnnotation(string head, string tail, string filename)
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var pagenum = 0;
+            var src = System.IO.Path.Combine(_src, head);
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+                pagenum += reader.PageCount;
+            }
+
+            src = System.IO.Path.Combine(_src, tail);
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+                pagenum += reader.PageCount;
+            }
+
+            var dest = System.IO.Path.Combine(_dest, filename);
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
+            {
+                Assert.AreEqual(pagenum, reader.NumberOfPages);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestRotateWithAnnotation
+        /// 
+        /// <summary>
+        /// 注釈つきの PDF ファイルを回転するテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestRotateWithAnnotation()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            var src = System.IO.Path.Combine(_src, "annotation.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                Assert.AreEqual(2, reader.PageCount);
+                var page = new CubePdf.Data.Page(reader.GetPage(1));
+                page.Rotation = 90;
+                binder.Pages.Add(page);
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
+            }
+
+            var dest = System.IO.Path.Combine(_dest, "TestPageBinderRotateWithAnnotation.pdf");
+            System.IO.File.Delete(dest);
+            binder.Save(dest);
+            Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
+            {
+                var page = reader.GetPageN(1);
+                Assert.NotNull(page);
+                var annots = page.GetAsArray(iTextSharp.text.pdf.PdfName.ANNOTS);
+                Assert.NotNull(annots);
+            }
+        }
+
         #endregion
 
         #region Variables
