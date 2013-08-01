@@ -396,6 +396,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, CubePdf.Data.IDocumentReader reader)
         {
+            if (_engines.ContainsKey(reader.FilePath)) throw new ArgumentException(Properties.Resources.DuplicateFileException);
+
             try
             {
                 BeginCommand();
@@ -416,6 +418,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, string path, string password = "")
         {
+            if (_engines.ContainsKey(path)) throw new ArgumentException(Properties.Resources.DuplicateFileException);
             using (var reader = new CubePdf.Editing.DocumentReader(path, password))
             {
                 Insert(index, reader);

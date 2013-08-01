@@ -337,12 +337,25 @@ namespace CubePdfTests.Wpf
             viewmodel.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
 
-            viewmodel.Close();
+            viewmodel.Dispose();
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
                 Assert.AreEqual(11, doc.PageCount);
             }
+
+            // 同じファイルの複数回挿入はエラー
+            try
+            {
+                viewmodel = CreateViewModel();
+                src = System.IO.Path.Combine(_src, "readme.pdf");
+                viewmodel.Add(src);
+                viewmodel.Add(src);
+                Assert.Fail("never reached");
+            }
+            catch (ArgumentException /* err */) { Assert.Pass(); }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
+            finally { viewmodel.Dispose(); }
         }
 
         /* ----------------------------------------------------------------- */
