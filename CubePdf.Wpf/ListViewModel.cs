@@ -331,6 +331,31 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Refresh
+        /// 
+        /// <summary>
+        /// 画面に表示されている各サムネイル項目のうち、生成されていない
+        /// ものを再度リクエストキューに登録します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Refresh()
+        {
+            if (_visibility == ListViewItemVisibility.Minimum) return;
+
+            var range = GetVisibleRange();
+            if (range.Key == -1) return;
+            for (int i = range.Key; i < range.Value; ++i)
+            {
+                var element = _images.RawAt(i);
+                if (element.Status == Drawing.ImageStatus.Created) continue;
+                UpdateRequest(i, _pages[i]);
+            }
+            if (!UnderItemCreation) FetchRequest();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Save
         /// 
         /// <summary>
@@ -1334,31 +1359,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FindVisualChild
-        /// 
-        /// <summary>
-        /// 子要素のうち最初に見つかった T 型のオブジェクトを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
-            {
-                var child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is T) return child as T;
-                else
-                {
-                    var grandchild = FindVisualChild<T>(child);
-                    if (grandchild != null) return grandchild;
-                }
-            }
-
-            return null;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// GetItemIndex
         ///
         /// <summary>
@@ -1384,20 +1384,21 @@ namespace CubePdf.Wpf
         /// 実際に画面に表示される項目の範囲を取得します。
         /// </summary>
         /// 
-        /// <remarks>
-        /// TODO: 現在、表示されている最初の項目のみを取得している。
-        /// 表示されている最後の項目も取得するように修正する。
-        /// </remarks>
-        ///
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            if (_view == null) return new KeyValuePair<int, int>(-1, -1);
+            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count);
 
             var first = GetItemIndex(new Point(10, 10));
             if (first == -1) first = GetItemIndex(new Point(10, 0));
 
-            return new KeyValuePair<int, int>(first, _pages.Count - 1);
+            if (ItemWidth != 0 && MaxItemHeight != 0)
+            {
+                var col = (int)_view.ActualWidth / ItemWidth;
+                var row = (int)_view.ActualHeight / MaxItemHeight;
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count));
+            }
+            else return new KeyValuePair<int, int>(first, _pages.Count);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1934,7 +1935,7 @@ namespace CubePdf.Wpf
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
-                    if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
+                    if (key < range.Key || key >= range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
                         value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
                     {
                         Debug.WriteLine(String.Format("Skip[{0}] => {1}", key, value.ToString()));
