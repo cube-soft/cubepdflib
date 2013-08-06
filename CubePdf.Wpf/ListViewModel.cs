@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace CubePdf.Wpf
 {
@@ -262,6 +263,22 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// View
+        /// 
+        /// <summary>
+        /// このオブジェクトで制御する ListView オブジェクトを取得、または
+        /// 設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public System.Windows.Controls.ListView View
+        {
+            get { return _view; }
+            set { _view = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// BackupFolder
         /// 
         /// <summary>
@@ -311,6 +328,31 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Public methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Refresh
+        /// 
+        /// <summary>
+        /// 画面に表示されている各サムネイル項目のうち、生成されていない
+        /// ものを再度リクエストキューに登録します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Refresh()
+        {
+            if (_visibility == ListViewItemVisibility.Minimum) return;
+
+            var range = GetVisibleRange();
+            if (range.Key == -1) return;
+            for (int i = range.Key; i < range.Value; ++i)
+            {
+                var element = _images.RawAt(i);
+                if (element.Status == Drawing.ImageStatus.Created) continue;
+                UpdateRequest(i, _pages[i]);
+            }
+            if (!UnderItemCreation) FetchRequest();
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -1298,6 +1340,69 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// FindVisualParent
+        /// 
+        /// <summary>
+        /// 親要素のうち最初に見つかった T 型のオブジェクトを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private T FindVisualParent<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
+        {
+            while (obj != null)
+            {
+                if (obj is T) break;
+                obj = VisualTreeHelper.GetParent(obj);
+            }
+            return obj as T;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetItemIndex
+        ///
+        /// <summary>
+        /// 引数に指定された座標上に存在する項目のインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetItemIndex(Point current)
+        {
+            if (_view == null) return - 1;
+            var result = VisualTreeHelper.HitTest(_view, new System.Windows.Point(current.X, current.Y));
+            if (result == null) return -1;
+
+            var item = FindVisualParent<System.Windows.Controls.ListViewItem>(result.VisualHit);
+            return (item != null) ? _view.Items.IndexOf(item.Content) : -1;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetVisibleRange
+        /// 
+        /// <summary>
+        /// 実際に画面に表示される項目の範囲を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private KeyValuePair<int, int> GetVisibleRange()
+        {
+            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count);
+
+            var first = GetItemIndex(new Point(10, 10));
+            if (first == -1) first = GetItemIndex(new Point(10, 0));
+
+            if (ItemWidth != 0 && MaxItemHeight != 0)
+            {
+                var col = (int)_view.ActualWidth / ItemWidth;
+                var row = (int)_view.ActualHeight / MaxItemHeight;
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count));
+            }
+            else return new KeyValuePair<int, int>(first, _pages.Count);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// GetPower
         /// 
         /// <summary>
@@ -1824,12 +1929,13 @@ namespace CubePdf.Wpf
                     return;
                 }
 
+                var range = GetVisibleRange();
                 while (_requests.Count > 0)
                 {
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
-                    if (key < 0 || key >= _pages.Count || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
+                    if (key < range.Key || key >= range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
                         value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
                     {
                         Debug.WriteLine(String.Format("Skip[{0}] => {1}", key, value.ToString()));
@@ -2128,6 +2234,7 @@ namespace CubePdf.Wpf
         private UndoStatus _undostatus = UndoStatus.Normal;
         private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
         private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
+        private System.Windows.Controls.ListView _view = null;
         #endregion
 
         #endregion
