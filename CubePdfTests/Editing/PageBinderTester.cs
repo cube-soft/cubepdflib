@@ -490,15 +490,12 @@ namespace CubePdfTests.Editing
         /// <summary>
         /// PageBinder クラスを用いて暗号化に関する情報を設定するテストを
         /// 行います。
-        /// 
-        /// TODO: EncryptionMethod のテストについては DocumentReader の実装が
-        /// まだのため、コメントアウト。修正終了後、コメントを外してテスト
-        /// 行う。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestEncryption()
+        [TestCase("TestPageBinderAes128.pdf", CubePdf.Data.EncryptionMethod.Aes128)]
+        [TestCase("TestPageBinderAes256.pdf", CubePdf.Data.EncryptionMethod.Aes256)]
+        public void TestEncryption(string filename, CubePdf.Data.EncryptionMethod method)
         {
             var binder = new CubePdf.Editing.PageBinder();
 
@@ -514,7 +511,7 @@ namespace CubePdfTests.Editing
             encrypt.OwnerPassword = "password";
             encrypt.IsUserPasswordEnabled = true;
             encrypt.UserPassword = "view";
-            encrypt.Method = CubePdf.Data.EncryptionMethod.Aes128;
+            encrypt.Method = method;
             encrypt.Permission.Printing = true;
             encrypt.Permission.DegradedPrinting = true;
             encrypt.Permission.ModifyContents = true;
@@ -528,7 +525,7 @@ namespace CubePdfTests.Editing
             encrypt.Permission.TemplatePage = true;
             binder.Encryption = encrypt;
 
-            var dest = System.IO.Path.Combine(_dest, "TestPageBinderEncryption.pdf");
+            var dest = System.IO.Path.Combine(_dest, filename);
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
@@ -536,7 +533,7 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
-                //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
+                Assert.AreEqual(method, reader.EncryptionMethod);
                 Assert.IsTrue(reader.Permission.Printing);
                 Assert.IsTrue(reader.Permission.DegradedPrinting);
                 Assert.IsTrue(reader.Permission.ModifyAnnotations);
@@ -574,7 +571,7 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
-                //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes128, reader.EncryptionMethod);
+                Assert.AreEqual(method, reader.EncryptionMethod);
                 Assert.IsFalse(reader.Permission.Printing);
                 Assert.IsFalse(reader.Permission.DegradedPrinting);
                 Assert.IsFalse(reader.Permission.ModifyAnnotations);
