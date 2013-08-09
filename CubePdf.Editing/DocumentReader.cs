@@ -367,6 +367,7 @@ namespace CubePdf.Editing
             if (!reader.IsOpenedWithFullPermissions) _status = Data.EncryptionStatus.RestrictedAccess;
             else if (password.Length == 0) _status = Data.EncryptionStatus.NotEncrypted;
             else _status = Data.EncryptionStatus.FullAccess;
+            _method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
             _permission = Translator.ToPermission(reader.Permissions);
         }
 
