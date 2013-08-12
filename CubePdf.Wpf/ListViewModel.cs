@@ -1546,7 +1546,7 @@ namespace CubePdf.Wpf
 
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, dest, true);
+            CubePdf.Misc.File.Move(tmp, dest, false);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1569,7 +1569,7 @@ namespace CubePdf.Wpf
                 var tmp = System.IO.Path.GetTempFileName();
                 binder.Save(tmp);
                 if (path == _path) CreateBackup();
-                CubePdf.Misc.File.Move(tmp, path, true);
+                CubePdf.Misc.File.Move(tmp, path, false);
             }
         }
 
