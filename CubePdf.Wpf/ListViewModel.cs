@@ -1287,11 +1287,7 @@ namespace CubePdf.Wpf
             if (e.Image != null && index >= 0 && index < _pages.Count)
             {
                 RotateImage(e.Image, _pages[index], e.Page);
-                lock (_images)
-                {
-                    _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
-                    Debug.WriteLine(String.Format("Created[{0}] => {1}", index, e.Page.ToString()));
-                }
+                lock (_images) _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
             }
             else if (e.Image != null) e.Image.Dispose();
             FetchRequest();
@@ -1546,7 +1542,7 @@ namespace CubePdf.Wpf
 
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, dest, true);
+            CubePdf.Misc.File.Move(tmp, dest, false);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1569,7 +1565,7 @@ namespace CubePdf.Wpf
                 var tmp = System.IO.Path.GetTempFileName();
                 binder.Save(tmp);
                 if (path == _path) CreateBackup();
-                CubePdf.Misc.File.Move(tmp, path, true);
+                CubePdf.Misc.File.Move(tmp, path, false);
             }
         }
 
@@ -1880,7 +1876,6 @@ namespace CubePdf.Wpf
 
                 if (!_requests.ContainsKey(index)) _requests.Add(index, page);
                 else _requests[index] = page;
-                Debug.WriteLine(String.Format("Register[{0}] => {1}", index, page.ToString()));
             }
         }
 
@@ -1936,12 +1931,7 @@ namespace CubePdf.Wpf
                     var value = _requests[key];
                     _requests.Remove(key);
                     if (key < range.Key || key >= range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
-                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
-                    {
-                        Debug.WriteLine(String.Format("Skip[{0}] => {1}", key, value.ToString()));
-                        continue;
-                    }
-                    Debug.WriteLine(String.Format("Fetch[{0}] => {1}", key, value.ToString()));
+                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber) continue;
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
                 }

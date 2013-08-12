@@ -131,7 +131,11 @@ namespace CubePdf.Misc
                     Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
                     Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
             }
-            else System.IO.File.Move(src, dest);
+            else
+            {
+                System.IO.File.Delete(dest);
+                System.IO.File.Move(src, dest);
+            }
         }
     }
 }
