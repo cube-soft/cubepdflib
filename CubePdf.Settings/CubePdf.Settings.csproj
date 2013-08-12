@@ -83,9 +83,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Web" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandLine.cs" />
     <Compile Include="Document.cs" />
+    <Compile Include="FileFormat.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeSet.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

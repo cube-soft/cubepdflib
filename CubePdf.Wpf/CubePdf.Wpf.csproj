@@ -131,6 +131,10 @@
       <Project>{6E397197-250C-404A-9FE9-BA8397C518C1}</Project>
       <Name>CubePdf.Editing</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CubePdf.Misc\CubePdf.Misc.csproj">
+      <Project>{193B7028-1F28-462A-B172-36F485002349}</Project>
+      <Name>CubePdf.Misc</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
