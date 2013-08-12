@@ -79,7 +79,7 @@ namespace CubePdf.Misc
                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
                     Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
                     Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
             }
             else System.IO.File.Delete(path);
         }
@@ -104,7 +104,7 @@ namespace CubePdf.Misc
             {
                 Microsoft.VisualBasic.FileIO.FileSystem.CopyFile(src, dest,
                     Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
             }
             else System.IO.File.Copy(src, dest, true);
         }
@@ -129,9 +129,13 @@ namespace CubePdf.Misc
             {
                 Microsoft.VisualBasic.FileIO.FileSystem.MoveFile(src, dest,
                     Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.DoNothing);
+                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
             }
-            else System.IO.File.Move(src, dest);
+            else
+            {
+                System.IO.File.Delete(dest);
+                System.IO.File.Move(src, dest);
+            }
         }
     }
 }

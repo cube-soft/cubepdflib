@@ -148,7 +148,10 @@ namespace CubePdf.Settings
         /* ----------------------------------------------------------------- */
         public void Notify()
         {
-            var request = GetRequest("flag=install");
+            var buffer = new System.Text.StringBuilder();
+            buffer.Append("flag=install");
+            if (!string.IsNullOrEmpty(_identifier)) buffer.Append("&id=").Append(_identifier);
+            var request = GetRequest(buffer.ToString());
             using (var response = request.GetResponse())
             {
                 // do nothing
@@ -223,6 +226,7 @@ namespace CubePdf.Settings
             {
                 var registry = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(subkey, false);
                 _version = (string)registry.GetValue(REG_VERSION, string.Empty);
+                _identifier = (string)registry.GetValue(REG_IDENTIFIER, string.Empty);
                 registry.Close();
             }
             catch (Exception err) { Trace.TraceError(err.ToString()); }
@@ -293,12 +297,14 @@ namespace CubePdf.Settings
         private string _subkey = string.Empty;
         private string _product = string.Empty;
         private string _version = string.Empty;
+        private string _identifier = string.Empty;
         private int _interval = 0;
         private DateTime _last = new DateTime();
         #endregion
 
         #region Constant variables
         private static readonly string REG_VERSION   = "Version";
+        private static readonly string REG_IDENTIFIER = "Identifier";
         private static readonly string REG_LASTCHECK = "LastCheckUpdate";
         #endregion
     }

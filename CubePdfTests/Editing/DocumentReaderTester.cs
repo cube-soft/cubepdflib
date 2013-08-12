@@ -216,7 +216,7 @@ namespace CubePdfTests.Editing
                 using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
                 {
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, doc.EncryptionStatus);
-                    //Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
 
                     Assert.IsFalse(doc.Permission.Accessibility);
                     Assert.IsTrue(doc.Permission.Assembly);

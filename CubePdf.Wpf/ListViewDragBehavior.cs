@@ -111,7 +111,10 @@ namespace CubePdf.Wpf
             if (_source >= 0)
             {
                 AssociatedObject.AllowDrop = true;
-                if (AssociatedObject.SelectedItems.Contains(item)) DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item))
+                {
+                    DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                }
             }
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
