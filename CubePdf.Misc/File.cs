@@ -74,14 +74,12 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Delete(string path, bool show_prompt)
         {
-            if (show_prompt)
+            try { System.IO.File.Delete(path); }
+            catch (System.IO.IOException err)
             {
-                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(path,
-                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.RecycleOption.DeletePermanently,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
+                if (show_prompt && ShowPrompt(path)) Delete(path, show_prompt);
+                else throw err;
             }
-            else System.IO.File.Delete(path);
         }
 
         /* ----------------------------------------------------------------- */
@@ -100,13 +98,12 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Copy(string src, string dest, bool show_prompt)
         {
-            if (show_prompt)
+            try { System.IO.File.Copy(src, dest, true); }
+            catch (System.IO.IOException err)
             {
-                Microsoft.VisualBasic.FileIO.FileSystem.CopyFile(src, dest,
-                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
+                if (show_prompt && ShowPrompt(dest)) Copy(src, dest, show_prompt);
+                else throw err;
             }
-            else System.IO.File.Copy(src, dest, true);
         }
 
         /* ----------------------------------------------------------------- */
@@ -125,17 +122,40 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Move(string src, string dest, bool show_prompt)
         {
-            if (show_prompt)
-            {
-                Microsoft.VisualBasic.FileIO.FileSystem.MoveFile(src, dest,
-                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
-                    Microsoft.VisualBasic.FileIO.UICancelOption.ThrowException);
-            }
-            else
+            try
             {
                 System.IO.File.Delete(dest);
                 System.IO.File.Move(src, dest);
             }
+            catch (System.IO.IOException err)
+            {
+                if (show_prompt && ShowPrompt(dest)) Move(src, dest, show_prompt);
+                else throw err;
+            }
         }
+
+        #region Private methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ShowPrompt
+        /// 
+        /// <summary>
+        /// 警告ダイアログを表示します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private static bool ShowPrompt(string path)
+        {
+            var result = System.Windows.Forms.MessageBox.Show(
+                string.Format(Properties.Resources.AccessDenied, path),
+                Properties.Resources.AccessDeniedTitle,
+                System.Windows.Forms.MessageBoxButtons.OKCancel,
+                System.Windows.Forms.MessageBoxIcon.Warning
+            );
+            return result == System.Windows.Forms.DialogResult.OK;
+        }
+
+        #endregion
     }
 }
