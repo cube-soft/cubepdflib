@@ -143,6 +143,7 @@ namespace CubePdf.Editing
                     RotatePages(reader);
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
+                    writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
                 File.Delete(tmp);
@@ -167,17 +168,20 @@ namespace CubePdf.Editing
         /// 
         /// <remarks>
         /// 注釈等を含めて完全にページ内容をコピーするためにいったん
-        /// PdfCopyFields クラスを用いて全ページを結合します。回転等の
+        /// PdfSmartCopy クラスを用いて全ページを結合します。回転等の
         /// 付随的な処理は生成された PDF に対して改めて行います。
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void BindPages(string dest)
         {
-            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
-            var writer = new PdfCopyFields(new FileStream(dest, FileMode.Create), _metadata.Version.Minor.ToString()[0]);
-            var pagenum = 1;
+            var readers  = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+            var document = new iTextSharp.text.Document();
+            var writer   = new PdfSmartCopy(document, new FileStream(dest, FileMode.Create));
+            var pagenum  = 1;
 
+            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];            
+            document.Open();
             _bookmarks.Clear();
             foreach (var page in _pages)
             {
@@ -189,9 +193,10 @@ namespace CubePdf.Editing
                     readers.Add(page.FilePath, item);
                 }
                 var reader = readers[page.FilePath];
-                writer.AddDocument(reader, page.PageNumber.ToString());
+                writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 AddBookmarks(reader, page.PageNumber, pagenum++);
             }
+            document.Close();
             writer.Close();
             foreach (var reader in readers.Values) reader.Close();
             readers.Clear();
