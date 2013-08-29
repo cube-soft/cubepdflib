@@ -140,7 +140,7 @@ namespace CubePdf.Editing
                 using (var reader = new PdfReader(tmp))
                 using (var writer = new PdfStamper(reader, new FileStream(path, FileMode.Create)))
                 {
-                    RotatePages(reader);
+                    //RotatePages(reader);
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
                     writer.SetFullCompression();
@@ -168,7 +168,7 @@ namespace CubePdf.Editing
         /// 
         /// <remarks>
         /// 注釈等を含めて完全にページ内容をコピーするためにいったん
-        /// PdfSmartCopy クラスを用いて全ページを結合します。回転等の
+        /// PdfCopy クラスを用いて全ページを結合します。回転等の
         /// 付随的な処理は生成された PDF に対して改めて行います。
         /// </remarks>
         ///
@@ -177,9 +177,9 @@ namespace CubePdf.Editing
         {
             var readers  = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
             var document = new iTextSharp.text.Document();
-            var writer   = new PdfSmartCopy(document, new FileStream(dest, FileMode.Create));
+            var writer   = new PdfCopy(document, new FileStream(dest, FileMode.Create));
             var pagenum  = 1;
-
+            
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];            
             document.Open();
             _bookmarks.Clear();
@@ -192,7 +192,12 @@ namespace CubePdf.Editing
                         new iTextSharp.text.pdf.PdfReader(page.FilePath);
                     readers.Add(page.FilePath, item);
                 }
+
                 var reader = readers[page.FilePath];
+                var rot = reader.GetPageRotation(page.PageNumber);
+                var dic = reader.GetPageN(page.PageNumber);
+                if (rot != page.Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(page.Rotation));
+
                 writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 AddBookmarks(reader, page.PageNumber, pagenum++);
             }
