@@ -140,7 +140,6 @@ namespace CubePdf.Editing
                 using (var reader = new PdfReader(tmp))
                 using (var writer = new PdfStamper(reader, new FileStream(path, FileMode.Create)))
                 {
-                    //RotatePages(reader);
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
                     writer.SetFullCompression();
@@ -168,8 +167,9 @@ namespace CubePdf.Editing
         /// 
         /// <remarks>
         /// 注釈等を含めて完全にページ内容をコピーするためにいったん
-        /// PdfCopy クラスを用いて全ページを結合します。回転等の
-        /// 付随的な処理は生成された PDF に対して改めて行います。
+        /// PdfCopy クラスを用いて全ページを結合します。
+        /// セキュリティ設定や文書プロパティ等の情報は生成された PDF に
+        /// 対して付加します。
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
@@ -205,26 +205,6 @@ namespace CubePdf.Editing
             writer.Close();
             foreach (var reader in readers.Values) reader.Close();
             readers.Clear();
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RotatePages
-        /// 
-        /// <summary>
-        /// 各ページを回転します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotatePages(PdfReader reader)
-        {
-            for (int i = 0; i < reader.NumberOfPages; ++i)
-            {
-                if (i >= _pages.Count) break;
-                var rot = reader.GetPageRotation(i + 1);
-                var dic = reader.GetPageN(i + 1);
-                if (rot != _pages[i].Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(_pages[i].Rotation));
-            }
         }
 
         /* ----------------------------------------------------------------- */
