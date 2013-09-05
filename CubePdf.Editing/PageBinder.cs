@@ -98,6 +98,34 @@ namespace CubePdf.Editing
             get { return _pages; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UseSmartCopy
+        /// 
+        /// <summary>
+        /// ファイルサイズを抑えるための結合方法を使用するかどうかを取得、
+        /// または設定します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// 通常時には iTextSharp の PdfCopy クラスを用いて結合を行って
+        /// いるが、このクラスは複数の PDF ファイルが同じフォントを使用
+        /// していたとしても別々のものとして扱うため、フォント情報が重複して
+        /// ファイルサイズが増大する場合がある。
+        /// 
+        /// この問題を解決したものとして PdfSmartCopy クラスが存在する。
+        /// ただし、複雑な注釈が保存されている PDF を結合する際に使用した
+        /// 場合、（別々として扱わなければならないはずの）情報が共有されて
+        /// しまい、注釈の構造が壊れてしまう問題が確認されている。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool UseSmartCopy
+        {
+            get { return _smart; }
+            set { _smart = value; }
+        }
+
         #endregion
 
         #region Public Methods
@@ -175,10 +203,11 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private void BindPages(string dest)
         {
-            var readers  = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+            var pagenum = 1;
+            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
             var document = new iTextSharp.text.Document();
-            var writer   = new PdfCopy(document, new FileStream(dest, FileMode.Create));
-            var pagenum  = 1;
+            var writer = _smart ? new PdfSmartCopy(document, new FileStream(dest, FileMode.Create)) :
+                new PdfCopy(document, new FileStream(dest, FileMode.Create));            
             
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];            
             document.Open();
@@ -275,6 +304,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
         private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private bool _smart = true;
         private IList<Dictionary<String, Object>> _bookmarks = new List<Dictionary<String, Object>>();
         #endregion
     }

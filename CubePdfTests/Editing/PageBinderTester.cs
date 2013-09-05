@@ -166,19 +166,24 @@ namespace CubePdfTests.Editing
         /// <param name="head">先頭に結合するファイル名</param>
         /// <param name="tail">末尾に結合するファイル名</param>
         /// <param name="filename">保存するファイル名</param>
+        /// <param name="smart">低ファイルサイズを優先するかどうか</param>
         ///
         /* ----------------------------------------------------------------- */
-        [TestCase("readme.pdf",     "rotated.pdf",     "TestMerge.pdf")]
-        [TestCase("readme.pdf",     "annotation.pdf",  "TestMergeAnnotation1.pdf")]
-        [TestCase("annotation.pdf", "readme.pdf",      "TestMergeAnnotation2.pdf")]
-        [TestCase("annotation2.pdf", "annotation.pdf", "TestMergeAnnotation3.pdf")]
-        [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotation4.pdf")]
-        [TestCase("readme.pdf",     "bookmark.pdf",    "TestMergeBookmark1.pdf")]
-        [TestCase("readme.pdf",     "bookmark2.pdf",   "TestMergeBookmark2.pdf")]
-        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark3.pdf")]
-        public void TestMerge(string head, string tail, string filename)
+        [TestCase("readme.pdf",     "rotated.pdf",     "TestMerge.pdf",            false)]
+        [TestCase("readme.pdf",     "rotated.pdf",     "TestMergeSmart.pdf",        true)]
+        [TestCase("readme.pdf",     "annotation.pdf",  "TestMergeAnnotation1.pdf", false)]
+        [TestCase("annotation.pdf", "readme.pdf",      "TestMergeAnnotation2.pdf", false)]
+        [TestCase("annotation2.pdf", "annotation.pdf", "TestMergeAnnotation3.pdf", false)]
+        [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotation4.pdf", false)]
+        [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotSmart.pdf",   true)]
+        [TestCase("readme.pdf",     "bookmark.pdf",    "TestMergeBookmark1.pdf",   false)]
+        [TestCase("readme.pdf",     "bookmark2.pdf",   "TestMergeBookmark2.pdf",   false)]
+        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark3.pdf",   false)]
+        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBkSmart.pdf",      true)]
+        public void TestMerge(string head, string tail, string filename, bool smart)
         {
             var binder = new CubePdf.Editing.PageBinder();
+            binder.UseSmartCopy = smart;
 
             var pagenum = 0;
             var src = System.IO.Path.Combine(_src, head);
