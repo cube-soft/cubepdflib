@@ -171,7 +171,7 @@ namespace CubePdfTests.Editing
         [TestCase("readme.pdf",     "rotated.pdf",     "TestMerge.pdf")]
         [TestCase("readme.pdf",     "annotation.pdf",  "TestMergeAnnotation1.pdf")]
         [TestCase("annotation.pdf", "readme.pdf",      "TestMergeAnnotation2.pdf")]
-        [TestCase("annotation.pdf", "annotation.pdf",  "TestMergeAnnotation3.pdf")]
+        [TestCase("annotation2.pdf", "annotation.pdf", "TestMergeAnnotation3.pdf")]
         [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotation4.pdf")]
         [TestCase("readme.pdf",     "bookmark.pdf",    "TestMergeBookmark1.pdf")]
         [TestCase("readme.pdf",     "bookmark2.pdf",   "TestMergeBookmark2.pdf")]
@@ -210,67 +210,6 @@ namespace CubePdfTests.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestParsePassword
-        /// 
-        /// <summary>
-        /// パスワードの設定されている PDF ファイルのページを結合対象と
-        /// して指定された場合のテストを行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestParsePassword()
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-
-            // OwnerPassword
-            var src = System.IO.Path.Combine(_src, "password.pdf");
-            var password = "password";
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src, password))
-            {
-                foreach (var page in reader.Pages)
-                {
-                    Assert.AreEqual(src, page.FilePath);
-                    Assert.AreEqual(password, page.Password);
-                    binder.Pages.Add(new CubePdf.Data.Page(page));
-                }
-            }
-
-            try
-            {
-                var dest = System.IO.Path.Combine(_dest, "TestParsePassword.pdf");
-                System.IO.File.Delete(dest);
-                binder.Save(dest);
-                Assert.IsTrue(System.IO.File.Exists(dest));
-            }
-            catch (Exception err) { Assert.Fail(err.ToString()); }
-            binder.Pages.Clear();
-
-            // UserPassword
-            password = "view";
-            using (var reader = new CubePdf.Editing.DocumentReader(src, password))
-            {
-                foreach (var page in reader.Pages)
-                {
-                    Assert.AreEqual(src, page.FilePath);
-                    Assert.AreEqual(password, page.Password);
-                    binder.Pages.Add(new CubePdf.Data.Page(page));
-                }
-            }
-
-            try
-            {
-                var dest = System.IO.Path.Combine(_dest, "TestParsePassword.pdf");
-                System.IO.File.Delete(dest);
-                binder.Save(dest);
-                Assert.Fail("never reached");
-            }
-            catch (Exception /* err */) { Assert.Pass(); }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// TestPartMerge
         /// 
         /// <summary>
@@ -304,7 +243,7 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
             }
 
-            var dest = System.IO.Path.Combine(_dest, "TestPageBinderPartMerge.pdf");
+            var dest = System.IO.Path.Combine(_dest, "TestPartMerge.pdf");
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
@@ -317,6 +256,67 @@ namespace CubePdfTests.Editing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestMergeWithPassword
+        /// 
+        /// <summary>
+        /// パスワードの設定されている PDF ファイルのページを結合対象と
+        /// して指定された場合のテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestMergeWithPassword()
+        {
+            var binder = new CubePdf.Editing.PageBinder();
+
+            // OwnerPassword
+            var src = System.IO.Path.Combine(_src, "password.pdf");
+            var password = "password";
+            Assert.IsTrue(System.IO.File.Exists(src));
+            using (var reader = new CubePdf.Editing.DocumentReader(src, password))
+            {
+                foreach (var page in reader.Pages)
+                {
+                    Assert.AreEqual(src, page.FilePath);
+                    Assert.AreEqual(password, page.Password);
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
+                }
+            }
+
+            try
+            {
+                var dest = System.IO.Path.Combine(_dest, "TestMergeWithPassword.pdf");
+                System.IO.File.Delete(dest);
+                binder.Save(dest);
+                Assert.IsTrue(System.IO.File.Exists(dest));
+            }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
+            binder.Pages.Clear();
+
+            // UserPassword
+            password = "view";
+            using (var reader = new CubePdf.Editing.DocumentReader(src, password))
+            {
+                foreach (var page in reader.Pages)
+                {
+                    Assert.AreEqual(src, page.FilePath);
+                    Assert.AreEqual(password, page.Password);
+                    binder.Pages.Add(new CubePdf.Data.Page(page));
+                }
+            }
+
+            try
+            {
+                var dest = System.IO.Path.Combine(_dest, "TestMergePassword.pdf");
+                System.IO.File.Delete(dest);
+                binder.Save(dest);
+                Assert.Fail("never reached");
+            }
+            catch (Exception /* err */) { Assert.Pass(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestRotate
         /// 
         /// <summary>
@@ -324,107 +324,69 @@ namespace CubePdfTests.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestRotate()
+        [TestCase("rotated.pdf",    "TestRotate0.pdf",              0)]
+        [TestCase("rotated.pdf",    "TestRotate90.pdf",            90)]
+        [TestCase("rotated.pdf",    "TestRotate180.pdf",          180)]
+        [TestCase("rotated.pdf",    "TestRotate270.pdf",          270)]
+        [TestCase("annotation.pdf", "TestRotate90Annotation.pdf",  90)]
+        [TestCase("bookmark.pdf",   "TestRotate90Bookmark.pdf",    90)]
+        public void TestRotate(string src, string filename, int degree)
         {
             var binder = new CubePdf.Editing.PageBinder();
 
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            src = System.IO.Path.Combine(_src, src);
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
+            foreach (var page in reader.Pages)
             {
-                Assert.AreEqual(9, reader.PageCount);
-
-                var page = new CubePdf.Data.Page(reader.GetPage(1));
-                Assert.AreEqual(0, page.Rotation);
-                page.Rotation += 90;
-                binder.Pages.Add(page);
-
-                page = new CubePdf.Data.Page(reader.GetPage(2));
-                Assert.AreEqual(90, page.Rotation);
-                page.Rotation += 180;
-                binder.Pages.Add(page);
-
-                page = new CubePdf.Data.Page(reader.GetPage(3));
-                Assert.AreEqual(180, page.Rotation);
-                page.Rotation = 0;
-                binder.Pages.Add(page);
-
-                page = new CubePdf.Data.Page(reader.GetPage(5));
-                Assert.AreEqual(0, page.Rotation);
-                page.Rotation += 180;
-                binder.Pages.Add(page);
-
-                page = new CubePdf.Data.Page(reader.GetPage(6));
-                Assert.AreEqual(0, page.Rotation);
-                page.Rotation += 270;
-                binder.Pages.Add(page);
+                var duplicate = new CubePdf.Data.Page(page);
+                duplicate.Rotation = degree;
+                binder.Pages.Add(duplicate);
             }
 
-            var dest = System.IO.Path.Combine(_dest, "TestPageBinderRotate.pdf");
-            System.IO.File.Delete(dest);
-            binder.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
-
-            using (var reader = new CubePdf.Editing.DocumentReader(dest))
-            {
-                Assert.AreEqual(5,   reader.PageCount);
-                Assert.AreEqual(90,  reader.GetPage(1).Rotation);
-                Assert.AreEqual(270, reader.GetPage(2).Rotation);
-                Assert.AreEqual(0,   reader.GetPage(3).Rotation);
-                Assert.AreEqual(180, reader.GetPage(4).Rotation);
-                Assert.AreEqual(270, reader.GetPage(5).Rotation);
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestRotateDetail
-        /// 
-        /// <summary>
-        /// PageBinder クラスを用いてページ回転のテストを行います。
-        /// (0, 90, 180, 270) x (0, 90, 180, 270) の 16 パターンの回転を
-        /// 行い生成後の PDF を確認します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [TestCase(0)]
-        [TestCase(90)]
-        [TestCase(180)]
-        [TestCase(270)]
-        public void TestRotateDetail(int degree)
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src))
-            {
-                Assert.AreEqual(0,   reader.GetPage(1).Rotation);
-                Assert.AreEqual(90,  reader.GetPage(2).Rotation);
-                Assert.AreEqual(180, reader.GetPage(3).Rotation);
-                Assert.AreEqual(270, reader.GetPage(4).Rotation);
-
-                for (int i = 1; i <= 4; ++i)
-                {
-                    var page = new CubePdf.Data.Page(reader.GetPage(i));
-                    page.Rotation = degree;
-                    binder.Pages.Add(page);
-                }
-            }
-
-            var filename = String.Format("TestPageBinderRotate{0}.pdf", degree);
             var dest = System.IO.Path.Combine(_dest, filename);
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
 
             using (var reader = new CubePdf.Editing.DocumentReader(dest))
+            foreach (var page in reader.Pages)
             {
-                Assert.AreEqual(degree, reader.GetPage(1).Rotation);
-                Assert.AreEqual(degree, reader.GetPage(2).Rotation);
-                Assert.AreEqual(degree, reader.GetPage(3).Rotation);
-                Assert.AreEqual(degree, reader.GetPage(4).Rotation);
+                Assert.AreEqual(degree, page.Rotation);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestPageOrderWithBookmark
+        /// 
+        /// <summary>
+        /// ページ順番を元の PDF ファイルとはまったく異なる配置にしたとき、
+        /// しおりが追随できるかどうかをテストします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestPageOrderWithBookmark()
+        {
+            var src = System.IO.Path.Combine(_src, "bookmark.pdf");
+            Assert.IsTrue(System.IO.File.Exists(src));
+
+            using (var reader = new CubePdf.Editing.DocumentReader(src))
+            {
+                var binder = new CubePdf.Editing.PageBinder();
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(3)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(1)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(4)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(5)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(9)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
+                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(6)));
+
+                var dest = System.IO.Path.Combine(_dest, "TestPageOrderBookmark.pdf");
+                System.IO.File.Delete(dest);
+                binder.Save(dest);
+                Assert.IsTrue(System.IO.File.Exists(dest));
             }
         }
 
@@ -824,45 +786,6 @@ namespace CubePdfTests.Editing
             //binder.Encryption = encrypt;
             //binder.Save(dest);
             //Assert.IsTrue(System.IO.File.Exists(dest));
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestRotateWithAnnotation
-        /// 
-        /// <summary>
-        /// 注釈つきの PDF ファイルを回転するテストを行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestRotateWithAnnotation()
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-
-            var src = System.IO.Path.Combine(_src, "annotation.pdf");
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src))
-            {
-                Assert.AreEqual(2, reader.PageCount);
-                var page = new CubePdf.Data.Page(reader.GetPage(1));
-                page.Rotation = 90;
-                binder.Pages.Add(page);
-                binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
-            }
-
-            var dest = System.IO.Path.Combine(_dest, "TestPageBinderRotateWithAnnotation.pdf");
-            System.IO.File.Delete(dest);
-            binder.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
-
-            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
-            {
-                var page = reader.GetPageN(1);
-                Assert.NotNull(page);
-                var annots = page.GetAsArray(iTextSharp.text.pdf.PdfName.ANNOTS);
-                Assert.NotNull(annots);
-            }
         }
 
         #endregion
