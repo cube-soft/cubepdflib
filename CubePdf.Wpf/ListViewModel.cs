@@ -1000,7 +1000,7 @@ namespace CubePdf.Wpf
         public void Open(CubePdf.Data.IDocumentReader reader)
         {
             if (_pages.Count > 0) CloseDocument();
-            OpenDocument(reader);
+                OpenDocument(reader);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1494,6 +1494,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OpenDocument(CubePdf.Data.IDocumentReader reader)
         {
+
             // Properties for IDocumentReader
             _path = reader.FilePath;
             _password = reader.Password;
@@ -1503,8 +1504,51 @@ namespace CubePdf.Wpf
             _source_permission = reader.Permission;
             _pages.Capacity = reader.PageCount + 1;
 
-            CreateEngine(reader);
-            InsertDocument(_pages.Count, reader);
+            // AES256
+            if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+            {
+                if (reader.EncryptionStatus == Data.EncryptionStatus.FullAccess)
+                {
+                    try
+                    {
+                        var _tmp = System.IO.Path.GetTempFileName();
+                        System.IO.File.Delete(_tmp);
+
+                        var _reader = new iTextSharp.text.pdf.PdfReader(_path, System.Text.Encoding.UTF8.GetBytes(_password));
+                        var document = new iTextSharp.text.Document();
+                        var writer = iTextSharp.text.pdf.PdfWriter.GetInstance(document, new System.IO.FileStream(_tmp, System.IO.FileMode.Create));
+
+                        document.Open();
+                        var cb = writer.DirectContent;
+                        int i = 0;
+                        while (i < _reader.NumberOfPages)
+                        {
+                            document.NewPage();
+                            var page1 = writer.GetImportedPage(_reader, ++i);
+                            cb.AddTemplate(page1, 1f, 0, 0, 1f, 0, 0);
+                        }
+                        document.Close();
+                        _reader.Close();
+                        writer.Close();
+
+                        using (var tmp_reader = new CubePdf.Editing.DocumentReader(_tmp))
+                        {
+                            CreateEngine(tmp_reader);
+                            InsertDocument(_pages.Count, tmp_reader);
+                        }
+                    }
+                    catch (Exception /*err*/) { throw new Exception(); }
+                }
+                else
+                {
+                    throw new CubePdf.Data.EncryptionException();
+                }
+            }
+            else
+            {
+                CreateEngine(reader);
+                InsertDocument(_pages.Count, reader);
+            }
 
             // Properties for IDocumentWriter
             var encrypt = new CubePdf.Data.Encryption();
