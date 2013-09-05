@@ -157,37 +157,55 @@ namespace CubePdfTests.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestFullMerge
+        /// TestMerge
         /// 
         /// <summary>
-        /// PageBinder クラスを用いて、2 つの PDF ファイルの全ページを結合
-        /// するテストを行います。
+        /// PageBinder クラスを用いてページ結合のテストを行います。
         /// </summary>
+        /// 
+        /// <param name="head">先頭に結合するファイル名</param>
+        /// <param name="tail">末尾に結合するファイル名</param>
+        /// <param name="filename">保存するファイル名</param>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestFullMerge()
+        [TestCase("readme.pdf",     "rotated.pdf",     "TestMerge.pdf")]
+        [TestCase("readme.pdf",     "annotation.pdf",  "TestMergeAnnotation1.pdf")]
+        [TestCase("annotation.pdf", "readme.pdf",      "TestMergeAnnotation2.pdf")]
+        [TestCase("annotation.pdf", "annotation.pdf",  "TestMergeAnnotation3.pdf")]
+        [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotation4.pdf")]
+        [TestCase("readme.pdf",     "bookmark.pdf",    "TestMergeBookmark1.pdf")]
+        [TestCase("readme.pdf",     "bookmark2.pdf",   "TestMergeBookmark2.pdf")]
+        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark3.pdf")]
+        public void TestMerge(string head, string tail, string filename)
         {
             var binder = new CubePdf.Editing.PageBinder();
 
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
+            var pagenum = 0;
+            var src = System.IO.Path.Combine(_src, head);
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
                 foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+                pagenum += reader.PageCount;
             }
 
-            src = System.IO.Path.Combine(_src, "readme.pdf");
+            src = System.IO.Path.Combine(_src, tail);
             Assert.IsTrue(System.IO.File.Exists(src));
             using (var reader = new CubePdf.Editing.DocumentReader(src))
             {
                 foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+                pagenum += reader.PageCount;
             }
 
-            var dest = System.IO.Path.Combine(_dest, "TestPageBinderFullMerge.pdf");
+            var dest = System.IO.Path.Combine(_dest, filename);
             System.IO.File.Delete(dest);
             binder.Save(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
+
+            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
+            {
+                Assert.AreEqual(pagenum, reader.NumberOfPages);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -806,56 +824,6 @@ namespace CubePdfTests.Editing
             //binder.Encryption = encrypt;
             //binder.Save(dest);
             //Assert.IsTrue(System.IO.File.Exists(dest));
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestMergeWithAnnotation
-        /// 
-        /// <summary>
-        /// PageBinder クラスを用いてページ結合等を行った時に注釈の情報が
-        /// 除去されていないかどうかをテストします。
-        /// </summary>
-        /// 
-        /// <param name="head">先頭に結合するファイル名</param>
-        /// <param name="tail">末尾に結合するファイル名</param>
-        /// <param name="filename">保存するファイル名</param>
-        ///
-        /* ----------------------------------------------------------------- */
-        [TestCase("readme.pdf",     "annotation.pdf",  "TestAnnotation1.pdf")]
-        [TestCase("annotation.pdf", "readme.pdf",      "TestAnnotation2.pdf")]
-        [TestCase("annotation.pdf", "annotation.pdf",  "TestAnnotation3.pdf")]
-        [TestCase("annotation.pdf", "annotation2.pdf", "TestAnnotation4.pdf")]
-        public void TestMergeWithAnnotation(string head, string tail, string filename)
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-
-            var pagenum = 0;
-            var src = System.IO.Path.Combine(_src, head);
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src))
-            {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
-                pagenum += reader.PageCount;
-            }
-
-            src = System.IO.Path.Combine(_src, tail);
-            Assert.IsTrue(System.IO.File.Exists(src));
-            using (var reader = new CubePdf.Editing.DocumentReader(src))
-            {
-                foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
-                pagenum += reader.PageCount;
-            }
-
-            var dest = System.IO.Path.Combine(_dest, filename);
-            System.IO.File.Delete(dest);
-            binder.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
-
-            using (var reader = new iTextSharp.text.pdf.PdfReader(dest))
-            {
-                Assert.AreEqual(pagenum, reader.NumberOfPages);
-            }
         }
 
         /* ----------------------------------------------------------------- */
