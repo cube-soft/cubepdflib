@@ -178,7 +178,9 @@ namespace CubePdfTests.Editing
         [TestCase("annotation.pdf", "annotation2.pdf", "TestMergeAnnotSmart.pdf",   true)]
         [TestCase("readme.pdf",     "bookmark.pdf",    "TestMergeBookmark1.pdf",   false)]
         [TestCase("readme.pdf",     "bookmark2.pdf",   "TestMergeBookmark2.pdf",   false)]
-        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark3.pdf",   false)]
+        [TestCase("readme.pdf",     "bookmark3.pdf",   "TestMergeBookmark3.pdf",   false)]
+        [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark4.pdf",   false)]
+        [TestCase("bookmark2.pdf",  "bookmark3.pdf",   "TestMergeBookmark5.pdf",   false)]
         [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBkSmart.pdf",      true)]
         public void TestMerge(string head, string tail, string filename, bool smart)
         {
