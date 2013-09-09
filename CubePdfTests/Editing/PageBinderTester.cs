@@ -373,10 +373,11 @@ namespace CubePdfTests.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestPageOrderWithBookmark()
+        [TestCase("bookmark.pdf",  "TestPageOrderBookmark1.pdf")]
+        [TestCase("bookmark3.pdf", "TestPageOrderBookmark3.pdf")]
+        public void TestPageOrderWithBookmark(string srcfile, string destfile)
         {
-            var src = System.IO.Path.Combine(_src, "bookmark.pdf");
+            var src = System.IO.Path.Combine(_src, srcfile);
             Assert.IsTrue(System.IO.File.Exists(src));
 
             using (var reader = new CubePdf.Editing.DocumentReader(src))
@@ -390,7 +391,7 @@ namespace CubePdfTests.Editing
                 binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(2)));
                 binder.Pages.Add(new CubePdf.Data.Page(reader.GetPage(6)));
 
-                var dest = System.IO.Path.Combine(_dest, "TestPageOrderBookmark.pdf");
+                var dest = System.IO.Path.Combine(_dest, destfile);
                 System.IO.File.Delete(dest);
                 binder.Save(dest);
                 Assert.IsTrue(System.IO.File.Exists(dest));
