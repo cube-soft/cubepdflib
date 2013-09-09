@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
@@ -255,14 +256,11 @@ namespace CubePdf.Editing
             var bookmarks = SimpleBookmark.GetBookmark(reader);
             if (bookmarks == null) return;
 
+            var pattern = string.Format("^{0} (XYZ|Fit|FitH|FitBH)", destpage);
             SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                if (bm.ContainsKey("Page") &&
-                    bm["Page"].ToString().Contains(destpage.ToString() + " FitH"))
-                {
-                    _bookmarks.Add(bm);
-                }
+                if (bm.ContainsKey("Page") && Regex.IsMatch(bm["Page"].ToString(), pattern)) _bookmarks.Add(bm);
             }
         }
 
