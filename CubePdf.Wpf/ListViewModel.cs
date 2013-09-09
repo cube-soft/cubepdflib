@@ -1507,9 +1507,11 @@ namespace CubePdf.Wpf
 
             if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
             {
-                var duplicated = DuplicateReader(reader);
-                CreateEngineForAes256(duplicated, reader);
-                InsertDocument(_pages.Count, duplicated);
+                using (var duplicated = DuplicateReader(reader))
+                {
+                    CreateEngineForAes256(duplicated, reader);
+                    InsertDocument(_pages.Count, duplicated);
+                }
             }
             else
             {
@@ -1606,9 +1608,20 @@ namespace CubePdf.Wpf
                 using (var reader = new CubePdf.Editing.DocumentReader(_path, _password))
                 {
                     _source_status = reader.EncryptionStatus;
-                    CreateEngine(reader);
                     var index = 0;
-                    foreach (var page in reader.Pages) _pages[index++] = page;
+                    if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+                    {
+                        using (var duplicated = DuplicateReader(reader))
+                        {
+                            CreateEngineForAes256(duplicated, reader);
+                            foreach (var page in duplicated.Pages) _pages[index++] = page;
+                        }
+                    }
+                    else
+                    {
+                        CreateEngine(reader);
+                        foreach (var page in reader.Pages) _pages[index++] = page;
+                    }
                 }
             }
 
