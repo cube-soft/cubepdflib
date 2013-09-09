@@ -107,6 +107,7 @@ namespace CubePdf.Wpf
             {
                 CloseDocument();
                 DeleteBackup();
+                DeleteGarbade();
             }
         }
 
@@ -1000,7 +1001,7 @@ namespace CubePdf.Wpf
         public void Open(CubePdf.Data.IDocumentReader reader)
         {
             if (_pages.Count > 0) CloseDocument();
-            OpenDocument(reader);
+                OpenDocument(reader);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1494,6 +1495,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OpenDocument(CubePdf.Data.IDocumentReader reader)
         {
+
             // Properties for IDocumentReader
             _path = reader.FilePath;
             _password = reader.Password;
@@ -1503,8 +1505,19 @@ namespace CubePdf.Wpf
             _source_permission = reader.Permission;
             _pages.Capacity = reader.PageCount + 1;
 
-            CreateEngine(reader);
-            InsertDocument(_pages.Count, reader);
+            if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+            {
+                using (var duplicated = DuplicateReader(reader))
+                {
+                    CreateEngineForAes256(duplicated, reader);
+                    InsertDocument(_pages.Count, duplicated);
+                }
+            }
+            else
+            {
+                CreateEngine(reader);
+                InsertDocument(_pages.Count, reader);
+            }
 
             // Properties for IDocumentWriter
             var encrypt = new CubePdf.Data.Encryption();
@@ -1595,9 +1608,20 @@ namespace CubePdf.Wpf
                 using (var reader = new CubePdf.Editing.DocumentReader(_path, _password))
                 {
                     _source_status = reader.EncryptionStatus;
-                    CreateEngine(reader);
                     var index = 0;
-                    foreach (var page in reader.Pages) _pages[index++] = page;
+                    if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+                    {
+                        using (var duplicated = DuplicateReader(reader))
+                        {
+                            CreateEngineForAes256(duplicated, reader);
+                            foreach (var page in duplicated.Pages) _pages[index++] = page;
+                        }
+                    }
+                    else
+                    {
+                        CreateEngine(reader);
+                        foreach (var page in reader.Pages) _pages[index++] = page;
+                    }
                 }
             }
 
@@ -2164,6 +2188,77 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Private methods for AES256
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DuplicateReader
+        /// 
+        /// <summary>
+        /// 引数に指定された reader オブジェクトからセキュリティ設定を解除
+        /// した CubePdf.Editing.DocumentReader オブジェクトを複製します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private CubePdf.Data.IDocumentReader DuplicateReader(CubePdf.Data.IDocumentReader reader)
+        {
+            if (reader.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess)
+            {
+                throw new CubePdf.Data.EncryptionException("AES256");
+            }
+
+            var tmp = System.IO.Path.GetTempFileName();
+            System.IO.File.Delete(tmp);
+
+            var binder = new CubePdf.Editing.PageBinder();
+            foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+            binder.Save(tmp);
+            _garbade.Add(tmp);
+
+            return new CubePdf.Editing.DocumentReader(tmp);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateEngineForAes256
+        /// 
+        /// <summary>
+        /// 新しい BitmapEngine オブジェクトを生成してエンジン一覧に登録
+        /// します（AES256 専用）。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private CubePdf.Drawing.BitmapEngine CreateEngineForAes256(CubePdf.Data.IDocumentReader reader, CubePdf.Data.IDocumentReader original)
+        {
+            if (_engines.ContainsKey(original.FilePath)) return _engines[original.FilePath];
+            var engine = new CubePdf.Drawing.BitmapEngine();
+            engine.Open(reader);
+            engine.ImageCreated -= new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
+            engine.ImageCreated += new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
+            lock (_engines) _engines.Add(original.FilePath, engine);
+            return engine;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DeleteGarbade
+        /// 
+        /// <summary>
+        /// AES256 のために複製した一時ファイルを全て削除します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void DeleteGarbade()
+        {
+            foreach (var path in _garbade)
+            {
+                try { System.IO.File.Delete(path); }
+                catch (Exception err) { Trace.WriteLine(err.ToString()); }
+            }
+        }
+
+        #endregion
+
         #region Internal classes
 
         /* ----------------------------------------------------------------- */
@@ -2225,6 +2320,7 @@ namespace CubePdf.Wpf
         private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
         private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
         private System.Windows.Controls.ListView _view = null;
+        private IList<string> _garbade = new List<string>();
         #endregion
 
         #endregion
