@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
@@ -241,9 +242,13 @@ namespace CubePdf.Editing
         /// AddBookmarks
         /// 
         /// <summary>
-        /// 元の PDF ファイルにあるしおりを_bookmarksに追加します。
-        /// 実際にしおりをPDFに追加するにはOutlinesプロパティに代入が必要
+        /// PDF ファイルに存在するしおり情報を取得して追加します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 実際にしおりをPDFに追加するには PdfWriter クラスの Outlines
+        /// プロパティに代入する必要があります。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void AddBookmarks(PdfReader reader, int srcpage, int destpage)
@@ -251,10 +256,11 @@ namespace CubePdf.Editing
             var bookmarks = SimpleBookmark.GetBookmark(reader);
             if (bookmarks == null) return;
 
+            var pattern = string.Format("^{0} (XYZ|Fit|FitH|FitBH)", destpage);
             SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                if (bm["Page"].ToString().Contains(destpage.ToString() + " FitH")) _bookmarks.Add(bm);
+                if (bm.ContainsKey("Page") && Regex.IsMatch(bm["Page"].ToString(), pattern)) _bookmarks.Add(bm);
             }
         }
 
