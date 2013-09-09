@@ -241,9 +241,13 @@ namespace CubePdf.Editing
         /// AddBookmarks
         /// 
         /// <summary>
-        /// 元の PDF ファイルにあるしおりを_bookmarksに追加します。
-        /// 実際にしおりをPDFに追加するにはOutlinesプロパティに代入が必要
+        /// PDF ファイルに存在するしおり情報を取得して追加します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 実際にしおりをPDFに追加するには PdfWriter クラスの Outlines
+        /// プロパティに代入する必要があります。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void AddBookmarks(PdfReader reader, int srcpage, int destpage)
@@ -254,7 +258,11 @@ namespace CubePdf.Editing
             SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                if (bm["Page"].ToString().Contains(destpage.ToString() + " FitH")) _bookmarks.Add(bm);
+                if (bm.ContainsKey("Page") &&
+                    bm["Page"].ToString().Contains(destpage.ToString() + " FitH"))
+                {
+                    _bookmarks.Add(bm);
+                }
             }
         }
 
