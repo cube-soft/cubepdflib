@@ -138,6 +138,7 @@ namespace CubePdf.Editing
                 ExtractPages(_core, _path, _password);
                 ExtractMetadata(_core, _path);
                 ExtractEncryption(_core, _password);
+                ExtractTaggedData(_core);
             }
             catch (iTextSharp.text.pdf.BadPasswordException err)
             {
@@ -302,6 +303,21 @@ namespace CubePdf.Editing
             get { return _pages; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsTaggedDocument
+        /// 
+        /// <summary>
+        /// PDF ファイルがタグ付き PDF（構造化された PDF）であるかどうかを
+        /// 判別します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool IsTaggedDocument
+        {
+            get { return _tagged; }
+        }
+
         #endregion
 
         #region Other methods
@@ -371,6 +387,22 @@ namespace CubePdf.Editing
             _permission = Translator.ToPermission(reader.Permissions);
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ExtractTaggedData
+        /// 
+        /// <summary>
+        /// タグ付き PDF（構造化された PDF）に関わる情報を抽出します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ExtractTaggedData(iTextSharp.text.pdf.PdfReader reader)
+        {
+            var catalog = reader.Catalog;
+            var root = catalog.GetAsDict(iTextSharp.text.pdf.PdfName.STRUCTTREEROOT);
+            _tagged = (root != null);
+        }
+
         #endregion
 
         #region Variables
@@ -378,6 +410,7 @@ namespace CubePdf.Editing
         private iTextSharp.text.pdf.PdfReader _core = null;
         private string _path = string.Empty;
         private string _password = string.Empty;
+        private bool _tagged = false;
         private CubePdf.Data.IMetadata _metadata = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;

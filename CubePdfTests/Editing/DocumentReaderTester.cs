@@ -199,9 +199,6 @@ namespace CubePdfTests.Editing
         /// 
         /// <summary>
         /// パスワードの設定されているファイルを開くテストを行います。
-        /// 
-        /// TODO: EncryptionMethod の取得が未実装なので該当部分をコメント
-        /// アウト。修正後、コメントを外してテストを行う。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -256,6 +253,32 @@ namespace CubePdfTests.Editing
             {
                 Assert.Fail(err.ToString());
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestIsTaggedDocument
+        /// 
+        /// <summary>
+        /// タグ付き PDF（構造化された PDF）を開くテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [TestCase("rotated.pdf", false)]
+        [TestCase("tagged.pdf",   true)]
+        public void TestIsTaggedDocument(string filename, bool is_tagged)
+        {
+            try
+            {
+                var path = System.IO.Path.Combine(_src, filename);
+                Assert.IsTrue(System.IO.File.Exists(path));
+
+                using (var doc = new CubePdf.Editing.DocumentReader(path))
+                {
+                    Assert.AreEqual(is_tagged, doc.IsTaggedDocument);
+                }
+            }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
         }
 
         #endregion
