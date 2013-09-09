@@ -1521,8 +1521,13 @@ namespace CubePdf.Wpf
 
             // Properties for IDocumentWriter
             var encrypt = new CubePdf.Data.Encryption();
-            encrypt.Method = _source_method;
-            encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
+            if (_source_status == Data.EncryptionStatus.FullAccess)
+            {
+                encrypt.IsEnabled = true;
+                encrypt.OwnerPassword = _password;
+                encrypt.Method = _source_method;
+                encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
+            }
             _encrypt = encrypt;
 
             // Properties for others
