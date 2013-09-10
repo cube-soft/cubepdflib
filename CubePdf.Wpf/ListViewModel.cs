@@ -39,9 +39,13 @@ namespace CubePdf.Wpf
     /// ListView で表示される PDF ファイルの各ページの情報、およびイメージ
     /// データ等を管理するクラスです。
     /// </summary>
+    /// 
+    /// <remarks>
+    /// TODO: IDocumentReader, IDocumentWriter を実装する。
+    /// </remarks>
     ///
     /* --------------------------------------------------------------------- */
-    public class ListViewModel : IListViewModel
+    public class ListViewModel : IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged, IDisposable
     {
         #region Initialization and Termination
 
@@ -913,10 +917,10 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
-        {
-            get { return _metadata; }
-        }
+        //CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
+        //{
+        //    get { return _metadata; }
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -1128,10 +1132,10 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
-        {
-            get { return _pages; }
-        }
+        //ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
+        //{
+        //    get { return _pages; }
+        //}
 
         #endregion
 

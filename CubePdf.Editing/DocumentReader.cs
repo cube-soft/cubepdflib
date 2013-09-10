@@ -385,6 +385,12 @@ namespace CubePdf.Editing
             else _status = Data.EncryptionStatus.FullAccess;
             _method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
             _permission = Translator.ToPermission(reader.Permissions);
+
+            var bytes = reader.ComputeUserPassword();
+            if (bytes != null && bytes.Length > 0)
+            {
+                System.Diagnostics.Trace.WriteLine(System.Text.Encoding.UTF8.GetString(bytes));
+            }
         }
 
         /* ----------------------------------------------------------------- */

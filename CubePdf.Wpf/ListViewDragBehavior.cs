@@ -76,9 +76,9 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IListViewModel ViewModel
+        public ListViewModel ViewModel
         {
-            get { return (IListViewModel)GetValue(ViewModelProperty); }
+            get { return (ListViewModel)GetValue(ViewModelProperty); }
             set { SetValue(ViewModelProperty, value); }
         }
 
@@ -579,7 +579,7 @@ namespace CubePdf.Wpf
 
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register("ViewModel",
-                typeof(IListViewModel),
+                typeof(ListViewModel),
                 typeof(ListViewDragBehavior),
                 new PropertyMetadata(null));
 
