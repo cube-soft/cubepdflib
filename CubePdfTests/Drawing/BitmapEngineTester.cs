@@ -161,7 +161,7 @@ namespace CubePdfTests.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestPageProperty
+        /// TestPages
         /// 
         /// <summary>
         /// 各種ページの情報が取得できているかどうかテストします。

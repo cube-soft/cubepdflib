@@ -83,25 +83,34 @@ namespace CubePdfTests.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestOpen()
+        [TestCase("rotated.pdf",         "")]
+        [TestCase("password-aes256.pdf", "password")]
+        public void TestOpen(string filename, string password)
         {
-            var viewmodel = CreateViewModel();
-            Assert.AreEqual(System.IO.Path.Combine(_src, "rotated.pdf"), viewmodel.FilePath);
-            Assert.IsFalse(viewmodel.IsModified);
-            Assert.AreEqual(CubePdf.Wpf.ListViewItemVisibility.Normal, viewmodel.ItemVisibility);
-            Assert.NotNull(viewmodel.Metadata);
-            Assert.NotNull(viewmodel.Metadata.Version);
-            Assert.AreEqual(1, viewmodel.Metadata.Version.Major);
-            Assert.AreEqual(7, viewmodel.Metadata.Version.Minor);
-            Assert.AreEqual(0, viewmodel.Metadata.Version.Build);
-            Assert.AreEqual(0, viewmodel.Metadata.Version.Revision);
-            Assert.AreEqual("CubeSoft", viewmodel.Metadata.Author);
-            Assert.AreEqual("CubePdfTests", viewmodel.Metadata.Title);
-            Assert.AreEqual("rotated example", viewmodel.Metadata.Subtitle);
-            Assert.AreEqual("CubeSoft,PDF,Test", viewmodel.Metadata.Keywords);
-            Assert.AreEqual(9, viewmodel.PageCount);
-            viewmodel.Close();
+            try
+            {
+                var viewmodel = CreateViewModel(System.IO.Path.Combine(_src, filename), password);
+                Assert.IsFalse(viewmodel.IsModified);
+                Assert.AreEqual(CubePdf.Wpf.ListViewItemVisibility.Normal, viewmodel.ItemVisibility);
+                Assert.IsNotNullOrEmpty(viewmodel.FilePath);
+                Assert.NotNull(viewmodel.Pages);
+                Assert.IsTrue(viewmodel.PageCount > 0);
+                Assert.NotNull(viewmodel.Metadata);
+                Assert.NotNull(viewmodel.Metadata.Version);
+                Assert.NotNull(viewmodel.Encryption);
+                Assert.IsTrue(viewmodel.Encryption.IsEnabled || string.IsNullOrEmpty(password));
+                Assert.AreEqual(password, viewmodel.Encryption.OwnerPassword);
+                Assert.NotNull(viewmodel.Encryption.Permission);
+                Assert.AreEqual(30, viewmodel.MaxHistoryCount);
+                Assert.NotNull(viewmodel.History);
+                Assert.AreEqual(0, viewmodel.History.Count);
+                Assert.NotNull(viewmodel.UndoHistory);
+                Assert.AreEqual(0, viewmodel.UndoHistory.Count);
+                Assert.IsEmpty(viewmodel.BackupFolder);
+                Assert.AreEqual(0, viewmodel.BackupDays);
+                viewmodel.Close();
+            }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
         }
 
         /* ----------------------------------------------------------------- */
@@ -137,6 +146,7 @@ namespace CubePdfTests.Wpf
         public void TestOverwrite()
         {
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelSave.pdf");
+            try
             {
                 var viewmodel = CreateViewModel();
                 System.IO.File.Delete(dest);
@@ -144,7 +154,9 @@ namespace CubePdfTests.Wpf
                 Assert.IsTrue(System.IO.File.Exists(dest));
                 viewmodel.Close();
             }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
 
+            try
             {
                 var viewmodel = CreateViewModel(dest);
                 viewmodel.RemoveAt(0);
@@ -152,6 +164,7 @@ namespace CubePdfTests.Wpf
                 Assert.IsTrue(System.IO.File.Exists(dest));
                 viewmodel.Close();
             }
+            catch (Exception err) { Assert.Fail(err.ToString()); }
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
@@ -813,67 +826,6 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(17, count);
         }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestInterface
-        /// 
-        /// <summary>
-        /// ListViewModel が継承しているインターフェースにキャストして
-        /// 操作（メソッドの実行）するテストです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestInterface()
-        {
-            var viewmodel = CreateViewModel() as CubePdf.Wpf.IListViewModel;
-            Assert.NotNull(viewmodel.Metadata);
-            var metadata = new CubePdf.Data.Metadata(viewmodel.Metadata);
-            metadata.Title = "TestInterface";
-            viewmodel.Metadata = metadata;
-            Assert.AreEqual("TestInterface", viewmodel.Metadata.Title);
-            Assert.AreEqual(9, viewmodel.PageCount);
-            foreach (var page in viewmodel.Pages)
-            {
-                Assert.NotNull(page);
-                Assert.IsNotNullOrEmpty(page.FilePath);
-                Assert.IsTrue(page.PageNumber > 0);
-                Assert.IsTrue(page.OriginalSize.Width > 0);
-                Assert.IsTrue(page.OriginalSize.Height > 0);
-            }
-
-            var reader = viewmodel as CubePdf.Data.IDocumentReader;
-            Assert.NotNull(reader.Metadata);
-            Assert.AreEqual("TestInterface", reader.Metadata.Title);
-            Assert.AreEqual(9, reader.PageCount);
-            foreach (var page in viewmodel.Pages)
-            {
-                Assert.NotNull(page);
-                Assert.IsNotNullOrEmpty(page.FilePath);
-                Assert.IsTrue(page.PageNumber > 0);
-                Assert.IsTrue(page.OriginalSize.Width > 0);
-                Assert.IsTrue(page.OriginalSize.Height > 0);
-            }
-
-            var writer = viewmodel as CubePdf.Data.IDocumentWriter;
-            Assert.NotNull(writer.Metadata);
-            Assert.AreEqual("TestInterface", writer.Metadata.Title);
-            metadata = new CubePdf.Data.Metadata(writer.Metadata);
-            metadata.Title = "TestInterfaceWriter";
-            writer.Metadata = metadata;
-            Assert.AreEqual("TestInterfaceWriter", writer.Metadata.Title);
-            Assert.AreEqual("TestInterfaceWriter", viewmodel.Metadata.Title);
-            Assert.AreEqual(9, writer.Pages.Count);
-            foreach (var page in writer.Pages)
-            {
-                Assert.NotNull(page);
-                Assert.IsNotNullOrEmpty(page.FilePath);
-                Assert.IsTrue(page.PageNumber > 0);
-                Assert.IsTrue(page.OriginalSize.Width > 0);
-                Assert.IsTrue(page.OriginalSize.Height > 0);
-            }
-        }
-
         #endregion
 
         #region Utility methods
@@ -888,14 +840,14 @@ namespace CubePdfTests.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Wpf.ListViewModel CreateViewModel(string alternate = null)
+        private CubePdf.Wpf.ListViewModel CreateViewModel(string alternate = null, string password = "")
         {
             var src = String.IsNullOrEmpty(alternate) ? System.IO.Path.Combine(_src, "rotated.pdf") : alternate;
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var dest = new CubePdf.Wpf.ListViewModel();
             dest.ItemWidth = 64;
-            dest.Open(src);
+            dest.Open(src, password);
             return dest;
         }
 
