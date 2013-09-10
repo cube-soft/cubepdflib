@@ -521,20 +521,20 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
-                Assert.AreEqual(method, reader.EncryptionMethod);
-                Assert.IsTrue(reader.Permission.Printing);
-                Assert.IsTrue(reader.Permission.DegradedPrinting);
-                Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                Assert.IsTrue(reader.Permission.Assembly);
-                Assert.IsTrue(reader.Permission.CopyContents);
-                Assert.IsTrue(reader.Permission.Accessibility);
-                Assert.IsTrue(reader.Permission.ModifyAnnotations);
-                Assert.IsTrue(reader.Permission.InputFormFields);
+                Assert.AreEqual(method, reader.Encryption.Method);
+                Assert.IsTrue(reader.Encryption.Permission.Printing);
+                Assert.IsTrue(reader.Encryption.Permission.DegradedPrinting);
+                Assert.IsTrue(reader.Encryption.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Encryption.Permission.Assembly);
+                Assert.IsTrue(reader.Encryption.Permission.CopyContents);
+                Assert.IsTrue(reader.Encryption.Permission.Accessibility);
+                Assert.IsTrue(reader.Encryption.Permission.ModifyAnnotations);
+                Assert.IsTrue(reader.Encryption.Permission.InputFormFields);
 
                 // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
-                // Assert.IsTrue(reader.Permission.ExtractPage);
-                // Assert.IsTrue(reader.Permission.Signature);
-                // Assert.IsTrue(reader.Permission.TemplatePage);
+                // Assert.IsTrue(reader.Encryption.Permission.ExtractPage);
+                // Assert.IsTrue(reader.Encryption.Permission.Signature);
+                // Assert.IsTrue(reader.Encryption.Permission.TemplatePage);
             }
 
             encrypt = new CubePdf.Data.Encryption(binder.Encryption);
@@ -559,15 +559,15 @@ namespace CubePdfTests.Editing
             using (var reader = new CubePdf.Editing.DocumentReader(dest, "password"))
             {
                 Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, reader.EncryptionStatus);
-                Assert.AreEqual(method, reader.EncryptionMethod);
-                Assert.IsFalse(reader.Permission.Printing);
-                Assert.IsFalse(reader.Permission.DegradedPrinting);
-                Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                Assert.IsFalse(reader.Permission.Assembly);
-                Assert.IsFalse(reader.Permission.CopyContents);
-                Assert.IsFalse(reader.Permission.Accessibility);
-                Assert.IsFalse(reader.Permission.ModifyAnnotations);
-                Assert.IsFalse(reader.Permission.InputFormFields);
+                Assert.AreEqual(method, reader.Encryption.Method);
+                Assert.IsFalse(reader.Encryption.Permission.Printing);
+                Assert.IsFalse(reader.Encryption.Permission.DegradedPrinting);
+                Assert.IsFalse(reader.Encryption.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Encryption.Permission.Assembly);
+                Assert.IsFalse(reader.Encryption.Permission.CopyContents);
+                Assert.IsFalse(reader.Encryption.Permission.Accessibility);
+                Assert.IsFalse(reader.Encryption.Permission.ModifyAnnotations);
+                Assert.IsFalse(reader.Encryption.Permission.InputFormFields);
 
                 // NOTE: ExtractPage, Signature, TemplatePage は DocumentReader (iTextSharp) が未対応。
                 // Assert.IsFalse(reader.Permission.ExtractPage);

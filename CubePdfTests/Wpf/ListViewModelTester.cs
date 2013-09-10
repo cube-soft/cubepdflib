@@ -98,8 +98,9 @@ namespace CubePdfTests.Wpf
                 Assert.NotNull(viewmodel.Metadata);
                 Assert.NotNull(viewmodel.Metadata.Version);
                 Assert.NotNull(viewmodel.Encryption);
-                Assert.AreEqual(password, viewmodel.Password);
-                Assert.NotNull(viewmodel.Permission);
+                Assert.IsTrue(viewmodel.Encryption.IsEnabled || string.IsNullOrEmpty(password));
+                Assert.AreEqual(password, viewmodel.Encryption.OwnerPassword);
+                Assert.NotNull(viewmodel.Encryption.Permission);
                 Assert.AreEqual(30, viewmodel.MaxHistoryCount);
                 Assert.NotNull(viewmodel.History);
                 Assert.AreEqual(0, viewmodel.History.Count);
