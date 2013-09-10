@@ -350,6 +350,9 @@ namespace CubePdf.Editing
         /// ユーザパスワードの場合が存在します。どちらのパスワードが指定
         /// されたかは、PdfReader オブジェクトの IsOpenedWithFullPermissions
         /// プロパティから判断します。
+        /// 
+        /// TODO: 現在は暗号化方式が AES256 の場合、ユーザパスワードの解析に
+        /// 失敗するので除外しています。AES256 の場合の解析方法を検討する。
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
@@ -367,7 +370,8 @@ namespace CubePdf.Editing
                     encrypt.Method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
                     encrypt.Permission = Translator.ToPermission(reader.Permissions);
                     var bytes = reader.ComputeUserPassword();
-                    if (bytes != null && bytes.Length > 0)
+                    // NOTE: 現在は AES256 の場合、解析に失敗するので除外している。
+                    if (bytes != null && bytes.Length > 0 && encrypt.Method != Data.EncryptionMethod.Aes256)
                     {
                         encrypt.IsUserPasswordEnabled = true;
                         encrypt.UserPassword = System.Text.Encoding.UTF8.GetString(bytes);
