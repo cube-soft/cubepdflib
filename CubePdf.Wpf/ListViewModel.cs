@@ -39,9 +39,13 @@ namespace CubePdf.Wpf
     /// ListView で表示される PDF ファイルの各ページの情報、およびイメージ
     /// データ等を管理するクラスです。
     /// </summary>
+    /// 
+    /// <remarks>
+    /// TODO: IDocumentReader, IDocumentWriter を実装する。
+    /// </remarks>
     ///
     /* --------------------------------------------------------------------- */
-    public class ListViewModel : IListViewModel
+    public class ListViewModel : IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged, IDisposable
     {
         #region Initialization and Termination
 
@@ -872,23 +876,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Password
-        /// 
-        /// <summary>
-        /// PDF ファイルを開く際に指定されたパスワードを取得します。
-        /// 指定されたパスワードがオーナパスワードなのかユーザパスワード
-        /// なのかの判断については、EncryptionStatus の情報から判断
-        /// します（IDocumentReader から継承されます）。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Password
-        {
-            get { return _password; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// PageCount
         /// 
         /// <summary>
@@ -913,10 +900,10 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
-        {
-            get { return _metadata; }
-        }
+        //CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
+        //{
+        //    get { return _metadata; }
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -930,43 +917,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.EncryptionStatus EncryptionStatus
         {
-            get { return _source_status; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// EncryptionMethod
-        /// 
-        /// <summary>
-        /// 暗号化方式を取得します（IDocumentReader から継承されます）。
-        /// EncryptionMethod プロパティでは、常に、Open メソッドで開いた
-        /// PDF ファイルの元々の暗号化方式が取得されます。PDF ファイルを
-        /// 保存する際に暗号化方式を変更したい場合は、Encryption プロパティ
-        /// で設定して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionMethod EncryptionMethod
-        {
-            get { return _source_method; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Permission
-        /// 
-        /// <summary>
-        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
-        /// します（IDocumentReader から継承されます）。Permission プロパティ
-        /// では、常に、Open メソッドで開いた PDF ファイルの元々の各種操作
-        /// 権限情報が取得されます。PDF ファイルを保存する際に各種操作権限を
-        /// 変更したい場合は、Encrytpion プロパティで設定して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPermission Permission
-        {
-            get { return _source_permission; }
+            get { return _encrypt_status; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1128,10 +1079,10 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
-        {
-            get { return _pages; }
-        }
+        //ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
+        //{
+        //    get { return _pages; }
+        //}
 
         #endregion
 
@@ -1498,14 +1449,12 @@ namespace CubePdf.Wpf
 
             // Properties for IDocumentReader
             _path = reader.FilePath;
-            _password = reader.Password;
             _metadata = reader.Metadata;
-            _source_status = reader.EncryptionStatus;
-            _source_method = reader.EncryptionMethod;
-            _source_permission = reader.Permission;
+            _encrypt = reader.Encryption;
+            _encrypt_status = reader.EncryptionStatus;
             _pages.Capacity = reader.PageCount + 1;
 
-            if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+            if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
             {
                 using (var duplicated = DuplicateReader(reader))
                 {
@@ -1518,17 +1467,6 @@ namespace CubePdf.Wpf
                 CreateEngine(reader);
                 InsertDocument(_pages.Count, reader);
             }
-
-            // Properties for IDocumentWriter
-            var encrypt = new CubePdf.Data.Encryption();
-            if (_source_status == Data.EncryptionStatus.FullAccess)
-            {
-                encrypt.IsEnabled = true;
-                encrypt.OwnerPassword = _password;
-                encrypt.Method = _source_method;
-                encrypt.Permission = new CubePdf.Data.Permission(_source_permission);
-            }
-            _encrypt = encrypt;
 
             // Properties for others
             _undo.Clear();
@@ -1601,20 +1539,19 @@ namespace CubePdf.Wpf
         private void RestructDocument(string path, CubePdf.Editing.PageBinder binder)
         {
             _path = path;
-            _password = binder.Encryption.OwnerPassword;
             _metadata = binder.Metadata;
-            _source_method = binder.Encryption.Method;
-            _source_permission = binder.Encryption.Permission;
+            _encrypt = binder.Encryption;
             
             DisposeEngine();
             lock (_requests) _requests.Clear();
             lock (_pages)
             {
-                using (var reader = new CubePdf.Editing.DocumentReader(_path, _password))
+                var password = (_encrypt.IsEnabled && !string.IsNullOrEmpty(_encrypt.OwnerPassword)) ? _encrypt.OwnerPassword : "";
+                using (var reader = new CubePdf.Editing.DocumentReader(_path, password))
                 {
-                    _source_status = reader.EncryptionStatus;
+                    _encrypt_status = reader.EncryptionStatus;
                     var index = 0;
-                    if (reader.EncryptionMethod == Data.EncryptionMethod.Aes256)
+                    if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
                     {
                         using (var duplicated = DuplicateReader(reader))
                         {
@@ -1648,11 +1585,9 @@ namespace CubePdf.Wpf
         {
             _modified = false;
             _path = string.Empty;
-            _password = string.Empty;
             _metadata = null;
-            _source_status = Data.EncryptionStatus.NotEncrypted;
-            _source_method = Data.EncryptionMethod.Unknown;
-            _source_permission = null;
+            _encrypt = null;
+            _encrypt_status = Data.EncryptionStatus.NotEncrypted;
             _encrypt = null;
             _ratio = 0.0;
             _undo.Clear();
@@ -2294,18 +2229,12 @@ namespace CubePdf.Wpf
 
         #region Variables
 
-        #region Implementations for IDocumentReader
+        #region Implementations for IDocumentReader and IDocumentWriter
         private string _path = string.Empty;
-        private string _password = string.Empty;
         private CubePdf.Data.IMetadata _metadata = null;
-        private CubePdf.Data.EncryptionStatus _source_status = Data.EncryptionStatus.NotEncrypted;
-        private CubePdf.Data.EncryptionMethod _source_method = Data.EncryptionMethod.Unknown;
-        private CubePdf.Data.IPermission _source_permission = new CubePdf.Data.Permission();
-        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
-        #endregion
-
-        #region Implementations for IDocumentWriter
         private CubePdf.Data.IEncryption _encrypt = null;
+        private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
+        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
 
         #region Others

@@ -97,7 +97,6 @@
     <Compile Include="EnumToIntConverter.cs" />
     <Compile Include="IItemsProvider.cs" />
     <Compile Include="IListProxy.cs" />
-    <Compile Include="IListViewModel.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="IsEnabledToVisibilityConverter.cs" />
     <Compile Include="ListProxy.cs" />

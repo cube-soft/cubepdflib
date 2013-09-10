@@ -201,7 +201,12 @@ namespace CubePdf.Drawing
         public void Open(CubePdf.Data.IDocumentReader other)
         {
             try { OpenFile(other.FilePath, ""); }
-            catch (Exception /* err */) { OpenFile(other.FilePath, other.Password); }
+            catch (Exception /* err */)
+            {
+                var password = (other.Encryption.IsEnabled && !string.IsNullOrEmpty(other.Encryption.OwnerPassword)) ?
+                    other.Encryption.OwnerPassword : other.Encryption.UserPassword;
+                OpenFile(other.FilePath, password);
+            }
             foreach (var page in other.Pages) _pages.Add(page);
         }
 
@@ -448,6 +453,20 @@ namespace CubePdf.Drawing
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.IMetadata Metadata
+        {
+            get { throw new NotSupportedException(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Encryption
+        /// 
+        /// <summary>
+        /// PDF ファイルの暗号化に関する状態を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IEncryption Encryption
         {
             get { throw new NotSupportedException(); }
         }

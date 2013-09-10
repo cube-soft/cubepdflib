@@ -133,11 +133,10 @@ namespace CubePdf.Editing
                 var obj = password.Length > 0 ? System.Text.Encoding.UTF8.GetBytes(password) : null;
                 _core = new iTextSharp.text.pdf.PdfReader(file, obj);
                 _path = path;
-                _password = password;
 
-                ExtractPages(_core, _path, _password);
+                ExtractPages(_core, _path, password);
                 ExtractMetadata(_core, _path);
-                ExtractEncryption(_core, _password);
+                ExtractEncryption(_core, password);
                 ExtractTaggedData(_core);
             }
             catch (iTextSharp.text.pdf.BadPasswordException err)
@@ -165,7 +164,7 @@ namespace CubePdf.Editing
             _core.Close();
             _core = null;
             _metadata = null;
-            _permission = null;
+            _encrypt = null;
             _path = string.Empty;
             _pages.Clear();
         }
@@ -204,22 +203,6 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Password
-        /// 
-        /// <summary>
-        /// PDF ファイルを開く際に指定されたパスワードを取得します。
-        /// 指定されたパスワードがオーナパスワードなのかユーザパスワード
-        /// なのかの判断については、EncryptionStatus の情報から判断します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Password
-        {
-            get { return _password; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// PageCount
         /// 
         /// <summary>
@@ -248,6 +231,20 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Encryption
+        /// 
+        /// <summary>
+        /// PDF ファイルの暗号化に関する情報を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IEncryption Encryption
+        {
+            get { return _encrypt; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// EncryptionStatus
         /// 
         /// <summary>
@@ -258,35 +255,6 @@ namespace CubePdf.Editing
         public CubePdf.Data.EncryptionStatus EncryptionStatus
         {
             get { return _status; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// EncryptionMethod
-        /// 
-        /// <summary>
-        /// 暗号化方式を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionMethod EncryptionMethod
-        {
-            get { return _method; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Permission
-        /// 
-        /// <summary>
-        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
-        /// します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPermission Permission
-        {
-            get { return _permission; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -376,15 +344,53 @@ namespace CubePdf.Editing
         /// <summary>
         /// PDF ファイルの暗号化に関わる情報を抽出します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 引数に指定されたパスワードは、オーナパスワードの場合と
+        /// ユーザパスワードの場合が存在します。どちらのパスワードが指定
+        /// されたかは、PdfReader オブジェクトの IsOpenedWithFullPermissions
+        /// プロパティから判断します。
+        /// 
+        /// TODO: 現在は暗号化方式が AES256 の場合、ユーザパスワードの解析に
+        /// 失敗するので除外しています。AES256 の場合の解析方法を検討する。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void ExtractEncryption(iTextSharp.text.pdf.PdfReader reader, string password)
         {
-            if (!reader.IsOpenedWithFullPermissions) _status = Data.EncryptionStatus.RestrictedAccess;
-            else if (password.Length == 0) _status = Data.EncryptionStatus.NotEncrypted;
-            else _status = Data.EncryptionStatus.FullAccess;
-            _method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
-            _permission = Translator.ToPermission(reader.Permissions);
+            var encrypt = new CubePdf.Data.Encryption();
+            if (reader.IsOpenedWithFullPermissions)
+            {
+                if (string.IsNullOrEmpty(password)) _status = Data.EncryptionStatus.NotEncrypted;
+                else
+                {
+                    _status = Data.EncryptionStatus.FullAccess;
+                    encrypt.IsEnabled = true;
+                    encrypt.OwnerPassword = password;
+                    encrypt.Method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
+                    encrypt.Permission = Translator.ToPermission(reader.Permissions);
+                    var bytes = reader.ComputeUserPassword();
+                    // NOTE: 現在は AES256 の場合、解析に失敗するので除外している。
+                    if (bytes != null && bytes.Length > 0 && encrypt.Method != Data.EncryptionMethod.Aes256)
+                    {
+                        encrypt.IsUserPasswordEnabled = true;
+                        encrypt.UserPassword = System.Text.Encoding.UTF8.GetString(bytes);
+                    }
+                }
+            }
+            else
+            {
+                _status = Data.EncryptionStatus.RestrictedAccess;
+                encrypt.IsEnabled = true;
+                encrypt.Method = Translator.ToEncryptionMethod(reader.GetCryptoMode());
+                encrypt.Permission = Translator.ToPermission(reader.Permissions);
+                if (!string.IsNullOrEmpty(password))
+                {
+                    encrypt.IsUserPasswordEnabled = true;
+                    encrypt.UserPassword = password;
+                }
+            }
+            _encrypt = encrypt;
         }
 
         /* ----------------------------------------------------------------- */
@@ -409,12 +415,10 @@ namespace CubePdf.Editing
         private bool _disposed = false;
         private iTextSharp.text.pdf.PdfReader _core = null;
         private string _path = string.Empty;
-        private string _password = string.Empty;
         private bool _tagged = false;
         private CubePdf.Data.IMetadata _metadata = null;
+        private CubePdf.Data.IEncryption _encrypt = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
-        private CubePdf.Data.EncryptionMethod _method = Data.EncryptionMethod.Unknown;
-        private CubePdf.Data.IPermission _permission = null;
         private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }

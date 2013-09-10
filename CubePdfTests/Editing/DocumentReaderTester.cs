@@ -86,8 +86,8 @@ namespace CubePdfTests.Editing
             var doc = new CubePdf.Editing.DocumentReader();
             Assert.AreEqual(0, doc.FilePath.Length);
             Assert.IsNull(doc.Metadata);
+            Assert.IsNull(doc.Encryption);
             Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
-            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
             Assert.NotNull(doc.Pages);
             Assert.AreEqual(0, doc.PageCount);
         }
@@ -123,8 +123,13 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual("rotated example", doc.Metadata.Subtitle);
                     Assert.AreEqual("CubeSoft,PDF,Test", doc.Metadata.Keywords);
 
+                    Assert.IsFalse(doc.Encryption.IsEnabled);
+                    Assert.IsNullOrEmpty(doc.Encryption.OwnerPassword);
+                    Assert.IsFalse(doc.Encryption.IsUserPasswordEnabled);
+                    Assert.IsNullOrEmpty(doc.Encryption.UserPassword);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.Encryption.Method);
+                    Assert.NotNull(doc.Encryption.Permission);
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
-                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.EncryptionMethod);
 
                     Assert.AreEqual(9, doc.PageCount);
                     var page = doc.GetPage(1);
@@ -213,27 +218,36 @@ namespace CubePdfTests.Editing
                 using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
                 {
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.FullAccess, doc.EncryptionStatus);
-                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.EncryptionMethod);
+                    Assert.IsTrue(doc.Encryption.IsEnabled);
+                    Assert.AreEqual(password, doc.Encryption.OwnerPassword);
+                    Assert.IsTrue(doc.Encryption.IsUserPasswordEnabled);
+                    Assert.AreEqual("view", doc.Encryption.UserPassword);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.Encryption.Method);
 
-                    Assert.IsFalse(doc.Permission.Accessibility);
-                    Assert.IsTrue(doc.Permission.Assembly);
-                    Assert.IsFalse(doc.Permission.CopyContents);
-                    Assert.IsTrue(doc.Permission.DegradedPrinting);
-                    Assert.IsFalse(doc.Permission.InputFormFields);
-                    Assert.IsFalse(doc.Permission.ModifyAnnotations);
-                    Assert.IsFalse(doc.Permission.ModifyContents);
-                    Assert.IsTrue(doc.Permission.Printing);
+                    Assert.IsFalse(doc.Encryption.Permission.Accessibility);
+                    Assert.IsTrue(doc.Encryption.Permission.Assembly);
+                    Assert.IsFalse(doc.Encryption.Permission.CopyContents);
+                    Assert.IsTrue(doc.Encryption.Permission.DegradedPrinting);
+                    Assert.IsFalse(doc.Encryption.Permission.InputFormFields);
+                    Assert.IsFalse(doc.Encryption.Permission.ModifyAnnotations);
+                    Assert.IsFalse(doc.Encryption.Permission.ModifyContents);
+                    Assert.IsTrue(doc.Encryption.Permission.Printing);
 
                     // NOTE: 以下の 3 項目は、iTextSharp に該当項目がないため未設定
-                    // Assert.IsTrue(doc.Permission.ExtractPage);
-                    // Assert.IsTrue(doc.Permission.Signature);
-                    // Assert.IsTrue(doc.Permission.TemplatePage);
+                    // Assert.IsTrue(doc.Encryption.Permission.ExtractPage);
+                    // Assert.IsTrue(doc.Encryption.Permission.Signature);
+                    // Assert.IsTrue(doc.Encryption.Permission.TemplatePage);
                 }
 
                 password = "view"; // UserPassword
                 using (var doc = new CubePdf.Editing.DocumentReader(filename, password))
                 {
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.RestrictedAccess, doc.EncryptionStatus);
+                    Assert.IsTrue(doc.Encryption.IsEnabled);
+                    Assert.IsNullOrEmpty(doc.Encryption.OwnerPassword);
+                    Assert.IsTrue(doc.Encryption.IsUserPasswordEnabled);
+                    Assert.AreEqual(password, doc.Encryption.UserPassword);
+                    Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.Encryption.Method);
                 }
 
                 password = "bad-password";
