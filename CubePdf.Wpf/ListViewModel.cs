@@ -625,7 +625,8 @@ namespace CubePdf.Wpf
             try
             {
                 BeginCommand();
-                InsertDocument(index, reader);
+                var dest = CreateEngine(reader);
+                InsertDocument(index, dest);
             }
             finally { EndCommand(); }
         }
@@ -1404,19 +1405,8 @@ namespace CubePdf.Wpf
             _encrypt_status = reader.EncryptionStatus;
             _pages.Capacity = reader.PageCount + 1;
 
-            if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
-            {
-                using (var duplicated = DuplicateReader(reader))
-                {
-                    CreateEngineForAes256(duplicated, reader);
-                    InsertDocument(_pages.Count, duplicated);
-                }
-            }
-            else
-            {
-                CreateEngine(reader);
-                InsertDocument(_pages.Count, reader);
-            }
+            var dest = CreateEngine(reader);
+            InsertDocument(_pages.Count, dest);
 
             // Properties for others
             _undo.Clear();
@@ -1446,19 +1436,8 @@ namespace CubePdf.Wpf
                 {
                     _pages.Clear();
                     _pages.Capacity = reader.PageCount + 1;
-                    if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
-                    {
-                        using (var duplicated = DuplicateReader(reader))
-                        {
-                            CreateEngineForAes256(duplicated, reader);
-                            foreach (var page in duplicated.Pages) _pages.Add(page);
-                        }
-                    }
-                    else
-                    {
-                        CreateEngine(reader);
-                        foreach (var page in reader.Pages) _pages.Add(page);
-                    }
+                    var dest = CreateEngine(reader);
+                    foreach (var page in dest.Pages) _pages.Add(page);
                 }
             }
 
@@ -1490,7 +1469,7 @@ namespace CubePdf.Wpf
                 DisposeEngine();
                 lock (_requests) _requests.Clear();
                 if (path == _path) CreateBackup();
-                CubePdf.Misc.File.Move(tmp, path, false);
+                CubePdf.Misc.File.Move(tmp, path, true);
             }
         }
 
@@ -1518,7 +1497,7 @@ namespace CubePdf.Wpf
 
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, dest, false);
+            CubePdf.Misc.File.Move(tmp, dest, true);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1564,7 +1543,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void InsertDocument(int index, CubePdf.Data.IDocumentReader reader)
         {
-            CreateEngine(reader);
             lock (_requests) DeleteRequest(index);
             var first = index;
             foreach (var page in reader.Pages)
@@ -1591,51 +1569,31 @@ namespace CubePdf.Wpf
         /// CreateEngine
         /// 
         /// <summary>
-        /// 新しい BitmapEngine オブジェクトを生成してエンジン一覧に登録
-        /// します。
+        /// 新しい BitmapEngine オブジェクトを生成して、エンジン一覧に
+        /// 登録します。
         /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private CubePdf.Drawing.BitmapEngine CreateEngine(string path, string password)
-        {
-            if (_engines.ContainsKey(path)) return _engines[path];
-            var engine = new CubePdf.Drawing.BitmapEngine();
-            return RegisterEngine(path, engine);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateEngine
         /// 
-        /// <summary>
-        /// 新しい BitmapEngine オブジェクトを生成してエンジン一覧に登録
-        /// します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private CubePdf.Drawing.BitmapEngine CreateEngine(CubePdf.Data.IDocumentReader reader)
-        {
-            if (_engines.ContainsKey(reader.FilePath)) return _engines[reader.FilePath];
-            var engine = new CubePdf.Drawing.BitmapEngine();
-            engine.Open(reader);
-            return RegisterEngine(reader.FilePath, engine);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RegisterEngine
+        /// <remarks>
+        /// BitmapEngine クラスが AES256 に対応していないので、AES256 で
+        /// 暗号化されている場合はいったん暗号化を解除します。
         /// 
-        /// <summary>
-        /// 新しい BitmapEngine オブジェクトをエンジン一覧に登録します。
-        /// </summary>
+        /// TODO: AES256 の場合、同じファイルが複数挿入できてしまう。
+        /// 通常時と挙動を合わせる方法を検討する。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Drawing.BitmapEngine RegisterEngine(string path, CubePdf.Drawing.BitmapEngine engine)
+        private CubePdf.Data.IDocumentReader CreateEngine(CubePdf.Data.IDocumentReader reader)
         {
+            if (_engines.ContainsKey(reader.FilePath)) return reader;
+            var dest = (reader.Encryption.Method == Data.EncryptionMethod.Aes256) ? DecryptDocument(reader) : reader;
+
+            var engine = new CubePdf.Drawing.BitmapEngine();
+            engine.Open(dest);
             engine.ImageCreated -= new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
             engine.ImageCreated += new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
-            lock (_engines) _engines.Add(path, engine);
-            return engine;
+            lock (_engines) _engines.Add(dest.FilePath, engine);
+
+            return dest;
         }
 
         /* ----------------------------------------------------------------- */
@@ -2077,23 +2035,23 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        #region Private methods for AES256
+        #region Private methods for security
 
         /* ----------------------------------------------------------------- */
         ///
-        /// DuplicateReader
+        /// DecryptDocument
         /// 
         /// <summary>
         /// 引数に指定された reader オブジェクトからセキュリティ設定を解除
-        /// した CubePdf.Editing.DocumentReader オブジェクトを複製します。
+        /// した CubePdf.Editing.DocumentReader オブジェクトを生成します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Data.IDocumentReader DuplicateReader(CubePdf.Data.IDocumentReader reader)
+        private CubePdf.Data.IDocumentReader DecryptDocument(CubePdf.Data.IDocumentReader reader)
         {
             if (reader.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess)
             {
-                throw new CubePdf.Data.EncryptionException("AES256");
+                throw new CubePdf.Data.EncryptionException(string.Format("{0}: cannot decrypt file.", reader.FilePath));
             }
 
             var tmp = System.IO.Path.GetTempFileName();
@@ -2101,6 +2059,7 @@ namespace CubePdf.Wpf
 
             var binder = new CubePdf.Editing.PageBinder();
             foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+            binder.Metadata = reader.Metadata;
             binder.Save(tmp);
             _garbade.Add(tmp);
 
@@ -2109,31 +2068,11 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// CreateEngineForAes256
-        /// 
-        /// <summary>
-        /// 新しい BitmapEngine オブジェクトを生成してエンジン一覧に登録
-        /// します（AES256 専用）。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private CubePdf.Drawing.BitmapEngine CreateEngineForAes256(CubePdf.Data.IDocumentReader reader, CubePdf.Data.IDocumentReader original)
-        {
-            if (_engines.ContainsKey(original.FilePath)) return _engines[original.FilePath];
-            var engine = new CubePdf.Drawing.BitmapEngine();
-            engine.Open(reader);
-            engine.ImageCreated -= new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
-            engine.ImageCreated += new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
-            lock (_engines) _engines.Add(original.FilePath, engine);
-            return engine;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// DeleteGarbade
         /// 
         /// <summary>
-        /// AES256 のために複製した一時ファイルを全て削除します。
+        /// セキュリティ設定を解除するために生成した一時ファイルを全て削除
+        /// します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
