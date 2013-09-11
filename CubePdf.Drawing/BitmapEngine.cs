@@ -150,17 +150,6 @@ namespace CubePdf.Drawing
                 if (_disposed) return;
                 _disposed = true;
                 if (disposing) this.Close();
-
-                for (int i = _garbage.Count - 1; i >= 0; --i)
-                {
-                    try
-                    {
-                        System.IO.File.Delete(_garbage[i]);
-                        _garbage.RemoveAt(i);
-                    }
-                    catch (Exception /* err */) { }
-                }
-                _disposed_unmanaged = (_garbage.Count == 0);
             }
         }
 
@@ -265,9 +254,6 @@ namespace CubePdf.Drawing
                     _core.Dispose();
                     _core = null;
                 }
-
-                try { System.IO.File.Delete(_tmp); }
-                catch (Exception /* err */) { _garbage.Add(_tmp); }
             }
         }
 
@@ -613,11 +599,7 @@ namespace CubePdf.Drawing
                     _core.OwnerPassword = password;
                 }
 
-                _tmp = System.IO.Path.GetTempFileName();
-                System.IO.File.Delete(_tmp);
-                System.IO.File.Copy(path, _tmp, false);
-
-                if (!_core.LoadPDF(_tmp)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
+                if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
 
                 _core.CurrentPage = 1;
                 _path = path;
@@ -667,10 +649,8 @@ namespace CubePdf.Drawing
 
         #region Variables
         private bool _disposed = false;
-        private bool _disposed_unmanaged = false;
         private object _lock = new object();
         private string _path = string.Empty;
-        private string _tmp = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         private CubePdf.Data.IMetadata _metadata = null;
@@ -678,7 +658,6 @@ namespace CubePdf.Drawing
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
-        private List<string> _garbage = new List<string>();
         #endregion
 
     }
