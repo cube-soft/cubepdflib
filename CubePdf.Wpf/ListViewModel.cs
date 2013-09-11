@@ -1127,7 +1127,7 @@ namespace CubePdf.Wpf
         {
             var binder = new CubePdf.Editing.PageBinder();
             SaveDocument(path, binder);
-            RestructDocument(path, binder);
+            ReOpenDocument(path, binder);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1476,6 +1476,79 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// RestructDocument
+        /// 
+        /// <summary>
+        /// 保存された内容でオブジェクトを再構成します。サムネイル用の
+        /// イメージは保存前のものがそのまま利用できるので、それ以外の
+        /// 情報を更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void ReOpenDocument(string path, CubePdf.Editing.PageBinder binder)
+        {
+            _path = path;
+            _metadata = binder.Metadata;
+            _encrypt = binder.Encryption;
+
+            lock (_pages)
+            {
+                var password = (_encrypt.IsEnabled && !string.IsNullOrEmpty(_encrypt.OwnerPassword)) ? _encrypt.OwnerPassword : "";
+                using (var reader = new CubePdf.Editing.DocumentReader(_path, password))
+                {
+                    _pages.Clear();
+                    _pages.Capacity = reader.PageCount + 1;
+                    _encrypt_status = reader.EncryptionStatus;
+                    if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
+                    {
+                        using (var duplicated = DuplicateReader(reader))
+                        {
+                            CreateEngineForAes256(duplicated, reader);
+                            foreach (var page in duplicated.Pages) _pages.Add(page);
+                        }
+                    }
+                    else
+                    {
+                        CreateEngine(reader);
+                        foreach (var page in reader.Pages) _pages.Add(page);
+                    }
+                }
+            }
+
+            _undo.Clear();
+            _redo.Clear();
+            _modified = false;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// SaveDocument
+        /// 
+        /// <summary>
+        /// 現在の構成で指定されたパスに保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void SaveDocument(string path, CubePdf.Editing.PageBinder binder)
+        {
+            lock (_pages)
+            {
+                foreach (var page in _pages) binder.Pages.Add(page);
+                binder.Metadata = Metadata;
+                binder.Encryption = Encryption;
+
+                var tmp = System.IO.Path.GetTempFileName();
+                binder.Save(tmp);
+
+                DisposeEngine();
+                lock (_requests) _requests.Clear();
+                if (path == _path) CreateBackup();
+                CubePdf.Misc.File.Move(tmp, path, false);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// SaveDocument
         /// 
         /// <summary>
@@ -1499,77 +1572,6 @@ namespace CubePdf.Wpf
             var tmp = System.IO.Path.GetTempFileName();
             binder.Save(tmp);
             CubePdf.Misc.File.Move(tmp, dest, false);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// SaveDocument
-        /// 
-        /// <summary>
-        /// 現在の構成で指定されたパスに保存します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void SaveDocument(string path, CubePdf.Editing.PageBinder binder)
-        {
-            lock (_pages)
-            {
-                foreach (var page in _pages) binder.Pages.Add(page);
-                binder.Metadata = Metadata;
-                binder.Encryption = Encryption;
-
-                var tmp = System.IO.Path.GetTempFileName();
-                binder.Save(tmp);
-                if (path == _path) CreateBackup();
-                CubePdf.Misc.File.Move(tmp, path, false);
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RestructDocument
-        /// 
-        /// <summary>
-        /// 保存された内容でオブジェクトを再構成します。サムネイル用の
-        /// イメージは保存前のものがそのまま利用できるので、それ以外の
-        /// 情報を更新します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RestructDocument(string path, CubePdf.Editing.PageBinder binder)
-        {
-            _path = path;
-            _metadata = binder.Metadata;
-            _encrypt = binder.Encryption;
-            
-            DisposeEngine();
-            lock (_requests) _requests.Clear();
-            lock (_pages)
-            {
-                var password = (_encrypt.IsEnabled && !string.IsNullOrEmpty(_encrypt.OwnerPassword)) ? _encrypt.OwnerPassword : "";
-                using (var reader = new CubePdf.Editing.DocumentReader(_path, password))
-                {
-                    _encrypt_status = reader.EncryptionStatus;
-                    var index = 0;
-                    if (reader.Encryption.Method == Data.EncryptionMethod.Aes256)
-                    {
-                        using (var duplicated = DuplicateReader(reader))
-                        {
-                            CreateEngineForAes256(duplicated, reader);
-                            foreach (var page in duplicated.Pages) _pages[index++] = page;
-                        }
-                    }
-                    else
-                    {
-                        CreateEngine(reader);
-                        foreach (var page in reader.Pages) _pages[index++] = page;
-                    }
-                }
-            }
-
-            _undo.Clear();
-            _redo.Clear();
-            _modified = false;
         }
 
         /* ----------------------------------------------------------------- */
