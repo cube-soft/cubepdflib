@@ -625,8 +625,8 @@ namespace CubePdf.Wpf
             try
             {
                 BeginCommand();
-                var dest = CreateEngine(reader);
-                InsertDocument(index, dest);
+                var engine = CreateEngine(reader);
+                InsertDocument(index, engine);
             }
             finally { EndCommand(); }
         }
@@ -1405,8 +1405,8 @@ namespace CubePdf.Wpf
             _encrypt_status = reader.EncryptionStatus;
             _pages.Capacity = reader.PageCount + 1;
 
-            var dest = CreateEngine(reader);
-            InsertDocument(_pages.Count, dest);
+            var engine = CreateEngine(reader);
+            InsertDocument(_pages.Count, engine);
 
             // Properties for others
             _undo.Clear();
@@ -1436,8 +1436,8 @@ namespace CubePdf.Wpf
                 {
                     _pages.Clear();
                     _pages.Capacity = reader.PageCount + 1;
-                    var dest = CreateEngine(reader);
-                    foreach (var page in dest.Pages) _pages.Add(page);
+                    var engine = CreateEngine(reader);
+                    foreach (var page in engine.Pages) _pages.Add(page);
                 }
             }
 
@@ -1584,16 +1584,17 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private CubePdf.Data.IDocumentReader CreateEngine(CubePdf.Data.IDocumentReader reader)
         {
-            if (_engines.ContainsKey(reader.FilePath)) return reader;
-            var dest = (reader.Encryption.Method == Data.EncryptionMethod.Aes256) ? DecryptDocument(reader) : reader;
+            if (_engines.ContainsKey(reader.FilePath)) return _engines[reader.FilePath];
+            var decrypt = (reader.Encryption.Method == Data.EncryptionMethod.Aes256) ? DecryptDocument(reader) : reader;
 
             var engine = new CubePdf.Drawing.BitmapEngine();
-            engine.Open(dest);
+            engine.Open(decrypt);
             engine.ImageCreated -= new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
             engine.ImageCreated += new CubePdf.Drawing.ImageEventHandler(BitmapEngine_ImageCreated);
-            lock (_engines) _engines.Add(dest.FilePath, engine);
+            lock (_engines) _engines.Add(decrypt.FilePath, engine);
 
-            return dest;
+            if (reader.Encryption.Method == Data.EncryptionMethod.Aes256) decrypt.Dispose();
+            return engine;
         }
 
         /* ----------------------------------------------------------------- */
