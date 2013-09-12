@@ -1834,7 +1834,7 @@ namespace CubePdf.Wpf
 
             var filename = System.IO.Path.GetFileName(_path);
             var dest = System.IO.Path.Combine(dir, filename);
-            if (!System.IO.File.Exists(dest)) System.IO.File.Move(_path, dest);
+            if (!System.IO.File.Exists(dest)) System.IO.File.Copy(_path, dest);
         }
 
         /* ----------------------------------------------------------------- */
