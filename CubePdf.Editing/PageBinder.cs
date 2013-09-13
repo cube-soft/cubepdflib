@@ -5,22 +5,23 @@
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify
-/// it under the terms of the GNU General Public License as published by
-/// the Free Software Foundation, either version 3 of the License, or
+/// it under the terms of the GNU Affero General Public License as published
+/// by the Free Software Foundation, either version 3 of the License, or
 /// (at your option) any later version.
 ///
 /// This program is distributed in the hope that it will be useful,
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-/// GNU General Public License for more details.
+/// GNU Affero General Public License for more details.
 ///
-/// You should have received a copy of the GNU General Public License
-/// along with this program.  If not, see < http://www.gnu.org/licenses/ >.
+/// You should have received a copy of the GNU Affero General Public License
+/// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
 
 namespace CubePdf.Editing
@@ -98,6 +99,34 @@ namespace CubePdf.Editing
             get { return _pages; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UseSmartCopy
+        /// 
+        /// <summary>
+        /// ファイルサイズを抑えるための結合方法を使用するかどうかを取得、
+        /// または設定します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// 通常時には iTextSharp の PdfCopy クラスを用いて結合を行って
+        /// いるが、このクラスは複数の PDF ファイルが同じフォントを使用
+        /// していたとしても別々のものとして扱うため、フォント情報が重複して
+        /// ファイルサイズが増大する場合がある。
+        /// 
+        /// この問題を解決したものとして PdfSmartCopy クラスが存在する。
+        /// ただし、複雑な注釈が保存されている PDF を結合する際に使用した
+        /// 場合、（別々として扱わなければならないはずの）情報が共有されて
+        /// しまい、注釈の構造が壊れてしまう問題が確認されている。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool UseSmartCopy
+        {
+            get { return _smart; }
+            set { _smart = value; }
+        }
+
         #endregion
 
         #region Public Methods
@@ -140,9 +169,9 @@ namespace CubePdf.Editing
                 using (var reader = new PdfReader(tmp))
                 using (var writer = new PdfStamper(reader, new FileStream(path, FileMode.Create)))
                 {
-                    RotatePages(reader);
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
+                    writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
                 File.Delete(tmp);
@@ -167,17 +196,22 @@ namespace CubePdf.Editing
         /// 
         /// <remarks>
         /// 注釈等を含めて完全にページ内容をコピーするためにいったん
-        /// PdfCopyFields クラスを用いて全ページを結合します。回転等の
-        /// 付随的な処理は生成された PDF に対して改めて行います。
+        /// PdfCopy クラスを用いて全ページを結合します。
+        /// セキュリティ設定や文書プロパティ等の情報は生成された PDF に
+        /// 対して付加します。
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void BindPages(string dest)
         {
-            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
-            var writer = new PdfCopyFields(new FileStream(dest, FileMode.Create), _metadata.Version.Minor.ToString()[0]);
             var pagenum = 1;
-
+            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+            var document = new iTextSharp.text.Document();
+            var writer = _smart ? new PdfSmartCopy(document, new FileStream(dest, FileMode.Create)) :
+                new PdfCopy(document, new FileStream(dest, FileMode.Create));            
+            
+            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];            
+            document.Open();
             _bookmarks.Clear();
             foreach (var page in _pages)
             {
@@ -188,10 +222,16 @@ namespace CubePdf.Editing
                         new iTextSharp.text.pdf.PdfReader(page.FilePath);
                     readers.Add(page.FilePath, item);
                 }
+
                 var reader = readers[page.FilePath];
-                writer.AddDocument(reader, page.PageNumber.ToString());
+                var rot = reader.GetPageRotation(page.PageNumber);
+                var dic = reader.GetPageN(page.PageNumber);
+                if (rot != page.Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(page.Rotation));
+
+                writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
                 AddBookmarks(reader, page.PageNumber, pagenum++);
             }
+            document.Close();
             writer.Close();
             foreach (var reader in readers.Values) reader.Close();
             readers.Clear();
@@ -199,32 +239,16 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// RotatePages
-        /// 
-        /// <summary>
-        /// 各ページを回転します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotatePages(PdfReader reader)
-        {
-            for (int i = 0; i < reader.NumberOfPages; ++i)
-            {
-                if (i >= _pages.Count) break;
-                var rot = reader.GetPageRotation(i + 1);
-                var dic = reader.GetPageN(i + 1);
-                if (rot != _pages[i].Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(_pages[i].Rotation));
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// AddBookmarks
         /// 
         /// <summary>
-        /// 元の PDF ファイルにあるしおりを_bookmarksに追加します。
-        /// 実際にしおりをPDFに追加するにはOutlinesプロパティに代入が必要
+        /// PDF ファイルに存在するしおり情報を取得して追加します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 実際にしおりをPDFに追加するには PdfWriter クラスの Outlines
+        /// プロパティに代入する必要があります。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void AddBookmarks(PdfReader reader, int srcpage, int destpage)
@@ -232,10 +256,11 @@ namespace CubePdf.Editing
             var bookmarks = SimpleBookmark.GetBookmark(reader);
             if (bookmarks == null) return;
 
+            var pattern = string.Format("^{0} (XYZ|Fit|FitH|FitBH)", destpage);
             SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
             foreach (var bm in bookmarks)
             {
-                if (bm["Page"].ToString().Contains(destpage.ToString() + " FitH")) _bookmarks.Add(bm);
+                if (bm.ContainsKey("Page") && Regex.IsMatch(bm["Page"].ToString(), pattern)) _bookmarks.Add(bm);
             }
         }
 
@@ -285,6 +310,7 @@ namespace CubePdf.Editing
         private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
         private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private bool _smart = true;
         private IList<Dictionary<String, Object>> _bookmarks = new List<Dictionary<String, Object>>();
         #endregion
     }

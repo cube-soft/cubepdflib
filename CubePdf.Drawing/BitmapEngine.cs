@@ -5,17 +5,17 @@
 /// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify
-/// it under the terms of the GNU General Public License as published by
-/// the Free Software Foundation, either version 3 of the License, or
+/// it under the terms of the GNU Affero General Public License as published
+/// by the Free Software Foundation, either version 3 of the License, or
 /// (at your option) any later version.
 ///
 /// This program is distributed in the hope that it will be useful,
 /// but WITHOUT ANY WARRANTY; without even the implied warranty of
 /// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-/// GNU General Public License for more details.
+/// GNU Affero General Public License for more details.
 ///
-/// You should have received a copy of the GNU General Public License
-/// along with this program.  If not, see < http://www.gnu.org/licenses/ >.
+/// You should have received a copy of the GNU Affero General Public License
+/// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
 using System;
@@ -150,17 +150,6 @@ namespace CubePdf.Drawing
                 if (_disposed) return;
                 _disposed = true;
                 if (disposing) this.Close();
-
-                for (int i = _garbage.Count - 1; i >= 0; --i)
-                {
-                    try
-                    {
-                        System.IO.File.Delete(_garbage[i]);
-                        _garbage.RemoveAt(i);
-                    }
-                    catch (Exception /* err */) { }
-                }
-                _disposed_unmanaged = (_garbage.Count == 0);
             }
         }
 
@@ -175,10 +164,26 @@ namespace CubePdf.Drawing
         /// <summary>
         /// PDF ファイルを開きます。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 現在、引数にパスワードが設定された場合は全てオーナパスワードと
+        /// 判断している。オーナパスワードかユーザパスワードかを判別する
+        /// 方法を検討する。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void Open(string path, string password = "")
         {
+            _metadata = new CubePdf.Data.Metadata();
+
+            var encrypt = new CubePdf.Data.Encryption();
+            if (!string.IsNullOrEmpty(password))
+            {
+                encrypt.IsEnabled = true;
+                encrypt.OwnerPassword = password;
+            }
+            _encrypt = encrypt;
+
             OpenFile(path, password);
             ExtractPages();
         }
@@ -193,15 +198,26 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /// <remarks>
-        /// イメージ生成に際したパフォーマンスの関係で、始めにパスワード無で
-        /// 開けるかどうかを試行します。
+        /// イメージ生成に際したパフォーマンスの関係で、まず始めに
+        /// パスワード無で開けるかどうかを試行します。
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void Open(CubePdf.Data.IDocumentReader other)
         {
-            try { OpenFile(other.FilePath, ""); }
-            catch (Exception /* err */) { OpenFile(other.FilePath, other.Password); }
+            try
+            {
+                _metadata = new CubePdf.Data.Metadata(other.Metadata);
+                _encrypt  = new CubePdf.Data.Encryption(other.Encryption);
+                _status   = other.EncryptionStatus;
+                OpenFile(other.FilePath, "");
+            }
+            catch (Exception /* err */)
+            {
+                var password = (_encrypt.IsEnabled && !string.IsNullOrEmpty(_encrypt.OwnerPassword)) ?
+                    other.Encryption.OwnerPassword : other.Encryption.UserPassword;
+                OpenFile(other.FilePath, password);
+            }
             foreach (var page in other.Pages) _pages.Add(page);
         }
 
@@ -212,12 +228,6 @@ namespace CubePdf.Drawing
         /// <summary>
         /// 現在、開いている PDF ファイルを閉じます。
         /// </summary>
-        /// 
-        /// <remarks>
-        /// PDFWrapper クラスのファイルハンドラの解法タイミングの関係で、
-        /// 一時ファイルの削除に失敗する事があります。削除に失敗した
-        /// 一時ファイルは GC のタイミングで再度削除を試します。
-        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void Close()
@@ -229,16 +239,15 @@ namespace CubePdf.Drawing
             {
                 _pages.Clear();
                 _path = string.Empty;
-                _password = string.Empty;
+                _metadata = null;
+                _encrypt = null;
+                _status = Data.EncryptionStatus.NotEncrypted;
 
                 if (_core != null)
                 {
                     _core.Dispose();
                     _core = null;
                 }
-
-                try { System.IO.File.Delete(_tmp); }
-                catch (Exception /* err */) { _garbage.Add(_tmp); }
             }
         }
 
@@ -382,20 +391,6 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Password
-        /// 
-        /// <summary>
-        /// PDF ファイルを開く際に指定されたパスワードを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string Password
-        {
-            get { return _password; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// PageCount
         /// 
         /// <summary>
@@ -436,8 +431,6 @@ namespace CubePdf.Drawing
             get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
 
-        #region NotSupproted methods
-
         /* ----------------------------------------------------------------- */
         ///
         /// Metadata
@@ -445,11 +438,35 @@ namespace CubePdf.Drawing
         /// <summary>
         /// PDF ファイルのメタデータを取得します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// PDFLibNet からは現在メタデータの情報が取得できないため、
+        /// 情報が不完全な場合があります。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.IMetadata Metadata
         {
-            get { throw new NotSupportedException(); }
+            get { return _metadata; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Encryption
+        /// 
+        /// <summary>
+        /// PDF ファイルの暗号化に関する状態を取得します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// PDFLibNet からは現在、暗号化に関する情報が取得できないため、
+        /// 情報が不完全な場合があります。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        public CubePdf.Data.IEncryption Encryption
+        {
+            get { return _encrypt; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -459,43 +476,17 @@ namespace CubePdf.Drawing
         /// <summary>
         /// 暗号化されている PDF ファイルへのアクセス（許可）状態を取得します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// PDFLibNet からは現在、暗号化に関する情報が取得できないため、
+        /// 情報が不完全な場合があります。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.EncryptionStatus EncryptionStatus
         {
-            get { throw new NotSupportedException(); }
+            get { return _status; }
         }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// EncryptionMethod
-        /// 
-        /// <summary>
-        /// 暗号化方式を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionMethod EncryptionMethod
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Permission
-        /// 
-        /// <summary>
-        /// PDF ファイルに設定されている各種操作の権限に関する情報を取得
-        /// します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPermission Permission
-        {
-            get { throw new NotSupportedException(); }
-        }
-
-        #endregion
 
         #endregion
 
@@ -598,16 +589,11 @@ namespace CubePdf.Drawing
 
                 if (password.Length > 0)
                 {
-                    _password = password;
-                    _core.UserPassword = _password;
-                    _core.OwnerPassword = _password;
+                    _core.UserPassword = password;
+                    _core.OwnerPassword = password;
                 }
 
-                _tmp = System.IO.Path.GetTempFileName();
-                System.IO.File.Delete(_tmp);
-                System.IO.File.Copy(path, _tmp, false);
-
-                if (!_core.LoadPDF(_tmp)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
+                if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
 
                 _core.CurrentPage = 1;
                 _path = path;
@@ -644,7 +630,7 @@ namespace CubePdf.Drawing
                     if (!_core.Pages.TryGetValue(i + 1, out obj)) return;
 
                     var page = new CubePdf.Data.Page(_path, i + 1);
-                    page.Password = _password;
+                    page.Password = _encrypt.OwnerPassword;
                     page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
                     page.Rotation = obj.Rotation;
                     if (i >= _pages.Count) _pages.Add(page);
@@ -657,16 +643,15 @@ namespace CubePdf.Drawing
 
         #region Variables
         private bool _disposed = false;
-        private bool _disposed_unmanaged = false;
         private object _lock = new object();
         private string _path = string.Empty;
-        private string _tmp = string.Empty;
-        private string _password = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private CubePdf.Data.IMetadata _metadata = null;
+        private CubePdf.Data.IEncryption _encrypt = null;
+        private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
-        private List<string> _garbage = new List<string>();
         #endregion
 
     }
