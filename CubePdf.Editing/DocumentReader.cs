@@ -132,9 +132,9 @@ namespace CubePdf.Editing
                 var obj = password.Length > 0 ? System.Text.Encoding.UTF8.GetBytes(password) : null;
                 // NOTE: RandomAccessFileOrArray の代わりに下記を使用するよう推奨されているが、
                 // 速度面での問題があるので（旧来の手法の方が速い）保留。
-                // _core = new iTextSharp.text.pdf.PdfReader(path, obj, true);
-                var file = new iTextSharp.text.pdf.RandomAccessFileOrArray(path, true);
-                _core = new iTextSharp.text.pdf.PdfReader(file, obj);
+                _core = new iTextSharp.text.pdf.PdfReader(path, obj, true);
+                //var file = new iTextSharp.text.pdf.RandomAccessFileOrArray(path, true);
+                //_core = new iTextSharp.text.pdf.PdfReader(file, obj);
                 _path = path;
 
                 ExtractPages(_core, _path, password);
@@ -165,6 +165,7 @@ namespace CubePdf.Editing
             if (_core == null) return;
 
             _core.Close();
+            _core.Dispose();
             _core = null;
             _metadata = null;
             _encrypt = null;

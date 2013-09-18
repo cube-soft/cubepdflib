@@ -976,11 +976,16 @@ namespace CubePdf.Wpf
 
             var range = GetVisibleRange();
             if (range.Key == -1) return;
-            for (int i = range.Key; i < range.Value; ++i)
+            lock (_images)
             {
-                var element = _images.RawAt(i);
-                if (element.Status == Drawing.ImageStatus.Created) continue;
-                UpdateRequest(i, _pages[i]);
+                for (int i = range.Key; i < range.Value; ++i)
+                {
+                    var element = _images.RawAt(i);
+                    if (element.Status == Drawing.ImageStatus.Created) continue;
+                    if (element.Status == Drawing.ImageStatus.Dummy)
+                        element.UpdateImage(GetLoadingImage(_pages[i]), Drawing.ImageStatus.Loading);
+                    UpdateRequest(i, _pages[i]);
+                }
             }
             if (!UnderItemCreation) FetchRequest();
         }
@@ -1132,8 +1137,7 @@ namespace CubePdf.Wpf
                 if (element.Status == Drawing.ImageStatus.None)
                 {
                     var page = _pages[index];
-                    if (_visibility == ListViewItemVisibility.Minimum) element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
-                    else element.UpdateImage(GetLoadingImage(page), Drawing.ImageStatus.Loading);
+                    element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
                     UpdateImageSizeRatio(page);
                 }
 
@@ -1322,16 +1326,23 @@ namespace CubePdf.Wpf
         /// GetDummyImage
         /// 
         /// <summary>
-        /// ListView に本来表示される画像と縦横比の等しいダミー画像を取得
-        /// します。生成された画像の縦横比は、小数点以下の関係で若干ずれる
-        /// 事があります。
+        /// ListView に本来表示される画像と縦横比の近いダミー画像を取得
+        /// します。生成された画像の縦横比は、若干ずれる事があります。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
             var size = GetSize(page);
-            return new Bitmap(size.Width, size.Height);
+            float tolerance = 0.1f;
+            float w = (float)size.Width / size.Height;
+            int h = 1;
+            while (Math.Abs(w - Math.Round(w)) > tolerance)
+            {
+                w *= (float)(h + 1) / h;
+                h++;
+            }
+            return new Bitmap((int)Math.Round(w), h);
         }
 
         /* ----------------------------------------------------------------- */
