@@ -972,19 +972,34 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Refresh()
         {
-            if (_visibility == ListViewItemVisibility.Minimum) return;
-
             var range = GetVisibleRange();
             if (range.Key == -1) return;
             lock (_images)
             {
+                for (int i = 0; i < _pages.Count; ++i)
+                {
+                    if (i >= range.Key && i < range.Value) continue;
+                    var element = _images.RawAt(i);
+                    if (element.Status == Drawing.ImageStatus.None) continue;
+                    if (element.Status == Drawing.ImageStatus.Created) continue;
+                    element.UpdateImage(null, Drawing.ImageStatus.None);
+                }
                 for (int i = range.Key; i < range.Value; ++i)
                 {
                     var element = _images.RawAt(i);
-                    if (element.Status == Drawing.ImageStatus.Created) continue;
-                    if (element.Status == Drawing.ImageStatus.Dummy)
-                        element.UpdateImage(GetLoadingImage(_pages[i]), Drawing.ImageStatus.Loading);
-                    UpdateRequest(i, _pages[i]);
+                    
+                    if (_visibility == ListViewItemVisibility.Minimum)
+                    {
+                        if (element.Status != Drawing.ImageStatus.Dummy)
+                            element.UpdateImage(GetDummyImage(_pages[i]), Drawing.ImageStatus.Dummy);
+                    }
+                    else // Normal or LightWeight
+                    {
+                        if (element.Status == Drawing.ImageStatus.Created) continue;
+                        if (element.Status != Drawing.ImageStatus.Loading)
+                            element.UpdateImage(GetLoadingImage(_pages[i]), Drawing.ImageStatus.Loading);
+                        UpdateRequest(i, _pages[i]);
+                    }
                 }
             }
             if (!UnderItemCreation) FetchRequest();
@@ -1133,17 +1148,26 @@ namespace CubePdf.Wpf
             lock (_images)
             {
                 var element = _images.RawAt(index);
-                if (element.Status == Drawing.ImageStatus.Created) return element;
-                if (element.Status == Drawing.ImageStatus.None)
+                var range = GetVisibleRange();
+                if (index < range.Key || index >= range.Value)
                 {
-                    var page = _pages[index];
-                    element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
-                    UpdateImageSizeRatio(page);
+                    return element;
                 }
 
-                if (element.Status == Drawing.ImageStatus.Loading)
+                var page = _pages[index];
+                UpdateImageSizeRatio(page);
+                if (_visibility == ListViewItemVisibility.Minimum)
                 {
-                    UpdateRequest(index, _pages[index]);
+                    if (element.Status != Drawing.ImageStatus.Dummy)
+                        element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
+                    return element;
+                }
+                else // Normal or LightWeight
+                {
+                    if (element.Status == Drawing.ImageStatus.Created) return element;
+                    if (element.Status != Drawing.ImageStatus.Loading)
+                        element.UpdateImage(GetLoadingImage(page), Drawing.ImageStatus.Loading);
+                    UpdateRequest(index, page);
                     FetchRequest();
                 }
                 return element;
@@ -1299,7 +1323,7 @@ namespace CubePdf.Wpf
             {
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count));
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count));
             }
             else return new KeyValuePair<int, int>(first, _pages.Count);
         }
