@@ -973,36 +973,8 @@ namespace CubePdf.Wpf
         public void Refresh()
         {
             var range = GetVisibleRange();
-            if (range.Key == -1) return;
-            lock (_images)
-            {
-                for (int i = 0; i < _pages.Count; ++i)
-                {
-                    if (i >= range.Key && i < range.Value) continue;
-                    var element = _images.RawAt(i);
-                    if (element.Status == Drawing.ImageStatus.None) continue;
-                    if (element.Status == Drawing.ImageStatus.Created) continue;
-                    element.UpdateImage(null, Drawing.ImageStatus.None);
-                }
-                for (int i = range.Key; i < range.Value; ++i)
-                {
-                    var element = _images.RawAt(i);
-                    
-                    if (_visibility == ListViewItemVisibility.Minimum)
-                    {
-                        if (element.Status != Drawing.ImageStatus.Dummy)
-                            element.UpdateImage(GetDummyImage(_pages[i]), Drawing.ImageStatus.Dummy);
-                    }
-                    else // Normal or LightWeight
-                    {
-                        if (element.Status == Drawing.ImageStatus.Created) continue;
-                        if (element.Status != Drawing.ImageStatus.Loading)
-                            element.UpdateImage(GetLoadingImage(_pages[i]), Drawing.ImageStatus.Loading);
-                        UpdateRequest(i, _pages[i]);
-                    }
-                }
-            }
-            if (!UnderItemCreation) FetchRequest();
+            if (range.Key < 0 || range.Value >= _pages.Count) return;
+            for (int i = range.Key; i < range.Value; ++i) UpdateImage(i);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1145,33 +1117,11 @@ namespace CubePdf.Wpf
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
             if (index < 0 || index >= _images.RawCount) return null;
-            lock (_images)
-            {
-                var element = _images.RawAt(index);
-                var range = GetVisibleRange();
-                if (index < range.Key || index >= range.Value)
-                {
-                    return element;
-                }
-
-                var page = _pages[index];
-                UpdateImageSizeRatio(page);
-                if (_visibility == ListViewItemVisibility.Minimum)
-                {
-                    if (element.Status != Drawing.ImageStatus.Dummy)
-                        element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
-                    return element;
-                }
-                else // Normal or LightWeight
-                {
-                    if (element.Status == Drawing.ImageStatus.Created) return element;
-                    if (element.Status != Drawing.ImageStatus.Loading)
-                        element.UpdateImage(GetLoadingImage(page), Drawing.ImageStatus.Loading);
-                    UpdateRequest(index, page);
-                    FetchRequest();
-                }
-                return element;
-            }
+            var range = GetVisibleRange();
+            if (index < range.Key || index >= range.Value) return _images.RawAt(index);
+            UpdateImageSizeRatio(_pages[index]);
+            UpdateImage(index);
+            return _images.RawAt(index);
         }
 
         #endregion
@@ -1657,6 +1607,39 @@ namespace CubePdf.Wpf
         #endregion
 
         #region Private methods for images
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// UpdateImage
+        /// 
+        /// <summary>
+        /// 引数に指定されたインデックスに対応するイメージを更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateImage(int index)
+        {
+            lock (_images)
+            {
+                var element = _images.RawAt(index);
+                if (_visibility == ListViewItemVisibility.Minimum)
+                {
+                    if (element.Status != Drawing.ImageStatus.Dummy)
+                    {
+                        element.UpdateImage(GetDummyImage(_pages[index]), Drawing.ImageStatus.Dummy);
+                    }
+                }
+                else
+                {
+                    if (element.Status == Drawing.ImageStatus.None || element.Status == Drawing.ImageStatus.Dummy)
+                    {
+                        element.UpdateImage(GetLoadingImage(_pages[index]), Drawing.ImageStatus.Loading);
+                    }
+                    UpdateRequest(index, _pages[index]);
+                    FetchRequest();
+                }
+            }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
