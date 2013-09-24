@@ -1307,13 +1307,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
-            var size = GetSize(page);
-            float tolerance = 0.1f;
-            float w = (float)size.Width / size.Height;
-            int h = 1;
+            var tolerance = 0.1f;
+            var size = GetSize(page);            
+            var w = size.Width / (double)size.Height;
+            var h = 1;
             while (Math.Abs(w - Math.Round(w)) > tolerance)
             {
-                w *= (float)(h + 1) / h;
+                w *= (h + 1) / (double)h;
                 h++;
             }
             return new Bitmap((int)Math.Round(w), h);
