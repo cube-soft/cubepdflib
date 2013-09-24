@@ -974,7 +974,7 @@ namespace CubePdf.Wpf
         {
             var range = GetVisibleRange();
             if (range.Key < 0 || range.Value >= _pages.Count) return;
-            for (int i = range.Key; i < range.Value; ++i) UpdateImage(i);
+            for (int i = range.Key; i <= range.Value; ++i) UpdateImage(i);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1118,7 +1118,7 @@ namespace CubePdf.Wpf
         {
             if (index < 0 || index >= _images.RawCount) return null;
             var range = GetVisibleRange();
-            if (index < range.Key || index >= range.Value) return _images.RawAt(index);
+            if (index < range.Key || index > range.Value) return _images.RawAt(index);
             UpdateImageSizeRatio(_pages[index]);
             UpdateImage(index);
             return _images.RawAt(index);
@@ -1264,7 +1264,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count);
+            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
 
             var first = GetItemIndex(new Point(10, 10));
             if (first == -1) first = GetItemIndex(new Point(10, 0));
@@ -1273,9 +1273,9 @@ namespace CubePdf.Wpf
             {
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count));
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count - 1));
             }
-            else return new KeyValuePair<int, int>(first, _pages.Count);
+            else return new KeyValuePair<int, int>(first, _pages.Count - 1);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1820,7 +1820,7 @@ namespace CubePdf.Wpf
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
-                    if (key < range.Key || key >= range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
+                    if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
                         value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber) continue;
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
