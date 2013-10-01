@@ -1275,6 +1275,7 @@ namespace CubePdf.Wpf
 
             var first = GetItemIndex(new Point(10, 10));
             if (first == -1) first = GetItemIndex(new Point(10, 0));
+            if (first == -1) first = 0;
 
             if (ItemWidth != 0 && MaxItemHeight != 0)
             {
@@ -1518,6 +1519,7 @@ namespace CubePdf.Wpf
             lock (_images)
             {
                 ClearImage();
+                foreach (var image in _images) image.Dispose();
                 _images.Clear();
             }
             DisposeEngine();
@@ -1537,15 +1539,14 @@ namespace CubePdf.Wpf
         {
             lock (_requests) DeleteRequest(index);
             var first = index;
+
+            lock (_pages)
+            lock (_images)
             foreach (var page in reader.Pages)
             {
-                lock (_pages)
-                lock (_images)
-                {
-                    _pages.Insert(index, page);
-                    UpdateImageSizeRatio(page);
-                    _images.Insert(index, new Drawing.ImageContainer());
-                }
+                _pages.Insert(index, page);
+                UpdateImageSizeRatio(page);
+                _images.Insert(index, new Drawing.ImageContainer());
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
                 ++index;
             }
