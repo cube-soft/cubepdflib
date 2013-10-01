@@ -602,6 +602,7 @@ namespace CubePdf.Wpf
                 _pages.Insert(index, item);
                 UpdateImageSizeRatio(item);
                 _images.Insert(index, new Drawing.ImageContainer());
+                InsertCreatedQueue(index, 1);
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, item));
             }
@@ -742,8 +743,6 @@ namespace CubePdf.Wpf
         /// <summary>
         /// ListView に表示されている index 番目のサムネイルに相当する
         /// PDF ページを削除します。
-        /// 
-        /// TODO: リクエストの調整
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -760,11 +759,11 @@ namespace CubePdf.Wpf
                 var image = _images.RawAt(index);
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
+                DeleteCreatedQueue(index);
                 DeleteRequest(index);
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
             }
-
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1542,13 +1541,16 @@ namespace CubePdf.Wpf
 
             lock (_pages)
             lock (_images)
-            foreach (var page in reader.Pages)
             {
-                _pages.Insert(index, page);
-                UpdateImageSizeRatio(page);
-                _images.Insert(index, new Drawing.ImageContainer());
-                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
-                ++index;
+                foreach (var page in reader.Pages)
+                {
+                    _pages.Insert(index, page);
+                    UpdateImageSizeRatio(page);
+                    _images.Insert(index, new Drawing.ImageContainer());
+                    UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                    ++index;
+                }
+                InsertCreatedQueue(first, reader.PageCount);
             }
             UpdateImageText(first);
         }
@@ -1660,19 +1662,19 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void DeleteUnvisibleImage(int index, int limit)
         {
-            if (_indices.ContainsKey(index)) return;
-            if (_indices.Count >= limit)
+            if (_created.ContainsKey(index)) return;
+            if (_created.Count >= limit)
             {
                 lock (_images)
                 {
-                    var first = _indices.Keys[0];
-                    var last = _indices.Keys[_indices.Count - 1];
+                    var first = _created.Keys[0];
+                    var last = _created.Keys[_created.Count - 1];
                     var target = (Math.Abs(index - first) > Math.Abs(index - last)) ? first : last;
                     _images.RawAt(target).DeleteImage();
-                    _indices.Remove(target);
+                    _created.Remove(target);
                 }
             }
-            _indices.Add(index, null);
+            _created.Add(index, null);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1690,7 +1692,7 @@ namespace CubePdf.Wpf
             {
                 for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
             }
-            _indices.Clear();
+            _created.Clear();
         }
 
         /* ----------------------------------------------------------------- */
@@ -1776,6 +1778,57 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Private methods for images created queue
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// InsertCreatedQueue
+        /// 
+        /// <summary>
+        /// 挿入後の各イメージのインデックスと整合するように更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void InsertCreatedQueue(int index, int count)
+        {
+            var updated = new SortedList<int, object>();
+            foreach (var key in _created.Keys)
+            {
+                var newindex = (key < index) ? key : key + count;
+                updated.Add(newindex, null);
+            }
+            var old = _created;
+            _created = updated;
+            old.Clear();
+            old = null;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DeleteCreatedQueue
+        /// 
+        /// <summary>
+        /// 削除後の各イメージのインデックスと整合するように更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void DeleteCreatedQueue(int index)
+        {
+            var updated = new SortedList<int, object>();
+            foreach (var key in _created.Keys)
+            {
+                if (key == index) continue;
+                var newindex = (key < index) ? key : key - 1;
+                updated.Add(newindex, null);
+            }
+            var old = _created;
+            _created = updated;
+            old.Clear();
+            old = null;
+        }
+
+        #endregion
+
         #region Private methods for requests
 
         /* ----------------------------------------------------------------- */
@@ -1855,6 +1908,7 @@ namespace CubePdf.Wpf
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
+                    if (key < 0 || key >= _pages.Count) continue;
                     if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
                         value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
                     {
@@ -2193,7 +2247,7 @@ namespace CubePdf.Wpf
         private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
-        private SortedList<int, object> _indices = new SortedList<int, object>();
+        private SortedList<int, object> _created = new SortedList<int, object>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
         private CommandStatus _status = CommandStatus.End;
