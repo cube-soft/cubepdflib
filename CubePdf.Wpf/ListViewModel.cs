@@ -1174,7 +1174,7 @@ namespace CubePdf.Wpf
                 lock (_images)
                 {
                     _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
-                    DeleteUnvisibleImage(index, (int)((range.Value - range.Key) * 1.5));
+                    DeleteUnvisibleImage(index, (int)((range.Value - range.Key + 1) * 1.5));
                 }
             }
             else if (e.Image != null) e.Image.Dispose();
