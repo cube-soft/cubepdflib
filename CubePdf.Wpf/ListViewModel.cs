@@ -948,11 +948,11 @@ namespace CubePdf.Wpf
         public void Reset()
         {
             lock (_images)
-                lock (_requests)
-                {
-                    ClearImage();
-                    _requests.Clear();
-                }
+            lock (_requests)
+            {
+                ClearImage();
+                _requests.Clear();
+            }
 
             _ratio = 0.0;
             OnPropertyChanged("MaxItemHeight");
@@ -1165,10 +1165,17 @@ namespace CubePdf.Wpf
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
             var index = _pages.IndexOf(e.Page);
-            if (e.Image != null && index >= 0 && index < _pages.Count)
+            if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
+
+            var range = GetVisibleRange();
+            if (e.Image != null && index >= range.Key && index <= range.Value)
             {
                 RotateImage(e.Image, _pages[index], e.Page);
-                lock (_images) _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                lock (_images)
+                {
+                    _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                    DeleteUnvisibleImage(index, (int)((range.Value - range.Key) * 1.5));
+                }
             }
             else if (e.Image != null) e.Image.Dispose();
             FetchRequest();
@@ -1273,7 +1280,7 @@ namespace CubePdf.Wpf
             {
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count - 1));
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
             }
             else return new KeyValuePair<int, int>(first, _pages.Count - 1);
         }
@@ -1643,6 +1650,32 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// RemoveUnvisibleImage
+        /// 
+        /// <summary>
+        /// 表示されていないイメージを削除します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void DeleteUnvisibleImage(int index, int limit)
+        {
+            if (_indices.ContainsKey(index)) return;
+            if (_indices.Count >= limit)
+            {
+                lock (_images)
+                {
+                    var first = _indices.Keys[0];
+                    var last = _indices.Keys[_indices.Count - 1];
+                    var target = (Math.Abs(index - first) > Math.Abs(index - last)) ? first : last;
+                    _images.RawAt(target).DeleteImage();
+                    _indices.Remove(target);
+                }
+            }
+            _indices.Add(index, null);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ClearImage
         /// 
         /// <summary>
@@ -1656,6 +1689,7 @@ namespace CubePdf.Wpf
             {
                 for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
             }
+            _indices.Clear();
         }
 
         /* ----------------------------------------------------------------- */
@@ -1821,7 +1855,11 @@ namespace CubePdf.Wpf
                     var value = _requests[key];
                     _requests.Remove(key);
                     if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
-                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber) continue;
+                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
+                    {
+                        if (key < range.Key || key > range.Value) _images.RawAt(key).DeleteImage();
+                        continue;
+                    }
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
                 }
@@ -2154,6 +2192,7 @@ namespace CubePdf.Wpf
         private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
+        private SortedList<int, object> _indices = new SortedList<int, object>();
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
         private CommandStatus _status = CommandStatus.End;
