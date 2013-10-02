@@ -77,6 +77,20 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Clear
+        /// 
+        /// <summary>
+        /// 管理テーブルを初期状態にクリアします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Clear()
+        {
+            _indices.Clear();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Update
         /// 
         /// <summary>
@@ -93,8 +107,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Update(int index)
         {
-            if (_indices.ContainsKey(index) || _capacity <= 0) return;
-            if (_indices.Count >= _capacity)
+            var capacity = _indices.ContainsKey(index) ? _capacity + 1 : _capacity;
+            while (_indices.Count > 0 && _indices.Count >= capacity)
             {
                 var first  = _indices.Keys[0];
                 var last   = _indices.Keys[_indices.Count - 1];
@@ -105,12 +119,13 @@ namespace CubePdf.Wpf
                     lock (_items) _items.RawAt(remove).DeleteImage();
                 }
             }
+            if (_indices.ContainsKey(index) || _capacity <= 0) return;
             _indices.Add(index, null);
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// OnInserted
+        /// ItemInserted
         /// 
         /// <summary>
         /// インデックスを管理する対象となる IListProxy オブジェクトに
@@ -123,8 +138,8 @@ namespace CubePdf.Wpf
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public void OnInserted(int index) { OnInserted(index, 1); }
-        public void OnInserted(int first, int count)
+        public void ItemInserted(int index) { ItemInserted(index, 1); }
+        public void ItemInserted(int first, int count)
         {
             var indices = new SortedList<int, object>();
             var same = true;
@@ -144,7 +159,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// OnInserted
+        /// ItemRemoved
         /// 
         /// <summary>
         /// インデックスを管理する対象となる IListProxy オブジェクトから
@@ -157,8 +172,8 @@ namespace CubePdf.Wpf
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public void OnDeleted(int index) { OnDeleted(index, 1); }
-        public void OnDeleted(int first, int count)
+        public void ItemRemoved(int index) { ItemRemoved(index, 1); }
+        public void ItemRemoved(int first, int count)
         {
             var indices = new SortedList<int, object>();
             var same = true;

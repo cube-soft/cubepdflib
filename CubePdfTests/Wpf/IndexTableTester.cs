@@ -159,13 +159,22 @@ namespace CubePdfTests.Wpf
                 Assert.IsTrue(table.Indices.Contains(5));
                 Assert.IsTrue(table.Indices.Contains(10));
                 Assert.IsTrue(table.Indices.Contains(12345));
+
+                // Capacity が縮小する場合は、最初の Update 時に調整
+                table.Capacity = 3;
+                Assert.AreEqual(5, table.Indices.Count);
+                table.Update(5);
+                Assert.AreEqual(3, table.Indices.Count);
+                Assert.IsTrue(table.Indices.Contains(2));
+                Assert.IsTrue(table.Indices.Contains(3));
+                Assert.IsTrue(table.Indices.Contains(5));
             }
             catch (Exception err) { Assert.Fail(err.ToString()); }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestOnInserted
+        /// TestItemInserted
         /// 
         /// <summary>
         /// 管理する対象となる IListProxy オブジェクトに新しい項目が挿入
@@ -174,7 +183,7 @@ namespace CubePdfTests.Wpf
         ///
         /* ----------------------------------------------------------------- */
         [Test]
-        public void TestOnInserted()
+        public void TestItemInserted()
         {
             try
             {
@@ -190,7 +199,7 @@ namespace CubePdfTests.Wpf
                 table.Update(9);
                 Assert.AreEqual(5, table.Indices.Count);
 
-                table.OnInserted(5, 4);
+                table.ItemInserted(5, 4);
                 Assert.IsTrue(table.Indices.Contains(1));
                 Assert.IsTrue(table.Indices.Contains(3));
                 Assert.IsTrue(table.Indices.Contains(9));
@@ -202,7 +211,7 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestOnDeleted
+        /// TestItemRemoved
         /// 
         /// <summary>
         /// 管理する対象となる IListProxy オブジェクトから項目が削除された
@@ -211,7 +220,7 @@ namespace CubePdfTests.Wpf
         ///
         /* ----------------------------------------------------------------- */
         [Test]
-        public void TestOnDeleted()
+        public void TestItemRemoved()
         {
             try
             {
@@ -227,7 +236,7 @@ namespace CubePdfTests.Wpf
                 table.Update(9);
                 Assert.AreEqual(5, table.Indices.Count);
 
-                table.OnDeleted(3, 3);
+                table.ItemRemoved(3, 3);
                 Assert.AreEqual(3, table.Indices.Count);
                 Assert.IsTrue(table.Indices.Contains(1));
                 Assert.IsTrue(table.Indices.Contains(4));
