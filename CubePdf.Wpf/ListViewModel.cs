@@ -1666,8 +1666,20 @@ namespace CubePdf.Wpf
         {
             lock (_images)
             {
-                for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
+                for (int i = 0; i < _images.RawCount; ++i)
+                {
+                    if (_images.RawAt(i).Status != Drawing.ImageStatus.None)
+                    {
+                        Debug.WriteLine(string.Format("Image[{0}] {1} (in ClearImage)", i, _images.RawAt(i).Status.ToString()));
+                    }
+                    _images.RawAt(i).DeleteImage();
+                }
             }
+
+            Debug.WriteLine(string.Format("IndexTable: Count = {0}, Capacity = {1}", _created.Indices.Count, _created.Capacity));
+            var debug = new System.Text.StringBuilder();
+            foreach (var index in _created.Indices) debug.Append(string.Format(" {0}", index));
+            Debug.WriteLine(string.Format("Indices: {0}", debug.ToString()));
             _created.Clear();
         }
 
