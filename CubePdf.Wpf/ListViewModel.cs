@@ -58,6 +58,7 @@ namespace CubePdf.Wpf
         public ListViewModel()
         {
             _images = new ListProxy<CubePdf.Drawing.ImageContainer>(this);
+            _created = new IndexTable(_images);
         }
 
         /* ----------------------------------------------------------------- */
@@ -602,6 +603,7 @@ namespace CubePdf.Wpf
                 _pages.Insert(index, item);
                 UpdateImageSizeRatio(item);
                 _images.Insert(index, new Drawing.ImageContainer());
+                _created.ItemInserted(index);
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, item));
             }
@@ -742,8 +744,6 @@ namespace CubePdf.Wpf
         /// <summary>
         /// ListView に表示されている index 番目のサムネイルに相当する
         /// PDF ページを削除します。
-        /// 
-        /// TODO: リクエストの調整
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -760,11 +760,11 @@ namespace CubePdf.Wpf
                 var image = _images.RawAt(index);
                 _images.RemoveAt(index);
                 if (image != null) image.Dispose();
+                _created.ItemRemoved(index);
                 DeleteRequest(index);
                 UpdateImageText(index);
                 UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
             }
-
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -948,11 +948,11 @@ namespace CubePdf.Wpf
         public void Reset()
         {
             lock (_images)
-                lock (_requests)
-                {
-                    ClearImage();
-                    _requests.Clear();
-                }
+            lock (_requests)
+            {
+                ClearImage();
+                _requests.Clear();
+            }
 
             _ratio = 0.0;
             OnPropertyChanged("MaxItemHeight");
@@ -972,17 +972,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Refresh()
         {
-            if (_visibility == ListViewItemVisibility.Minimum) return;
-
             var range = GetVisibleRange();
-            if (range.Key == -1) return;
-            for (int i = range.Key; i < range.Value; ++i)
-            {
-                var element = _images.RawAt(i);
-                if (element.Status == Drawing.ImageStatus.Created) continue;
-                UpdateRequest(i, _pages[i]);
-            }
-            if (!UnderItemCreation) FetchRequest();
+            if (range.Key < 0 || range.Value >= _pages.Count) return;
+            for (int i = range.Key; i <= range.Value; ++i) UpdateImage(i);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1125,25 +1117,11 @@ namespace CubePdf.Wpf
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
             if (index < 0 || index >= _images.RawCount) return null;
-            lock (_images)
-            {
-                var element = _images.RawAt(index);
-                if (element.Status == Drawing.ImageStatus.Created) return element;
-                if (element.Status == Drawing.ImageStatus.None)
-                {
-                    var page = _pages[index];
-                    if (_visibility == ListViewItemVisibility.Minimum) element.UpdateImage(GetDummyImage(page), Drawing.ImageStatus.Dummy);
-                    else element.UpdateImage(GetLoadingImage(page), Drawing.ImageStatus.Loading);
-                    UpdateImageSizeRatio(page);
-                }
-
-                if (element.Status == Drawing.ImageStatus.Loading)
-                {
-                    UpdateRequest(index, _pages[index]);
-                    FetchRequest();
-                }
-                return element;
-            }
+            var range = GetVisibleRange();
+            if (index < range.Key || index > range.Value) return _images.RawAt(index);
+            UpdateImageSizeRatio(_pages[index]);
+            UpdateImage(index);
+            return _images.RawAt(index);
         }
 
         #endregion
@@ -1187,10 +1165,18 @@ namespace CubePdf.Wpf
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
             var index = _pages.IndexOf(e.Page);
-            if (e.Image != null && index >= 0 && index < _pages.Count)
+            if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
+
+            var range = GetVisibleRange();
+            if (e.Image != null && index >= range.Key && index <= range.Value)
             {
                 RotateImage(e.Image, _pages[index], e.Page);
-                lock (_images) _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                lock (_images)
+                {
+                    _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                    _created.Capacity = (int)((range.Value - range.Key + 1) * 1.5);
+                    _created.Update(index);
+                }
             }
             else if (e.Image != null) e.Image.Dispose();
             FetchRequest();
@@ -1286,18 +1272,19 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count);
+            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
 
             var first = GetItemIndex(new Point(10, 10));
             if (first == -1) first = GetItemIndex(new Point(10, 0));
+            if (first == -1) first = 0;
 
             if (ItemWidth != 0 && MaxItemHeight != 0)
             {
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 1), _pages.Count));
+                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
             }
-            else return new KeyValuePair<int, int>(first, _pages.Count);
+            else return new KeyValuePair<int, int>(first, _pages.Count - 1);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1322,16 +1309,23 @@ namespace CubePdf.Wpf
         /// GetDummyImage
         /// 
         /// <summary>
-        /// ListView に本来表示される画像と縦横比の等しいダミー画像を取得
-        /// します。生成された画像の縦横比は、小数点以下の関係で若干ずれる
-        /// 事があります。
+        /// ListView に本来表示される画像と縦横比の近いダミー画像を取得
+        /// します。生成された画像の縦横比は、若干ずれる事があります。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private Image GetDummyImage(CubePdf.Data.IPage page)
         {
-            var size = GetSize(page);
-            return new Bitmap(size.Width, size.Height);
+            var tolerance = 0.1f;
+            var size = GetSize(page);            
+            var w = size.Width / (double)size.Height;
+            var h = 1;
+            while (Math.Abs(w - Math.Round(w)) > tolerance)
+            {
+                w *= (h + 1) / (double)h;
+                h++;
+            }
+            return new Bitmap((int)Math.Round(w), h);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1526,6 +1520,7 @@ namespace CubePdf.Wpf
             lock (_images)
             {
                 ClearImage();
+                foreach (var image in _images) image.Dispose();
                 _images.Clear();
             }
             DisposeEngine();
@@ -1545,17 +1540,19 @@ namespace CubePdf.Wpf
         {
             lock (_requests) DeleteRequest(index);
             var first = index;
-            foreach (var page in reader.Pages)
+
+            lock (_pages)
+            lock (_images)
             {
-                lock (_pages)
-                lock (_images)
+                foreach (var page in reader.Pages)
                 {
                     _pages.Insert(index, page);
                     UpdateImageSizeRatio(page);
                     _images.Insert(index, new Drawing.ImageContainer());
+                    UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                    ++index;
                 }
-                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
-                ++index;
+                _created.ItemInserted(first, reader.PageCount);
             }
             UpdateImageText(first);
         }
@@ -1625,6 +1622,39 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// UpdateImage
+        /// 
+        /// <summary>
+        /// 引数に指定されたインデックスに対応するイメージを更新します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void UpdateImage(int index)
+        {
+            lock (_images)
+            {
+                var element = _images.RawAt(index);
+                if (_visibility == ListViewItemVisibility.Minimum)
+                {
+                    if (element.Status != Drawing.ImageStatus.Dummy)
+                    {
+                        element.UpdateImage(GetDummyImage(_pages[index]), Drawing.ImageStatus.Dummy);
+                    }
+                }
+                else
+                {
+                    if (element.Status == Drawing.ImageStatus.None || element.Status == Drawing.ImageStatus.Dummy)
+                    {
+                        element.UpdateImage(GetLoadingImage(_pages[index]), Drawing.ImageStatus.Loading);
+                    }
+                    UpdateRequest(index, _pages[index]);
+                    FetchRequest();
+                }
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ClearImage
         /// 
         /// <summary>
@@ -1636,8 +1666,21 @@ namespace CubePdf.Wpf
         {
             lock (_images)
             {
-                for (int i = 0; i < _images.RawCount; ++i) _images.RawAt(i).DeleteImage();
+                for (int i = 0; i < _images.RawCount; ++i)
+                {
+                    if (_images.RawAt(i).Status != Drawing.ImageStatus.None)
+                    {
+                        Debug.WriteLine(string.Format("Image[{0}] {1} (in ClearImage)", i, _images.RawAt(i).Status.ToString()));
+                    }
+                    _images.RawAt(i).DeleteImage();
+                }
             }
+
+            Debug.WriteLine(string.Format("IndexTable: Count = {0}, Capacity = {1}", _created.Indices.Count, _created.Capacity));
+            var debug = new System.Text.StringBuilder();
+            foreach (var index in _created.Indices) debug.Append(string.Format(" {0}", index));
+            Debug.WriteLine(string.Format("Indices: {0}", debug.ToString()));
+            _created.Clear();
         }
 
         /* ----------------------------------------------------------------- */
@@ -1802,8 +1845,13 @@ namespace CubePdf.Wpf
                     var key = _requests.Keys[0];
                     var value = _requests[key];
                     _requests.Remove(key);
-                    if (key < range.Key || key >= range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
-                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber) continue;
+                    if (key < 0 || key >= _pages.Count) continue;
+                    if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
+                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
+                    {
+                        if (key < range.Key || key > range.Value) _images.RawAt(key).DeleteImage();
+                        continue;
+                    }
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
                 }
@@ -2136,6 +2184,7 @@ namespace CubePdf.Wpf
         private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
+        private IndexTable _created = null;
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
         private CommandStatus _status = CommandStatus.End;

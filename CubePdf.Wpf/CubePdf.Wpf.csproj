@@ -103,6 +103,7 @@
     <Compile Include="IItemsProvider.cs" />
     <Compile Include="IListProxy.cs" />
     <Compile Include="ImageConverter.cs" />
+    <Compile Include="IndexTable.cs" />
     <Compile Include="IsEnabledToVisibilityConverter.cs" />
     <Compile Include="ListProxy.cs" />
     <Compile Include="ListViewCommands.cs" />
