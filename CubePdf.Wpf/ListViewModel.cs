@@ -1117,9 +1117,9 @@ namespace CubePdf.Wpf
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
             if (index < 0 || index >= _images.RawCount) return null;
+            UpdateImageSizeRatio(_pages[index]);
             var range = GetVisibleRange();
             if (index < range.Key || index > range.Value) return _images.RawAt(index);
-            UpdateImageSizeRatio(_pages[index]);
             UpdateImage(index);
             return _images.RawAt(index);
         }
