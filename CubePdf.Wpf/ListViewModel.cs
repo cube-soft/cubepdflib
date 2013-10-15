@@ -19,15 +19,17 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Linq;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Interactivity;
 
 namespace CubePdf.Wpf
 {
@@ -1118,6 +1120,7 @@ namespace CubePdf.Wpf
         {
             if (index < 0 || index >= _images.RawCount) return null;
             UpdateImageSizeRatio(_pages[index]);
+            
             var range = GetVisibleRange();
             if (index < range.Key || index > range.Value) return _images.RawAt(index);
             UpdateImage(index);
@@ -1272,19 +1275,21 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
+            int first=0;
             if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
-
-            var first = GetItemIndex(new Point(10, 10));
-            if (first == -1) first = GetItemIndex(new Point(10, 0));
-            if (first == -1) first = 0;
-
-            if (ItemWidth != 0 && MaxItemHeight != 0)
+            try
             {
+                var sv = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
+                first = (int)((sv.VerticalOffset / sv.ScrollableHeight * _pages.Count) / 5) * 5 - col*row / 2;
+                if (first < 0 | first > _pages.Count) throw new Exception();
                 return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
             }
-            else return new KeyValuePair<int, int>(first, _pages.Count - 1);
+            catch (Exception) {
+                first = 0;
+                return new KeyValuePair<int, int>(first, _pages.Count - 1);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1857,6 +1862,22 @@ namespace CubePdf.Wpf
                 }
             }
         }
+        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
+            {
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is T) return (T)child;
+                else
+                {
+                    var grandchild = FindVisualChild<T>(child);
+                    if (grandchild != null) return grandchild;
+                }
+            }
+
+            return null;
+        }
+
 
         #endregion
 
