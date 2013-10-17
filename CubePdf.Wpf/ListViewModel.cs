@@ -1258,24 +1258,31 @@ namespace CubePdf.Wpf
         /// 実際に画面に表示される項目の範囲を取得します。
         /// </summary>
         /// 
+        /// <remarks>
+        /// TODO: first が左端を指すようにする。
+        /// </remarks>
+        /// 
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
+            var all = new KeyValuePair<int, int>(0, _pages.Count - 1);
+            if (_view == null) return all;
 
-            int first = 0;
             try
             {
                 var sv = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
-                var col = (int)_view.ActualWidth / ItemWidth;
-                var row = (int)_view.ActualHeight / MaxItemHeight;
-                first = (int)((sv.VerticalOffset / sv.ScrollableHeight * _pages.Count) / 5) * 5 - col;
-                if (first < 0 || first > _pages.Count) throw new Exception();
+                if (sv == null) return all;
+
+                var col   = (int)_view.ActualWidth / Math.Max(ItemWidth, 1);
+                var row   = (int)_view.ActualHeight / Math.Max(MaxItemHeight, 1);
+                var first = (int)((sv.VerticalOffset / Math.Max(sv.ScrollableHeight, 1) * _pages.Count) / 5) * 5 - col;
+                if (first < 0 || first > _pages.Count) return all;
                 return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
             }
-            catch (Exception) {
-                first = 0;
-                return new KeyValuePair<int, int>(first, _pages.Count - 1);
+            catch (Exception err)
+            {
+                Trace.WriteLine(err.ToString());
+                return all;
             }
         }
 
