@@ -1228,40 +1228,26 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FindVisualParent
+        /// FindVisualChild
         /// 
         /// <summary>
-        /// 親要素のうち最初に見つかった T 型のオブジェクトを取得します。
+        /// 子要素のうち最初に見つかった T 型のオブジェクトを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private T FindVisualParent<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
+        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
         {
-            while (obj != null)
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
             {
-                if (obj is T) break;
-                obj = VisualTreeHelper.GetParent(obj);
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is T) return (T)child;
+                else
+                {
+                    var grandchild = FindVisualChild<T>(child);
+                    if (grandchild != null) return grandchild;
+                }
             }
-            return obj as T;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetItemIndex
-        ///
-        /// <summary>
-        /// 引数に指定された座標上に存在する項目のインデックスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private int GetItemIndex(Point current)
-        {
-            if (_view == null) return - 1;
-            var result = VisualTreeHelper.HitTest(_view, new System.Windows.Point(current.X, current.Y));
-            if (result == null) return -1;
-
-            var item = FindVisualParent<System.Windows.Controls.ListViewItem>(result.VisualHit);
-            return (item != null) ? _view.Items.IndexOf(item.Content) : -1;
+            return null;
         }
 
         /* ----------------------------------------------------------------- */
@@ -1275,15 +1261,16 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            int first=0;
             if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
+
+            int first = 0;
             try
             {
                 var sv = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 var col = (int)_view.ActualWidth / ItemWidth;
                 var row = (int)_view.ActualHeight / MaxItemHeight;
-                first = (int)((sv.VerticalOffset / sv.ScrollableHeight * _pages.Count) / 5) * 5 - col*row / 2;
-                if (first < 0 | first > _pages.Count) throw new Exception();
+                first = (int)((sv.VerticalOffset / sv.ScrollableHeight * _pages.Count) / 5) * 5 - col;
+                if (first < 0 || first > _pages.Count) throw new Exception();
                 return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
             }
             catch (Exception) {
@@ -1862,22 +1849,6 @@ namespace CubePdf.Wpf
                 }
             }
         }
-        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
-            {
-                var child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is T) return (T)child;
-                else
-                {
-                    var grandchild = FindVisualChild<T>(child);
-                    if (grandchild != null) return grandchild;
-                }
-            }
-
-            return null;
-        }
-
 
         #endregion
 
