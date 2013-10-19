@@ -19,15 +19,17 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.Linq;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Interactivity;
 
 namespace CubePdf.Wpf
 {
@@ -1117,9 +1119,10 @@ namespace CubePdf.Wpf
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
             if (index < 0 || index >= _images.RawCount) return null;
+            UpdateImageSizeRatio(_pages[index]);
+            
             var range = GetVisibleRange();
             if (index < range.Key || index > range.Value) return _images.RawAt(index);
-            UpdateImageSizeRatio(_pages[index]);
             UpdateImage(index);
             return _images.RawAt(index);
         }
@@ -1225,40 +1228,26 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FindVisualParent
+        /// FindVisualChild
         /// 
         /// <summary>
-        /// 親要素のうち最初に見つかった T 型のオブジェクトを取得します。
+        /// 子要素のうち最初に見つかった T 型のオブジェクトを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private T FindVisualParent<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
+        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
         {
-            while (obj != null)
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
             {
-                if (obj is T) break;
-                obj = VisualTreeHelper.GetParent(obj);
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is T) return (T)child;
+                else
+                {
+                    var grandchild = FindVisualChild<T>(child);
+                    if (grandchild != null) return grandchild;
+                }
             }
-            return obj as T;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetItemIndex
-        ///
-        /// <summary>
-        /// 引数に指定された座標上に存在する項目のインデックスを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private int GetItemIndex(Point current)
-        {
-            if (_view == null) return - 1;
-            var result = VisualTreeHelper.HitTest(_view, new System.Windows.Point(current.X, current.Y));
-            if (result == null) return -1;
-
-            var item = FindVisualParent<System.Windows.Controls.ListViewItem>(result.VisualHit);
-            return (item != null) ? _view.Items.IndexOf(item.Content) : -1;
+            return null;
         }
 
         /* ----------------------------------------------------------------- */
@@ -1269,22 +1258,38 @@ namespace CubePdf.Wpf
         /// 実際に画面に表示される項目の範囲を取得します。
         /// </summary>
         /// 
+        /// <remarks>
+        /// TODO: margin の値は、現在の CubePDF Utility に基づいた値である。
+        /// 恐らく項目ごとの Margin や Padding の値（現在、ともに 3 に設定）
+        /// によって変化するので、それらの値に応じて変更するような形に
+        /// 修正する。
+        /// </remarks>
+        /// 
         /* ----------------------------------------------------------------- */
         private KeyValuePair<int, int> GetVisibleRange()
         {
-            if (_view == null) return new KeyValuePair<int, int>(0, _pages.Count - 1);
+            var all = new KeyValuePair<int, int>(0, _pages.Count - 1);
+            if (_view == null) return all;
 
-            var first = GetItemIndex(new Point(10, 10));
-            if (first == -1) first = GetItemIndex(new Point(10, 0));
-            if (first == -1) first = 0;
-
-            if (ItemWidth != 0 && MaxItemHeight != 0)
+            try
             {
-                var col = (int)_view.ActualWidth / ItemWidth;
-                var row = (int)_view.ActualHeight / MaxItemHeight;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
+                var scroll = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
+                if (scroll == null) return all;
+
+                var margin = 20; // empirical
+                var width  = Math.Max(ItemWidth, 1);
+                var height = Math.Max(MaxItemHeight, 1);
+                var column = (int)_view.ActualWidth / width;
+                var row    = (int)_view.ActualHeight / height;
+                var index  = (int)(scroll.VerticalOffset / (height + margin)) * column;
+                if (index < 0 || index > _pages.Count) return all;
+                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
             }
-            else return new KeyValuePair<int, int>(first, _pages.Count - 1);
+            catch (Exception err)
+            {
+                Trace.WriteLine(err.ToString());
+                return all;
+            }
         }
 
         /* ----------------------------------------------------------------- */
