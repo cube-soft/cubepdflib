@@ -1259,7 +1259,10 @@ namespace CubePdf.Wpf
         /// </summary>
         /// 
         /// <remarks>
-        /// TODO: first が左端を指すようにする。
+        /// TODO: margin の値は、現在の CubePDF Utility に基づいた値である。
+        /// 恐らく項目ごとの Margin や Padding の値（現在、ともに 3 に設定）
+        /// によって変化するので、それらの値に応じて変更するような形に
+        /// 修正する。
         /// </remarks>
         /// 
         /* ----------------------------------------------------------------- */
@@ -1270,14 +1273,17 @@ namespace CubePdf.Wpf
 
             try
             {
-                var sv = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
-                if (sv == null) return all;
+                var scroll = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
+                if (scroll == null) return all;
 
-                var col   = (int)_view.ActualWidth / Math.Max(ItemWidth, 1);
-                var row   = (int)_view.ActualHeight / Math.Max(MaxItemHeight, 1);
-                var first = (int)((sv.VerticalOffset / Math.Max(sv.ScrollableHeight, 1) * _pages.Count) / 5) * 5 - col;
-                if (first < 0 || first > _pages.Count) return all;
-                return new KeyValuePair<int, int>(first, Math.Min(first + col * (row + 2), _pages.Count - 1));
+                var margin = 20; // empirical
+                var width  = Math.Max(ItemWidth, 1);
+                var height = Math.Max(MaxItemHeight, 1);
+                var column = (int)_view.ActualWidth / width;
+                var row    = (int)_view.ActualHeight / height;
+                var index  = (int)(scroll.VerticalOffset / (height + margin)) * column;
+                if (index < 0 || index > _pages.Count) return all;
+                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
             }
             catch (Exception err)
             {
