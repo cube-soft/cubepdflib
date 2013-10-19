@@ -28,8 +28,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Interactivity;
 
 namespace CubePdf.Wpf
 {
@@ -1228,30 +1226,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FindVisualChild
-        /// 
-        /// <summary>
-        /// 子要素のうち最初に見つかった T 型のオブジェクトを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private T FindVisualChild<T>(System.Windows.DependencyObject obj) where T : System.Windows.DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
-            {
-                var child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is T) return (T)child;
-                else
-                {
-                    var grandchild = FindVisualChild<T>(child);
-                    if (grandchild != null) return grandchild;
-                }
-            }
-            return null;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// GetVisibleRange
         /// 
         /// <summary>
@@ -1273,7 +1247,7 @@ namespace CubePdf.Wpf
 
             try
             {
-                var scroll = FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
+                var scroll = VisualHelper.FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 if (scroll == null) return all;
 
                 var margin = 20; // empirical
