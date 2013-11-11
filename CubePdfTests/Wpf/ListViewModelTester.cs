@@ -356,19 +356,43 @@ namespace CubePdfTests.Wpf
             {
                 Assert.AreEqual(11, doc.PageCount);
             }
+        }
 
-            // 同じファイルの複数回挿入はエラー
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TestAddDuplicatedFiles
+        /// 
+        /// <summary>
+        /// 同じ PDF ファイルを重複して追加するテストです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestAddDuplicatedFiles()
+        {
             try
             {
-                viewmodel = CreateViewModel();
-                src = System.IO.Path.Combine(_src, "readme.pdf");
+                var viewmodel = CreateViewModel();
+                var src = System.IO.Path.Combine(_src, "readme.pdf");
+                Assert.IsTrue(System.IO.File.Exists(src));
                 viewmodel.Add(src);
                 viewmodel.Add(src);
-                Assert.Fail("never reached");
+                Assert.IsTrue(viewmodel.IsModified);
+                Assert.AreEqual(13, viewmodel.PageCount);
+
+                var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd2.pdf");
+                System.IO.File.Delete(dest);
+                viewmodel.Save(dest);
+                Assert.IsTrue(System.IO.File.Exists(dest));
+
+                viewmodel.Dispose();
+
+                using (var doc = new CubePdf.Editing.DocumentReader(dest))
+                {
+                    Assert.AreEqual(13, doc.PageCount);
+                }
             }
-            catch (ArgumentException /* err */) { Assert.Pass(); }
             catch (Exception err) { Assert.Fail(err.ToString()); }
-            finally { viewmodel.Dispose(); }
         }
 
         /* ----------------------------------------------------------------- */
