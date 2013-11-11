@@ -219,7 +219,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void RefreshDragScroll(Point current)
         {
-            var sv = FindVisualChild<ScrollViewer>(AssociatedObject);
+            var sv = VisualHelper.FindVisualChild<ScrollViewer>(AssociatedObject);
             if (sv == null) return;
 
             var height = AssociatedObject.ActualHeight;
@@ -426,50 +426,6 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FindVisualParent
-        /// 
-        /// <summary>
-        /// 親要素のうち最初に見つかった T 型のオブジェクトを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private T FindVisualParent<T>(DependencyObject obj) where T : DependencyObject
-        {
-            while (obj != null)
-            {
-                if (obj is T) break;
-                obj = VisualTreeHelper.GetParent(obj);
-            }
-            return obj as T;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// FindVisualChild
-        /// 
-        /// <summary>
-        /// 子要素のうち最初に見つかった T 型のオブジェクトを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); ++i)
-            {
-                var child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is T) return (T)child;
-                else
-                {
-                    var grandchild = FindVisualChild<T>(child);
-                    if (grandchild != null) return grandchild;
-                }
-            }
-
-            return null;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// GetItem
         ///
         /// <summary>
@@ -482,7 +438,7 @@ namespace CubePdf.Wpf
             var result = VisualTreeHelper.HitTest(AssociatedObject, current);
             if (result == null) return null;
 
-            var item = FindVisualParent<ListViewItem>(result.VisualHit);
+            var item = VisualHelper.FindVisualParent<ListViewItem>(result.VisualHit);
             return (item != null) ? item.Content : null;
         }
 
@@ -500,7 +456,7 @@ namespace CubePdf.Wpf
             var result = VisualTreeHelper.HitTest(AssociatedObject, current);
             if (result == null) return -1;
 
-            var item = FindVisualParent<ListViewItem>(result.VisualHit);
+            var item = VisualHelper.FindVisualParent<ListViewItem>(result.VisualHit);
             return (item != null) ? AssociatedObject.Items.IndexOf(item.Content) : -1;
         }
 
@@ -550,7 +506,7 @@ namespace CubePdf.Wpf
             AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
 
-            var panel = FindVisualParent<Grid>(AssociatedObject);
+            var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
 
             base.OnAttached();
@@ -567,7 +523,7 @@ namespace CubePdf.Wpf
             AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
 
-            var panel = FindVisualParent<Grid>(AssociatedObject);
+            var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Remove(_canvas);
 
             base.OnDetaching();
