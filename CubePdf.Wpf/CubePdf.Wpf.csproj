@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="StringToIntConverter.cs" />
     <Compile Include="VisualHelper.cs" />
+    <Compile Include="WindowExtensions.cs" />
     <Compile Include="WindowMenuBehavior.cs" />
   </ItemGroup>
   <ItemGroup>

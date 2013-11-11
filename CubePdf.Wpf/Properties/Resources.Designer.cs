@@ -61,15 +61,6 @@ namespace CubePdf.Wpf.Properties {
         }
         
         /// <summary>
-        ///   指定されたファイルは既に開かれています。同じファイルを重複して挿入する事はできません。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string DuplicateFileException {
-            get {
-                return ResourceManager.GetString("DuplicateFileException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   セキュリティ に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string EncryptionText {
