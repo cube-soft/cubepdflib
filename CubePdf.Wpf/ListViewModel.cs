@@ -622,8 +622,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, CubePdf.Data.IDocumentReader reader)
         {
-            if (_engines.ContainsKey(reader.FilePath)) throw new ArgumentException(Properties.Resources.DuplicateFileException);
-
             try
             {
                 BeginCommand();
@@ -645,7 +643,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Insert(int index, string path, string password = "")
         {
-            if (_engines.ContainsKey(path)) throw new ArgumentException(Properties.Resources.DuplicateFileException);
             using (var reader = new CubePdf.Editing.DocumentReader(path, password))
             {
                 Insert(index, reader);
@@ -1165,11 +1162,12 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
-            var index = _pages.IndexOf(e.Page);
+            var index = _creating;
             if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
 
             var range = GetVisibleRange();
-            if (e.Image != null && index >= range.Key && index <= range.Value)
+            if (e.Image != null && index >= range.Key && index <= range.Value &&
+                e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == _pages[index].PageNumber)
             {
                 RotateImage(e.Image, _pages[index], e.Page);
                 lock (_images)
@@ -1812,6 +1810,7 @@ namespace CubePdf.Wpf
 
             lock (_requests)
             {
+                _creating = -1;
                 if (_visibility == ListViewItemVisibility.Minimum)
                 {
                     _requests.Clear();
@@ -1831,6 +1830,7 @@ namespace CubePdf.Wpf
                         if (key < range.Key || key > range.Value) _images.RawAt(key).DeleteImage();
                         continue;
                     }
+                    _creating = key;
                     _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
                     break;
                 }
@@ -2163,6 +2163,7 @@ namespace CubePdf.Wpf
         private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
+        private int _creating = -1;
         private IndexTable _created = null;
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
         private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
