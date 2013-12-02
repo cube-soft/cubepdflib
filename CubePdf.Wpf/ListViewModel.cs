@@ -41,6 +41,7 @@ namespace CubePdf.Wpf
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
+    [Serializable]
     public class ListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter,
         IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged, IDisposable
     {
@@ -602,6 +603,14 @@ namespace CubePdf.Wpf
                 DeleteRequest(index);
                 _pages.Insert(index, item);
                 UpdateImageSizeRatio(item);
+
+                if (!_engines.ContainsKey(item.FilePath))
+                {
+                    using (var reader = new CubePdf.Editing.DocumentReader(item.FilePath, item.Password))
+                    {
+                        CreateEngine(reader);
+                    }
+                }
                 _images.Insert(index, new Drawing.ImageContainer());
                 _created.ItemInserted(index);
                 UpdateImageText(index);
@@ -1135,6 +1144,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {

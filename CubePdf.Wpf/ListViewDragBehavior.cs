@@ -113,7 +113,10 @@ namespace CubePdf.Wpf
                 AssociatedObject.AllowDrop = true;
                 if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item))
                 {
-                    DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                    var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
+                    var data = new DataObject(DataFormats.Serializable, srcdata);
+                    var effects = (DragDropEffects.Copy | DragDropEffects.Move);
+                    DragDrop.DoDragDrop(AssociatedObject, data, effects);
                 }
             }
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
@@ -162,9 +165,26 @@ namespace CubePdf.Wpf
 
             if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
             {
-                DragDrop.DoDragDrop(AssociatedObject, _source, DragDropEffects.Move);
+                var srcdata = ViewModel.GetPage(_source + 1);
+                //var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
+                var data = new DataObject(DataFormats.Serializable, srcdata);
+                var effects = (DragDropEffects.Copy | DragDropEffects.Move);
+                DragDrop.DoDragDrop(AssociatedObject, data, effects);
             }
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnDragEnter
+        ///
+        /// <summary>
+        /// 
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OnDragEnter(object sender, DragEventArgs e)
+        {   
         }
 
         /* ----------------------------------------------------------------- */
@@ -197,11 +217,24 @@ namespace CubePdf.Wpf
         private void OnDrop(object sender, DragEventArgs e)
         {
             _canvas.Visibility = Visibility.Collapsed;
-            if (!_ondrag) return;
+            //if (!_ondrag) return;
             _ondrag = false;
 
-            if (_source != -1) MoveItems(e.GetPosition(AssociatedObject));
-            AssociatedObject.AllowDrop = false;
+            e.Effects = DecideDragAction(sender, e);
+
+            if (_source != -1 && e.Effects == DragDropEffects.Move)
+            {
+                MoveItems(e.GetPosition(AssociatedObject));
+            }else{
+                var a = e.Data.GetData(DataFormats.Serializable) as CubePdf.Data.IPage;
+                if (a != null)
+                {
+                    ViewModel.Add(a);
+                }
+            }
+            
+            _source = -1;
+            //AssociatedObject.AllowDrop = false;
         }
 
         #endregion
@@ -491,6 +524,35 @@ namespace CubePdf.Wpf
             return dest;
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DecideDragAction
+        ///
+        /// <summary>
+        /// 行われているドラッグドロップが、CopyなのかMoveなのかを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        DragDropEffects DecideDragAction(object sender, DragEventArgs e)
+        {
+            var additem = e.Data.GetData(DataFormats.Serializable) as CubePdf.Data.IPage;
+            if (e.Data.GetDataPresent(DataFormats.Serializable))
+            {
+                if (sender != e.Source)
+                {
+                    return DragDropEffects.Copy;
+                }
+                else
+                {
+                    return DragDropEffects.Move;
+                }
+            }
+            else
+            {
+                return DragDropEffects.None;
+            }
+        }
+
         #endregion
 
         #region Attached/Detach methods
@@ -505,6 +567,7 @@ namespace CubePdf.Wpf
             AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
             AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
+            AssociatedObject.DragEnter += OnDragEnter;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
@@ -522,6 +585,7 @@ namespace CubePdf.Wpf
             AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
             AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
+            AssociatedObject.DragEnter -= OnDragEnter;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Remove(_canvas);

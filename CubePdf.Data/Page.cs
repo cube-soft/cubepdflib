@@ -32,6 +32,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
+    [Serializable]
     public class Page : IPage
     {
         #region Initialization and Termination
