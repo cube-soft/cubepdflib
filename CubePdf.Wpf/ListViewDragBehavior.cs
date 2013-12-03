@@ -111,13 +111,13 @@ namespace CubePdf.Wpf
             if (_source >= 0)
             {
                 AssociatedObject.AllowDrop = true;
-                if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item))
-                {
-                    var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
-                    var data = new DataObject(DataFormats.Serializable, srcdata);
-                    var effects = (DragDropEffects.Copy | DragDropEffects.Move);
-                    DragDrop.DoDragDrop(AssociatedObject, data, effects);
-                }
+                //if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item))
+                //{
+                //    var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
+                //    var data = new DataObject(DataFormats.Serializable, srcdata);
+                //    var effects = (DragDropEffects.Copy | DragDropEffects.Move);
+                //    DragDrop.DoDragDrop(AssociatedObject, data, effects);
+                //}
             }
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
@@ -165,10 +165,12 @@ namespace CubePdf.Wpf
 
             if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
             {
+                _canvas.Visibility = Visibility.Collapsed;
                 var srcdata = ViewModel.GetPage(_source + 1);
                 //var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
                 var data = new DataObject(DataFormats.Serializable, srcdata);
                 var effects = (DragDropEffects.Copy | DragDropEffects.Move);
+                Debug.WriteLine("src changed and will drag.");
                 DragDrop.DoDragDrop(AssociatedObject, data, effects);
             }
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
@@ -184,7 +186,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
-        {   
+        {
         }
 
         /* ----------------------------------------------------------------- */
@@ -203,6 +205,24 @@ namespace CubePdf.Wpf
             var pos = e.GetPosition(AssociatedObject);
             RefreshDragScroll(pos);
             RefreshMovingPosition(pos);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnDragLeave
+        ///
+        /// <summary>
+        /// マウスのドラッグ時、ウィンドウから出た場合の挙動を記述するためのイベントハンドラです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OnDragLeave(object sender, DragEventArgs e)
+        {
+            if (!_ondrag) return;
+
+            var pos = e.GetPosition(AssociatedObject);
+            _source = -1;
+            _ondrag = false;
         }
 
         /* ----------------------------------------------------------------- */
@@ -229,7 +249,8 @@ namespace CubePdf.Wpf
                 var a = e.Data.GetData(DataFormats.Serializable) as CubePdf.Data.IPage;
                 if (a != null)
                 {
-                    ViewModel.Add(a);
+                    var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
+                    ViewModel.Insert(index,a);
                 }
             }
             
@@ -516,8 +537,15 @@ namespace CubePdf.Wpf
                 }
                 else
                 {
-                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
-                    if (lvi != null) current.X -= lvi.Margin.Right;
+                    try
+                    {
+                        var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
+                        if (lvi != null) current.X -= lvi.Margin.Right;
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        return AssociatedObject.Items.Count;
+                    }
                 }
                 dest = GetItemIndex(current);
             }
@@ -568,6 +596,7 @@ namespace CubePdf.Wpf
             AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
             AssociatedObject.DragEnter += OnDragEnter;
+            AssociatedObject.DragLeave += OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
@@ -586,6 +615,7 @@ namespace CubePdf.Wpf
             AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
             AssociatedObject.DragEnter -= OnDragEnter;
+            AssociatedObject.DragLeave -= OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Remove(_canvas);
