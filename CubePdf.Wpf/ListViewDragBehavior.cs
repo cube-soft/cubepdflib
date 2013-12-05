@@ -162,15 +162,21 @@ namespace CubePdf.Wpf
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             if (!_ondrag) return;
+            if (!(e.LeftButton == MouseButtonState.Pressed)) return;
 
             if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
             {
                 _canvas.Visibility = Visibility.Collapsed;
                 var srcdata = ViewModel.GetPage(_source + 1);
+                DragPage dpage = new DragPage();
+                dpage.page = srcdata;
+                dpage.ProcessNum = Process.GetCurrentProcess().Id;
+                
                 //var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
-                var data = new DataObject(DataFormats.Serializable, srcdata);
+                var data = new DataObject(DataFormats.Serializable, dpage);
                 var effects = (DragDropEffects.Copy | DragDropEffects.Move);
-                Debug.WriteLine("src changed and will drag.");
+                _ondrag = true;
+                //Debug.WriteLine("src changed and will drag.");
                 DragDrop.DoDragDrop(AssociatedObject, data, effects);
             }
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
@@ -187,6 +193,18 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
         {
+            if (!_ondrag) return;
+            var data = e.Data.GetData(DataFormats.Serializable) as DragPage;
+            if (data == null || data.ProcessNum != Process.GetCurrentProcess().Id)
+            {
+                // no need to do something
+
+            }
+            else
+            {
+                // comes from other process.
+                _ondrag = false;
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -216,14 +234,14 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void OnDragLeave(object sender, DragEventArgs e)
-        {
-            if (!_ondrag) return;
+        //private void OnDragLeave(object sender, DragEventArgs e)
+        //{
+        //    if (!_ondrag) return;
 
-            var pos = e.GetPosition(AssociatedObject);
-            _source = -1;
-            _ondrag = false;
-        }
+        //    var pos = e.GetPosition(AssociatedObject);
+        //    _source = -1;
+        //    _ondrag = false;
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -241,16 +259,18 @@ namespace CubePdf.Wpf
             _ondrag = false;
 
             e.Effects = DecideDragAction(sender, e);
+            var a = e.Data.GetData(DataFormats.Serializable) as DragPage;
+            Trace.WriteLine("data comes from" + a.ProcessNum);
 
-            if (_source != -1 && e.Effects == DragDropEffects.Move)
+            if (e.Effects == DragDropEffects.Move && 
+                a.ProcessNum == Process.GetCurrentProcess().Id)
             {
                 MoveItems(e.GetPosition(AssociatedObject));
             }else{
-                var a = e.Data.GetData(DataFormats.Serializable) as CubePdf.Data.IPage;
                 if (a != null)
                 {
                     var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
-                    ViewModel.Insert(index,a);
+                    ViewModel.Insert(index,a.page);
                 }
             }
             
@@ -595,8 +615,8 @@ namespace CubePdf.Wpf
             AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
             AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
-            AssociatedObject.DragEnter += OnDragEnter;
-            AssociatedObject.DragLeave += OnDragLeave;
+            //AssociatedObject.DragEnter += OnDragEnter;
+            //AssociatedObject.DragLeave += OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
@@ -614,8 +634,8 @@ namespace CubePdf.Wpf
             AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
             AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
-            AssociatedObject.DragEnter -= OnDragEnter;
-            AssociatedObject.DragLeave -= OnDragLeave;
+            //AssociatedObject.DragEnter -= OnDragEnter;
+            //AssociatedObject.DragLeave -= OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Remove(_canvas);
@@ -648,5 +668,11 @@ namespace CubePdf.Wpf
         private static readonly int SCROLLBAR_WIDTH = 18;
         private static readonly int CURSOR_ADJUSTMENT = 7;
         #endregion
+    }
+    [Serializable]
+    public class DragPage
+    {
+        public Data.IPage page;
+        public int ProcessNum;
     }
 }
