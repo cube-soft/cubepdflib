@@ -61,7 +61,7 @@ namespace CubePdf.Wpf
             _rect.CornerRadius = new CornerRadius(1);
             _rect.DragOver += (sender, e) => { this.OnDragOver(sender, e); };
             _rect.Drop += (sender, e) => { this.OnDrop(sender, e); };
-            _rect.DragLeave += (sender, e) => { this.OnDragLeave(sender, e); };
+            _rect.DragLeave += (sender, e) => { _canvas.Visibility = Visibility.Collapsed; };
             _canvas.Children.Add(_rect);
         }
 
@@ -110,14 +110,7 @@ namespace CubePdf.Wpf
 
             if (_source >= 0)
             {
-                AssociatedObject.AllowDrop = true;
-                //if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item))
-                //{
-                //    var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
-                //    var data = new DataObject(DataFormats.Serializable, srcdata);
-                //    var effects = (DragDropEffects.Copy | DragDropEffects.Move);
-                //    DragDrop.DoDragDrop(AssociatedObject, data, effects);
-                //}
+                if (AssociatedObject.SelectedItems.Count > 1 && AssociatedObject.SelectedItems.Contains(item)) BeginDragDrop();
             }
             else if (_position.X <= AssociatedObject.ActualWidth - SCROLLBAR_WIDTH)
             {
@@ -159,22 +152,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            if (!(e.LeftButton == MouseButtonState.Pressed)) return;
+            if (e.LeftButton != MouseButtonState.Pressed) return;
 
-            if (e.LeftButton == MouseButtonState.Pressed && _source >= 0)
-            {
-                _canvas.Visibility = Visibility.Collapsed;
-                var srcdata = ViewModel.GetPage(_source + 1);
-                DragPage dpage = new DragPage();
-                dpage.page = srcdata;
-                dpage.ProcessNum = Process.GetCurrentProcess().Id;
-                
-                //var srcdata = new CubePdf.Data.Page(ViewModel.FilePath, _source);
-                var data = new DataObject(DataFormats.Serializable, dpage);
-                var effects = (DragDropEffects.Copy | DragDropEffects.Move);
-                //Debug.WriteLine("src changed and will drag.");
-                DragDrop.DoDragDrop(AssociatedObject, data, effects);
-            }
+            if (_source >= 0) BeginDragDrop();
             else RefreshDragSelection(_position, e.GetPosition(AssociatedObject));
         }
 
@@ -183,23 +163,25 @@ namespace CubePdf.Wpf
         /// OnDragEnter
         ///
         /// <summary>
-        /// 
+        /// 画面内へドラッグ状態で入った時に実行されるイベントハンドラです。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 他のプロセスから入った時に、開始インデックスを OTHER_PROCESS に
+        /// 設定します。
+        /// 
+        /// TODO: AssociatedObject.DragEnter は ListViewItem の DragEnter に
+        /// 対応してイベントが発生するようなので、DragEnter イベントが頻発
+        /// する。できれば Canvas.DragEnter イベントで処理を行いたいが、
+        /// 可能かどうか検討する。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
         {
             var data = e.Data.GetData(DataFormats.Serializable) as DragPage;
-            if (data == null || data.ProcessNum != Process.GetCurrentProcess().Id)
-            {
-                // no need to do something
-                _source = OTHER_PROCESS;
-
-            }
-            else
-            {
-                // comes from other process.
-            }
+            if (data == null) return;
+            if (data.ProcessNum != Process.GetCurrentProcess().Id) _source = OTHER_PROCESS;
         }
 
         /* ----------------------------------------------------------------- */
@@ -213,24 +195,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragOver(object sender, DragEventArgs e)
         {
-
             var pos = e.GetPosition(AssociatedObject);
             RefreshDragScroll(pos);
             RefreshMovingPosition(pos);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// OnDragLeave
-        ///
-        /// <summary>
-        /// マウスのドラッグ時、ウィンドウから出た場合の挙動を記述するためのイベントハンドラです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void OnDragLeave(object sender, DragEventArgs e)
-        {
-            _canvas.Visibility = Visibility.Collapsed;
         }
 
         /* ----------------------------------------------------------------- */
@@ -246,36 +213,63 @@ namespace CubePdf.Wpf
         {
             _canvas.Visibility = Visibility.Collapsed;
 
-            e.Effects = DecideDragAction(sender, e);
-            var a = e.Data.GetData(DataFormats.Serializable) as DragPage;
-            Trace.WriteLine("data comes from" + a.ProcessNum);
+            e.Effects = GetDragDropEffect(sender, e);
+            var data = e.Data.GetData(DataFormats.Serializable) as DragPage;
 
-            if (e.Effects == DragDropEffects.Move && 
-                a.ProcessNum == Process.GetCurrentProcess().Id)
+            if (e.Effects == DragDropEffects.Move && data.ProcessNum == Process.GetCurrentProcess().Id)
             {
                 MoveItems(e.GetPosition(AssociatedObject));
-            }else{
-                if (a != null)
-                {
-                    var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
-                    ViewModel.Insert(index,a.page);
-                }
+            }
+            else if (data != null)
+            {
+                var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
+                ViewModel.Insert(index, data.page);
             }
             
             _source = -1;
-            //AssociatedObject.AllowDrop = false;
         }
 
-        public void OnMouseLeave(object sender, MouseEventArgs e){
-            Console.WriteLine("s");
-
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnMouseLeave
+        ///
+        /// <summary>
+        /// 画面外へマウスが移動した時に実行されるイベントハンドラです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void OnMouseLeave(object sender, MouseEventArgs e)
+        {
             _canvas.Visibility = Visibility.Collapsed;
         }
-
 
         #endregion
 
         #region Methods for moving items
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// BeginDragDrop
+        /// 
+        /// <summary>
+        /// ドラッグ&ドロップによる項目の移動を開始します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void BeginDragDrop()
+        {
+            _canvas.Visibility = Visibility.Collapsed;
+            AssociatedObject.AllowDrop = true;
+
+            var srcdata = ViewModel.GetPage(_source + 1);
+            DragPage dpage = new DragPage();
+            dpage.page = srcdata;
+            dpage.ProcessNum = Process.GetCurrentProcess().Id;
+
+            var data = new DataObject(DataFormats.Serializable, dpage);
+            var effects = (DragDropEffects.Copy | DragDropEffects.Move);
+            DragDrop.DoDragDrop(AssociatedObject, data, effects);
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -569,31 +563,21 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// DecideDragAction
+        /// GetDragDropEffect
         ///
         /// <summary>
-        /// 行われているドラッグドロップが、CopyなのかMoveなのかを取得します。
+        /// ドラッグ&ドロップ処理の内容を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        DragDropEffects DecideDragAction(object sender, DragEventArgs e)
+        DragDropEffects GetDragDropEffect(object sender, DragEventArgs e)
         {
-            var additem = e.Data.GetData(DataFormats.Serializable) as CubePdf.Data.IPage;
             if (e.Data.GetDataPresent(DataFormats.Serializable))
             {
-                if (sender != e.Source)
-                {
-                    return DragDropEffects.Copy;
-                }
-                else
-                {
-                    return DragDropEffects.Move;
-                }
+                if (sender != e.Source) return DragDropEffects.Copy;
+                else return DragDropEffects.Move;
             }
-            else
-            {
-                return DragDropEffects.None;
-            }
+            else return DragDropEffects.None;
         }
 
         #endregion
