@@ -179,9 +179,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
         {
-            var data = e.Data.GetData(DataFormats.Serializable) as DragPage;
+            var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
             if (data == null) return;
-            if (data.ProcessNum != Process.GetCurrentProcess().Id) _source = OTHER_PROCESS;
+            if (data.ProccessId != Process.GetCurrentProcess().Id) _source = OTHER_PROCESS;
         }
 
         /* ----------------------------------------------------------------- */
@@ -214,16 +214,26 @@ namespace CubePdf.Wpf
             _canvas.Visibility = Visibility.Collapsed;
 
             e.Effects = GetDragDropEffect(sender, e);
-            var data = e.Data.GetData(DataFormats.Serializable) as DragPage;
+            var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
 
-            if (e.Effects == DragDropEffects.Move && data.ProcessNum == Process.GetCurrentProcess().Id)
+            if (e.Effects == DragDropEffects.Move && data.ProccessId == Process.GetCurrentProcess().Id)
             {
                 MoveItems(e.GetPosition(AssociatedObject));
             }
             else if (data != null)
             {
+                // TODO: MoveItems() でのインデックスの算出方法に従う。
                 var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
-                ViewModel.Insert(index, data.page);
+                try
+                {
+                    ViewModel.BeginCommand();
+                    foreach (var page in data.Pages)
+                    {
+                        ViewModel.Insert(index, page);
+                        ++index;
+                    }
+                }
+                finally { ViewModel.EndCommand(); }
             }
             
             _source = -1;
@@ -249,6 +259,25 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// GetDragDropEffect
+        ///
+        /// <summary>
+        /// ドラッグ&ドロップ処理の内容を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        DragDropEffects GetDragDropEffect(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.Serializable))
+            {
+                if (sender != e.Source) return DragDropEffects.Copy;
+                else return DragDropEffects.Move;
+            }
+            else return DragDropEffects.None;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// BeginDragDrop
         /// 
         /// <summary>
@@ -261,14 +290,15 @@ namespace CubePdf.Wpf
             _canvas.Visibility = Visibility.Collapsed;
             AssociatedObject.AllowDrop = true;
 
-            var srcdata = ViewModel.GetPage(_source + 1);
-            DragPage dpage = new DragPage();
-            dpage.page = srcdata;
-            dpage.ProcessNum = Process.GetCurrentProcess().Id;
+            var data = new DragDropPages(Process.GetCurrentProcess().Id);
+            foreach (var index in GetSelectedIndices(-1))
+            {
+                data.Pages.Add(ViewModel.GetPage(index + 1));
+            }
 
-            var data = new DataObject(DataFormats.Serializable, dpage);
+            var obj = new DataObject(DataFormats.Serializable, data);
             var effects = (DragDropEffects.Copy | DragDropEffects.Move);
-            DragDrop.DoDragDrop(AssociatedObject, data, effects);
+            DragDrop.DoDragDrop(AssociatedObject, obj, effects);
         }
 
         /* ----------------------------------------------------------------- */
@@ -341,6 +371,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void MoveItems(Point current)
         {
+            // TODO: _target を算出する部分をメソッド化して、他プロセスからの挿入にも使用する。
             var index = GetTargetItemIndex(current);
             if (index == -1) return;
 
@@ -356,12 +387,10 @@ namespace CubePdf.Wpf
             try
             {
                 var delta = _target - _source;
-                var indices = new List<int>();
-                foreach (var item in AssociatedObject.SelectedItems) indices.Add(ViewModel.IndexOf(item));
+                var indices = GetSelectedIndices(delta);
                 
                 ViewModel.BeginCommand();
-                var sorted = (delta < 0) ? indices.OrderBy(i => i) : indices.OrderByDescending(i => i);
-                foreach (var oldindex in sorted)
+                foreach (var oldindex in indices)
                 {
                     if (oldindex < 0) continue;
                     var newindex = oldindex + delta;
@@ -489,6 +518,27 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// GetSelectedIndices
+        ///
+        /// <summary>
+        /// 選択されている項目のインデックスを取得します。
+        /// </summary>
+        /// 
+        /// <param name="order">
+        /// 負の場合は昇順、0 以上の場合は降順
+        /// </param>
+        ///
+        /* ----------------------------------------------------------------- */
+        private IList<int> GetSelectedIndices(int order)
+        {
+            var indices = new List<int>();
+            foreach (var item in AssociatedObject.SelectedItems) indices.Add(ViewModel.IndexOf(item));
+            var sorted = (order < 0) ? indices.OrderBy(i => i) : indices.OrderByDescending(i => i);
+            return indices;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// GetItem
         ///
         /// <summary>
@@ -561,25 +611,6 @@ namespace CubePdf.Wpf
             return dest;
         }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetDragDropEffect
-        ///
-        /// <summary>
-        /// ドラッグ&ドロップ処理の内容を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        DragDropEffects GetDragDropEffect(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.Serializable))
-            {
-                if (sender != e.Source) return DragDropEffects.Copy;
-                else return DragDropEffects.Move;
-            }
-            else return DragDropEffects.None;
-        }
-
         #endregion
 
         #region Attached/Detach methods
@@ -649,11 +680,5 @@ namespace CubePdf.Wpf
         private static readonly int CURSOR_ADJUSTMENT = 7;
         private static readonly int OTHER_PROCESS = -2;
         #endregion
-    }
-    [Serializable]
-    public class DragPage
-    {
-        public Data.IPage page;
-        public int ProcessNum;
     }
 }
