@@ -59,8 +59,8 @@ namespace CubePdf.Wpf
             _rect.Background = SystemColors.HotTrackBrush.Clone();
             _rect.Background.Opacity = 0.1;
             _rect.CornerRadius = new CornerRadius(1);
+            _rect.DragOver += OnDragOver;
             _rect.Drop += OnDrop;
-            _rect.DragLeave += (sender, e) => { _canvas.Visibility = Visibility.Collapsed; };
             _canvas.Children.Add(_rect);
         }
 
@@ -136,6 +136,23 @@ namespace CubePdf.Wpf
             {
                 AssociatedObject.ReleaseMouseCapture();
                 SelectRange();
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// OnMouseEnter
+        ///
+        /// <summary>
+        /// 画面内へマウスが移動した時に実行されるイベントハンドラです。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void OnMouseEnter(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed && _canvas.Visibility != Visibility.Collapsed)
+            {
+                _canvas.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -221,20 +238,6 @@ namespace CubePdf.Wpf
             else if (data != null) InsertItems(e.GetPosition(AssociatedObject), data);
             
             _source = -1;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// OnMouseLeave
-        ///
-        /// <summary>
-        /// 画面外へマウスが移動した時に実行されるイベントハンドラです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void OnMouseLeave(object sender, MouseEventArgs e)
-        {
-            _canvas.Visibility = Visibility.Collapsed;
         }
 
         #endregion
@@ -635,6 +638,7 @@ namespace CubePdf.Wpf
         protected override void OnAttached()
         {
             AssociatedObject.PreviewMouseLeftButtonDown += OnMouseLeftButtonDown;
+            AssociatedObject.MouseEnter += OnMouseEnter;
             AssociatedObject.MouseMove += OnMouseMove;
             AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
             AssociatedObject.DragEnter += OnDragEnter;
@@ -653,6 +657,7 @@ namespace CubePdf.Wpf
         protected override void OnDetaching()
         {
             AssociatedObject.PreviewMouseLeftButtonDown -= OnMouseLeftButtonDown;
+            AssociatedObject.MouseEnter -= OnMouseEnter;
             AssociatedObject.MouseMove -= OnMouseMove;
             AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
             AssociatedObject.DragEnter -= OnDragEnter;
