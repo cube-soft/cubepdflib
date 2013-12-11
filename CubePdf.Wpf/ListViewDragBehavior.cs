@@ -106,7 +106,6 @@ namespace CubePdf.Wpf
             _position = e.GetPosition(AssociatedObject);
             var item = GetItem(_position);
             _source = (item != null) ? AssociatedObject.Items.IndexOf(item) : -1;
-            _target = -1;
 
             if (_source >= 0)
             {
@@ -167,8 +166,8 @@ namespace CubePdf.Wpf
         /// </summary>
         /// 
         /// <remarks>
-        /// 他のプロセスから入った時に、開始インデックスを OTHER_PROCESS に
-        /// 設定します。
+        /// 他プロセスからのドラッグの場合、開始インデックスをリストの
+        /// 最後尾 (PageCount) に設定します
         /// 
         /// TODO: AssociatedObject.DragEnter は ListViewItem の DragEnter に
         /// 対応してイベントが発生するようなので、DragEnter イベントが頻発
@@ -181,7 +180,7 @@ namespace CubePdf.Wpf
         {
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
             if (data == null) return;
-            if (data.ProccessId != Process.GetCurrentProcess().Id) _source = OTHER_PROCESS;
+            if (data.ProccessId != Process.GetCurrentProcess().Id) _source = ViewModel.PageCount;
         }
 
         /* ----------------------------------------------------------------- */
@@ -220,21 +219,7 @@ namespace CubePdf.Wpf
             {
                 MoveItems(e.GetPosition(AssociatedObject));
             }
-            else if (data != null)
-            {
-                // TODO: MoveItems() でのインデックスの算出方法に従う。
-                var index = GetTargetItemIndex(e.GetPosition(AssociatedObject));
-                try
-                {
-                    ViewModel.BeginCommand();
-                    foreach (var page in data.Pages)
-                    {
-                        ViewModel.Insert(index, page);
-                        ++index;
-                    }
-                }
-                finally { ViewModel.EndCommand(); }
-            }
+            else if (data != null) InsertItems(e.GetPosition(AssociatedObject), data);
             
             _source = -1;
         }
@@ -334,7 +319,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void RefreshMovingPosition(Point current)
         {
-            var index = GetTargetItemIndex(current);
+            var index = GetPointedItemIndex(current);
             if (_source == -1 || index == -1 || _source == index)
             {
                 _canvas.Visibility = Visibility.Collapsed;
@@ -365,28 +350,18 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// ドラッグ&ドロップされた位置（から割り出したインデックス）を
-        /// 元にして、現在、選択されている項目を移動します。
+        /// 基にして、現在、選択されている項目を移動します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private void MoveItems(Point current)
         {
-            // TODO: _target を算出する部分をメソッド化して、他プロセスからの挿入にも使用する。
             var index = GetTargetItemIndex(current);
-            if (index == -1) return;
-
-            var rect = GetItemBounds(AssociatedObject.Items[index]);
-            var center = PointToWindow(new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
-            var pos = PointToWindow(current);
-
-            if (_source < index && pos.X < center.X) _target = Math.Max(index - 1, 0);
-            else if (_source > index && pos.X >= center.X) _target = Math.Min(index + 1, AssociatedObject.Items.Count);
-            else _target = index;
-            if (_source == _target) return;
+            if (index == -1 || index == _source) return;
 
             try
             {
-                var delta = _target - _source;
+                var delta = index - _source;
                 var indices = GetSelectedIndices(delta);
                 
                 ViewModel.BeginCommand();
@@ -396,6 +371,34 @@ namespace CubePdf.Wpf
                     var newindex = oldindex + delta;
                     if (newindex < 0 || newindex >= ViewModel.PageCount) continue;
                     ViewModel.Move(oldindex, newindex);
+                }
+            }
+            finally { ViewModel.EndCommand(); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// InsertItems
+        /// 
+        /// <summary>
+        /// ドロップされた位置（から割り出したインデックス）を元にして、
+        /// 他プロセスで選択されている項目を挿入します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void InsertItems(Point current, DragDropPages data)
+        {
+            var index = GetTargetItemIndex(current);
+            Trace.WriteLine(string.Format("InsertItems: {0}", index));
+            if (index == -1) return;
+
+            try
+            {
+                ViewModel.BeginCommand();
+                foreach (var page in data.Pages)
+                {
+                    ViewModel.Insert(index, page);
+                    ++index;
                 }
             }
             finally { ViewModel.EndCommand(); }
@@ -498,7 +501,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PointToWindow
+        /// PointFromWindow
         /// 
         /// <summary>
         /// アプリケーションのメインウィンドウをベースにした座標を
@@ -566,16 +569,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private int GetItemIndex(Point current)
         {
-            var result = VisualTreeHelper.HitTest(AssociatedObject, current);
-            if (result == null) return -1;
-
-            var item = VisualHelper.FindVisualParent<ListViewItem>(result.VisualHit);
-            return (item != null) ? AssociatedObject.Items.IndexOf(item.Content) : -1;
+            var item = GetItem(current);
+            return (item != null) ? AssociatedObject.Items.IndexOf(item) : -1;
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// GetTargetItemIndex
+        /// GetPointedItemIndex
         ///
         /// <summary>
         /// マウスカーソルのある項目のインデックスを取得します。
@@ -584,31 +584,47 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private int GetTargetItemIndex(Point current)
+        private int GetPointedItemIndex(Point current)
         {
             var dest = GetItemIndex(current);
             if (dest == -1)
             {
                 var rect = GetItemBounds(AssociatedObject.Items[0]);
                 if (AssociatedObject.ActualWidth - current.X < rect.Width)
-                {
+                {   // 右端の処理
                     current.X = AssociatedObject.ActualWidth - rect.Width;
                 }
                 else
                 {
-                    try
-                    {
-                        var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(_source) as ListViewItem;
-                        if (lvi != null) current.X -= lvi.Margin.Right;
-                    }
-                    catch (IndexOutOfRangeException)
-                    {
-                        return AssociatedObject.Items.Count;
-                    }
+                    var lvi = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                    if (lvi != null) current.X -= lvi.Margin.Right;
                 }
                 dest = GetItemIndex(current);
             }
             return dest;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetTargetItemIndex
+        ///
+        /// <summary>
+        /// 移動、または挿入先となるインデックスを取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private int GetTargetItemIndex(Point current)
+        {
+            var index = GetPointedItemIndex(current);
+            if (index == -1) return index;
+
+            var rect = GetItemBounds(AssociatedObject.Items[index]);
+            var center = PointToWindow(new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
+            var pos = PointToWindow(current);
+
+            if (_source < index && pos.X < center.X) return Math.Max(index - 1, 0);
+            else if (_source > index && pos.X >= center.X) return Math.Min(index + 1, AssociatedObject.Items.Count);
+            else return index;
         }
 
         #endregion
@@ -672,13 +688,11 @@ namespace CubePdf.Wpf
         private Border _rect = new Border();
         private Point _position = new Point();
         private int _source = -1;
-        private int _target = -1;
         #endregion
 
         #region Constant variables
         private static readonly int SCROLLBAR_WIDTH = 18;
         private static readonly int CURSOR_ADJUSTMENT = 7;
-        private static readonly int OTHER_PROCESS = -2;
         #endregion
     }
 }
