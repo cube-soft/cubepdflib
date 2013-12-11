@@ -59,8 +59,7 @@ namespace CubePdf.Wpf
             _rect.Background = SystemColors.HotTrackBrush.Clone();
             _rect.Background.Opacity = 0.1;
             _rect.CornerRadius = new CornerRadius(1);
-            _rect.DragOver += (sender, e) => { this.OnDragOver(sender, e); };
-            _rect.Drop += (sender, e) => { this.OnDrop(sender, e); };
+            _rect.Drop += OnDrop;
             _rect.DragLeave += (sender, e) => { _canvas.Visibility = Visibility.Collapsed; };
             _canvas.Children.Add(_rect);
         }
@@ -389,7 +388,6 @@ namespace CubePdf.Wpf
         private void InsertItems(Point current, DragDropPages data)
         {
             var index = GetTargetItemIndex(current);
-            Trace.WriteLine(string.Format("InsertItems: {0}", index));
             if (index == -1) return;
 
             try
@@ -639,11 +637,9 @@ namespace CubePdf.Wpf
             AssociatedObject.PreviewMouseLeftButtonDown += OnMouseLeftButtonDown;
             AssociatedObject.MouseMove += OnMouseMove;
             AssociatedObject.MouseLeftButtonUp += OnMouseLeftButtonUp;
+            AssociatedObject.DragEnter += OnDragEnter;
             AssociatedObject.DragOver += OnDragOver;
             AssociatedObject.Drop += OnDrop;
-            AssociatedObject.MouseLeave += OnMouseLeave;
-            AssociatedObject.DragEnter += OnDragEnter;
-            //AssociatedObject.DragLeave += OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Add(_canvas);
@@ -659,11 +655,9 @@ namespace CubePdf.Wpf
             AssociatedObject.PreviewMouseLeftButtonDown -= OnMouseLeftButtonDown;
             AssociatedObject.MouseMove -= OnMouseMove;
             AssociatedObject.MouseLeftButtonUp -= OnMouseLeftButtonUp;
+            AssociatedObject.DragEnter -= OnDragEnter;
             AssociatedObject.DragOver -= OnDragOver;
             AssociatedObject.Drop -= OnDrop;
-            AssociatedObject.MouseLeave -= OnMouseLeave;
-            AssociatedObject.DragEnter -= OnDragEnter;
-            //AssociatedObject.DragLeave -= OnDragLeave;
 
             var panel = VisualHelper.FindVisualParent<Grid>(AssociatedObject);
             if (panel != null) panel.Children.Remove(_canvas);
