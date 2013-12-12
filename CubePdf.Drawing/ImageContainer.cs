@@ -36,6 +36,7 @@ namespace CubePdf.Drawing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
+    [Serializable]
     public class ImageContainer : IDisposable, INotifyPropertyChanged
     {
         #region Initialization and Termination
@@ -209,6 +210,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         /// PropertyChanged
         /* ----------------------------------------------------------------- */
+        [field: NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
