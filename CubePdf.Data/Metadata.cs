@@ -68,6 +68,7 @@ namespace CubePdf.Data
             Keywords = cp.Keywords;
             Creator = cp.Creator;
             Producer = cp.Producer;
+            ViewerPreferences = cp.ViewerPreferences;
         }
 
         #endregion
@@ -184,6 +185,21 @@ namespace CubePdf.Data
             set { _producer = value; }
         }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ViewerPreferences
+        ///
+        /// <summary>
+        /// PDF のページレイアウトおよび開き方を取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int ViewerPreferences
+        {
+            get { return _viewerPreferences; }
+            set { _viewerPreferences = value; }
+        }
+
         #endregion
 
         #region Public Methods
@@ -206,6 +222,7 @@ namespace CubePdf.Data
         private string _keywords = string.Empty;
         private string _creator = "CubePDF";
         private string _producer = string.Empty;
+        private int _viewerPreferences = 0;
         #endregion
     }
 }

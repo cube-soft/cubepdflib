@@ -331,8 +331,9 @@ namespace CubePdf.Editing
             metadata.Title    = reader.Info.ContainsKey("Title")    ? reader.Info["Title"] : "";
             metadata.Subtitle = reader.Info.ContainsKey("Subject")  ? reader.Info["Subject"] : "";
             metadata.Keywords = reader.Info.ContainsKey("Keywords") ? reader.Info["Keywords"] : "";
-            metadata.Creator  = reader.Info.ContainsKey("Creator")  ? reader.Info["Creator"] : "";
+            metadata.Creator = reader.Info.ContainsKey("Creator") ? reader.Info["Creator"] : "";
             metadata.Producer = reader.Info.ContainsKey("Producer") ? reader.Info["Producer"] : "";
+            metadata.ViewerPreferences = reader.SimpleViewerPreferences;
             _metadata = metadata;
         }
 
