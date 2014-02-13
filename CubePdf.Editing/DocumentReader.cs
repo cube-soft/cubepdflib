@@ -327,13 +327,15 @@ namespace CubePdf.Editing
         {
             var metadata = new CubePdf.Data.Metadata();
             metadata.Version  = new Version(1, Int32.Parse(reader.PdfVersion.ToString()), 0, 0);
-            metadata.Author   = reader.Info.ContainsKey("Author")   ? reader.Info["Author"] : "";
-            metadata.Title    = reader.Info.ContainsKey("Title")    ? reader.Info["Title"] : "";
-            metadata.Subtitle = reader.Info.ContainsKey("Subject")  ? reader.Info["Subject"] : "";
+            metadata.Author   = reader.Info.ContainsKey("Author")   ? reader.Info["Author"]   : "";
+            metadata.Title    = reader.Info.ContainsKey("Title")    ? reader.Info["Title"]    : "";
+            metadata.Subtitle = reader.Info.ContainsKey("Subject")  ? reader.Info["Subject"]  : "";
             metadata.Keywords = reader.Info.ContainsKey("Keywords") ? reader.Info["Keywords"] : "";
-            metadata.Creator = reader.Info.ContainsKey("Creator") ? reader.Info["Creator"] : "";
+            metadata.Creator  = reader.Info.ContainsKey("Creator")  ? reader.Info["Creator"]  : "";
             metadata.Producer = reader.Info.ContainsKey("Producer") ? reader.Info["Producer"] : "";
+            
             metadata.ViewerPreferences = reader.SimpleViewerPreferences;
+            if ((metadata.ViewerPreferences & ((int)Math.Pow(2, 6) - 1)) == 0) metadata.ViewerPreferences |= (int)Math.Pow(2, 1);
             _metadata = metadata;
         }
 

@@ -196,8 +196,8 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public int ViewerPreferences
         {
-            get { return _viewerPreferences; }
-            set { _viewerPreferences = value; }
+            get { return _layout; }
+            set { _layout = value; }
         }
 
         #endregion
@@ -222,7 +222,7 @@ namespace CubePdf.Data
         private string _keywords = string.Empty;
         private string _creator = "CubePDF";
         private string _producer = string.Empty;
-        private int _viewerPreferences = 0;
+        private int _layout = 0;
         #endregion
     }
 }
