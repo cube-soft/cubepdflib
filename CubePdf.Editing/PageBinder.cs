@@ -210,7 +210,8 @@ namespace CubePdf.Editing
             var writer = _smart ? new PdfSmartCopy(document, new FileStream(dest, FileMode.Create)) :
                 new PdfCopy(document, new FileStream(dest, FileMode.Create));            
             
-            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];            
+            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
+            writer.ViewerPreferences = _metadata.ViewerPreferences;
             document.Open();
             _bookmarks.Clear();
             foreach (var page in _pages)
