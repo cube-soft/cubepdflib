@@ -341,11 +341,6 @@ namespace CubePdf.Wpf
         public int ItemWidth
         {
             get { return _width; }
-            //get
-            //{
-            //    if (_ratio > 1) { return (int)(((double)_width) / _ratio); }
-            //    else { return _width; }
-            //}
             set
             {
                 _width = value;
@@ -365,12 +360,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int MaxItemHeight
         {
-            //get { return (int)(_width * _ratio); }
-            //get
-            //{
-            //    if (_ratio > 1) { return _width; }
-            //    else { return (int)((double)(_width) * _ratio); }
-            //}
             get { return _width; }
         }
 
@@ -1231,19 +1220,6 @@ namespace CubePdf.Wpf
         {
             var height = page.ViewSize.Height * (_width / (double)page.ViewSize.Width);
             return new Size(_width, (int)height);
-            //var ratio = ((double)page.ViewSize.Height) / ((double)page.ViewSize.Width);
-            //int width, height;
-            //if (ratio > 1)
-            //{
-            //    width = (int)( ((double)(_width * page.ViewSize.Width)) / ((double)page.ViewSize.Height) );
-            //    height = _width;
-            //}
-            //else
-            //{
-            //    width = _width;
-            //    height = (int)( ((double)(_width * page.ViewSize.Height)) / ((double)page.ViewSize.Width) );
-            //}
-            //return new Size(width, height);
         }
 
         /* ----------------------------------------------------------------- */
@@ -2182,7 +2158,6 @@ namespace CubePdf.Wpf
         #region Others
         private bool _disposed = false;
         private int _width = 0;
-        private int _height = 0;
         private double _ratio = 0.0;
         private int _maxundo = 30;
         private bool _modified = false;
