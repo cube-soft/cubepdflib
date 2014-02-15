@@ -331,6 +331,27 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// BaseSize
+        /// 
+        /// <summary>
+        /// ListView で表示されるサムネイルの幅/高さの基準となる値を取得、
+        /// または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public int BaseSize
+        {
+            get { return _size; }
+            set
+            {
+                _size = value;
+                OnPropertyChanged("ItemWidth");
+                OnPropertyChanged("ItemHeight");
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// ItemWidth
         /// 
         /// <summary>
@@ -340,12 +361,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int ItemWidth
         {
-            get { return _width; }
-            set
+            get
             {
-                _width = value;
-                OnPropertyChanged("ItemWidth");
-                OnPropertyChanged("ItemHeight");
+                if (_maxwidth > _maxheight) return BaseSize;
+                else return (int)(BaseSize * (_maxwidth / (double)_maxheight));
             }
         }
 
@@ -360,7 +379,11 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int ItemHeight
         {
-            get { return _width; }
+            get
+            {
+                if (_maxheight > _maxwidth) return BaseSize;
+                else return (int)(BaseSize * (_maxheight / (double)_maxwidth));
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -601,7 +624,7 @@ namespace CubePdf.Wpf
             {
                 DeleteRequest(index);
                 _pages.Insert(index, item);
-                UpdateImageSizeRatio(item);
+                UpdateImageSize(item);
                 _images.Insert(index, new Drawing.ImageContainer());
                 _created.ItemInserted(index);
                 UpdateImageText(index);
@@ -951,7 +974,10 @@ namespace CubePdf.Wpf
                 _requests.Clear();
             }
 
-            _ratio = 0.0;
+            _maxwidth = 0;
+            _maxheight = 0;
+
+            OnPropertyChanged("ItemWidth");
             OnPropertyChanged("ItemHeight");
 
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
@@ -1114,7 +1140,7 @@ namespace CubePdf.Wpf
         public CubePdf.Drawing.ImageContainer ProvideItem(int index)
         {
             if (index < 0 || index >= _images.RawCount) return null;
-            UpdateImageSizeRatio(_pages[index]);
+            UpdateImageSize(_pages[index]);
             
             var range = GetVisibleRange();
             if (index < range.Key || index > range.Value) return _images.RawAt(index);
@@ -1212,14 +1238,24 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 引数に指定されたページオブジェクトの縦横比を保ったまま、
-        /// ItemWidth をベースとしたサイズを取得します。
+        /// サイズを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private Size GetSize(CubePdf.Data.IPage page)
         {
-            var height = page.ViewSize.Height * (_width / (double)page.ViewSize.Width);
-            return new Size(_width, (int)height);
+            if (page.ViewSize.Width > page.ViewSize.Height)
+            {
+                var width  = BaseSize;
+                var height = page.ViewSize.Height * (width / (double)page.ViewSize.Width);
+                return new Size(width, (int)height);
+            }
+            else
+            {
+                var height = BaseSize;
+                var width  = page.ViewSize.Width * (height / (double)page.ViewSize.Height);
+                return new Size((int)width, height);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -1276,8 +1312,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private double GetPower(CubePdf.Data.IPage page)
         {
-            var horizontal = _width / (double)page.ViewSize.Width;
-            var vertical = _width / (double)page.ViewSize.Height;
+            var horizontal = BaseSize / (double)page.ViewSize.Width;
+            var vertical = BaseSize / (double)page.ViewSize.Height;
             var result = (horizontal < vertical) ? horizontal : vertical;
             return result;
         }
@@ -1489,7 +1525,8 @@ namespace CubePdf.Wpf
             _encrypt = null;
             _encrypt_status = Data.EncryptionStatus.NotEncrypted;
             _encrypt = null;
-            _ratio = 0.0;
+            _maxwidth = 0;
+            _maxheight = 0;
             _undo.Clear();
             _redo.Clear();
 
@@ -1525,7 +1562,7 @@ namespace CubePdf.Wpf
                 foreach (var page in reader.Pages)
                 {
                     _pages.Insert(index, page);
-                    UpdateImageSizeRatio(page);
+                    UpdateImageSize(page);
                     _images.Insert(index, new Drawing.ImageContainer());
                     UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
                     ++index;
@@ -1663,20 +1700,35 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// UpdateImageSizeRatio
+        /// UpdateImageSize
         /// 
         /// <summary>
-        /// イメージの縦横比を更新します。ListViewModel で保持するのは、
-        /// 登録されているページの中での縦横比の最大値です。
+        /// イメージのサイズを更新します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// 幅/高さそれぞれの最大値を記憶しておき、それらの値を元に表示
+        /// サイズを決定します。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        private void UpdateImageSizeRatio(CubePdf.Data.IPage page)
+        private void UpdateImageSize(CubePdf.Data.IPage page)
         {
-            var ratio = page.ViewSize.Height / (double)page.ViewSize.Width;
-            if (ratio != _ratio)
+            var update = false;
+            if (page.ViewSize.Width > _maxwidth)
             {
-                _ratio = ratio;
+                _maxwidth = page.ViewSize.Width;
+                update = true;
+            }
+
+            if (page.ViewSize.Height > _maxheight)
+            {
+                _maxheight = page.ViewSize.Height;
+                update = true;
+            }
+
+            if (update)
+            {
                 OnPropertyChanged("ItemWidth");
                 OnPropertyChanged("ItemHeight");
             }
@@ -2157,8 +2209,9 @@ namespace CubePdf.Wpf
 
         #region Others
         private bool _disposed = false;
-        private int _width = 0;
-        private double _ratio = 0.0;
+        private int _size = 0;
+        private int _maxwidth = 0;
+        private int _maxheight = 0;
         private int _maxundo = 30;
         private bool _modified = false;
         private string _backup = string.Empty;
