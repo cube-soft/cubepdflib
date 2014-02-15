@@ -345,20 +345,20 @@ namespace CubePdf.Wpf
             {
                 _width = value;
                 OnPropertyChanged("ItemWidth");
-                OnPropertyChanged("MaxItemHeight");
+                OnPropertyChanged("ItemHeight");
             }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// MaxItemHeight
+        /// ItemHeight
         /// 
         /// <summary>
         /// ListView で表示されるサムネイルの高さの最大値を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int MaxItemHeight
+        public int ItemHeight
         {
             get { return _width; }
         }
@@ -952,7 +952,7 @@ namespace CubePdf.Wpf
             }
 
             _ratio = 0.0;
-            OnPropertyChanged("MaxItemHeight");
+            OnPropertyChanged("ItemHeight");
 
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
@@ -1250,7 +1250,7 @@ namespace CubePdf.Wpf
 
                 var margin = 20; // empirical
                 var width  = Math.Max(ItemWidth, 1);
-                var height = Math.Max(MaxItemHeight, 1);
+                var height = Math.Max(ItemHeight, 1);
                 var column = (int)_view.ActualWidth / width;
                 var row    = (int)_view.ActualHeight / height;
                 var index  = (int)(scroll.VerticalOffset / (height + margin)) * column;
@@ -1678,7 +1678,7 @@ namespace CubePdf.Wpf
             {
                 _ratio = ratio;
                 OnPropertyChanged("ItemWidth");
-                OnPropertyChanged("MaxItemHeight");
+                OnPropertyChanged("ItemHeight");
             }
         }
 

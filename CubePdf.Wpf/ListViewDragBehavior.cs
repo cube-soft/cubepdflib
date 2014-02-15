@@ -224,7 +224,7 @@ namespace CubePdf.Wpf
 
             var height = AssociatedObject.ActualHeight;
             var margin = height / 5.0;
-            var offset = Math.Max(ViewModel.MaxItemHeight / 10, 50);
+            var offset = Math.Max(ViewModel.ItemHeight / 10, 50);
 
             if (current.Y < margin) sv.ScrollToVerticalOffset(sv.VerticalOffset - offset);
             else if (current.Y > height - margin) sv.ScrollToVerticalOffset(sv.VerticalOffset + offset);
