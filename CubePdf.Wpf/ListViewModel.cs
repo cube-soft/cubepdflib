@@ -1482,6 +1482,7 @@ namespace CubePdf.Wpf
                 binder.Encryption = Encryption;
 
                 var tmp = System.IO.Path.GetTempFileName();
+                binder.UseSmartCopy = true;
                 binder.Save(tmp);
 
                 DisposeEngine();
