@@ -331,7 +331,7 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// BaseSize
+        /// ViewSize
         /// 
         /// <summary>
         /// ListView で表示されるサムネイルの幅/高さの基準となる値を取得、
@@ -339,12 +339,12 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int BaseSize
+        public int ViewSize
         {
-            get { return _size; }
+            get { return _viewsize; }
             set
             {
-                _size = value;
+                _viewsize = value;
                 OnPropertyChanged("ItemWidth");
                 OnPropertyChanged("ItemHeight");
             }
@@ -363,8 +363,8 @@ namespace CubePdf.Wpf
         {
             get
             {
-                if (_maxwidth > _maxheight) return BaseSize;
-                else return (int)(BaseSize * (_maxwidth / (double)_maxheight));
+                if (_maxwidth > _maxheight) return ViewSize;
+                else return (int)(ViewSize * (_maxwidth / (double)_maxheight));
             }
         }
 
@@ -381,8 +381,8 @@ namespace CubePdf.Wpf
         {
             get
             {
-                if (_maxheight > _maxwidth) return BaseSize;
-                else return (int)(BaseSize * (_maxheight / (double)_maxwidth));
+                if (_maxheight > _maxwidth) return ViewSize;
+                else return (int)(ViewSize * (_maxheight / (double)_maxwidth));
             }
         }
 
@@ -1246,13 +1246,13 @@ namespace CubePdf.Wpf
         {
             if (page.ViewSize.Width > page.ViewSize.Height)
             {
-                var width  = BaseSize;
+                var width  = ViewSize;
                 var height = page.ViewSize.Height * (width / (double)page.ViewSize.Width);
                 return new Size(width, (int)height);
             }
             else
             {
-                var height = BaseSize;
+                var height = ViewSize;
                 var width  = page.ViewSize.Width * (height / (double)page.ViewSize.Height);
                 return new Size((int)width, height);
             }
@@ -1312,8 +1312,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private double GetPower(CubePdf.Data.IPage page)
         {
-            var horizontal = BaseSize / (double)page.ViewSize.Width;
-            var vertical = BaseSize / (double)page.ViewSize.Height;
+            var horizontal = ViewSize / (double)page.ViewSize.Width;
+            var vertical = ViewSize / (double)page.ViewSize.Height;
             var result = (horizontal < vertical) ? horizontal : vertical;
             return result;
         }
@@ -2209,7 +2209,7 @@ namespace CubePdf.Wpf
 
         #region Others
         private bool _disposed = false;
-        private int _size = 0;
+        private int _viewsize = 0;
         private int _maxwidth = 0;
         private int _maxheight = 0;
         private int _maxundo = 30;
