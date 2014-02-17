@@ -1248,7 +1248,7 @@ namespace CubePdf.Wpf
         /// 
         /// <summary>
         /// 引数に指定されたページオブジェクトの縦横比を保ったまま、
-        /// サイズを取得します。
+        /// 表示用の長方形に収まる最大サイズを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -1256,13 +1256,13 @@ namespace CubePdf.Wpf
         {
             if (page.ViewSize.Width > page.ViewSize.Height)
             {
-                var width  = ViewSize;
+                var width  = ItemWidth;
                 var height = page.ViewSize.Height * (width / (double)page.ViewSize.Width);
                 return new Size(width, (int)height);
             }
             else
             {
-                var height = ViewSize;
+                var height = ItemHeight;
                 var width  = page.ViewSize.Width * (height / (double)page.ViewSize.Height);
                 return new Size((int)width, height);
             }
@@ -1315,17 +1315,16 @@ namespace CubePdf.Wpf
         /// GetPower
         /// 
         /// <summary>
-        /// Size(ItemWidth, ItemWidth) の正方形に収まるような最大倍率を
+        /// Size(ItemWidth, ItemHeight) の長方形に収まるような最大倍率を
         /// 取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         private double GetPower(CubePdf.Data.IPage page)
         {
-            var horizontal = ViewSize / (double)page.ViewSize.Width;
-            var vertical = ViewSize / (double)page.ViewSize.Height;
-            var result = (horizontal < vertical) ? horizontal : vertical;
-            return result;
+            var horizontal = ItemWidth / (double)page.ViewSize.Width;
+            var vertical = ItemHeight / (double)page.ViewSize.Height;
+            return (horizontal < vertical) ? horizontal : vertical;
         }
 
         /* ----------------------------------------------------------------- */
