@@ -259,7 +259,7 @@ namespace CubePdfTests.Wpf
 
             using (var viewmodel = new CubePdf.Wpf.ListViewModel())
             {
-                viewmodel.ItemWidth = 64;
+                viewmodel.ViewSize = 64;
                 viewmodel.BackupFolder = folder;
                 viewmodel.BackupDays = 30;
                 viewmodel.Open(src);
@@ -276,7 +276,7 @@ namespace CubePdfTests.Wpf
                 System.IO.Directory.Delete(folder, true);
                 using (var viewmodel = new CubePdf.Wpf.ListViewModel())
                 {
-                    viewmodel.ItemWidth = 64;
+                    viewmodel.ViewSize = 64;
                     viewmodel.BackupFolder = folder;
                     viewmodel.BackupDays = 30;
                 }
@@ -750,7 +750,7 @@ namespace CubePdfTests.Wpf
         {
             var count = 0;
             var viewmodel = new CubePdf.Wpf.ListViewModel();
-            viewmodel.ItemWidth = 64;
+            viewmodel.ViewSize = 64;
             viewmodel.RunCompleted += (sender, e) => {
                 ++count;
             };
@@ -870,7 +870,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
 
             var dest = new CubePdf.Wpf.ListViewModel();
-            dest.ItemWidth = 64;
+            dest.ViewSize = 64;
             dest.Open(src, password);
             return dest;
         }
