@@ -304,7 +304,7 @@ namespace CubePdf.Wpf
 
             var height = AssociatedObject.ActualHeight;
             var margin = height / 5.0;
-            var offset = Math.Max(ViewModel.MaxItemHeight / 10, 50);
+            var offset = Math.Max(ViewModel.ItemHeight / 10, 50);
 
             if (current.Y < margin) sv.ScrollToVerticalOffset(sv.VerticalOffset - offset);
             else if (current.Y > height - margin) sv.ScrollToVerticalOffset(sv.VerticalOffset + offset);
@@ -321,8 +321,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void RefreshMovingPosition(Point current)
         {
-            var index = GetPointedItemIndex(current);
-            if (_source == -1 || index == -1 || _source == index)
+            var result = GetPointedItemIndex(current);
+            if (_source == -1 || result == -1)
             {
                 _canvas.Visibility = Visibility.Collapsed;
                 return;
@@ -330,6 +330,8 @@ namespace CubePdf.Wpf
             _canvas.Visibility = Visibility.Visible;
             current = PointToWindow(current);
 
+            var last   = (result == AssociatedObject.Items.Count);
+            var index  = Math.Max(Math.Min(result, AssociatedObject.Items.Count - 1), 0);
             var item   = AssociatedObject.Items[index];
             var lvi    = AssociatedObject.ItemContainerGenerator.ContainerFromIndex(index) as ListViewItem;
             var rect   = GetItemBounds(item);
@@ -337,7 +339,7 @@ namespace CubePdf.Wpf
 
             double width = rect.Width + lvi.Margin.Right + lvi.Padding.Right + lvi.BorderThickness.Left + lvi.BorderThickness.Right;
             double height = rect.Height / 2.0;
-            double x = (current.X >= center.X) ? center.X : center.X - width;
+            double x = (last || current.X >= center.X) ? center.X : center.X - width;
             double y = center.Y - rect.Height / 4.0;
 
             Canvas.SetLeft(_rect, x - CURSOR_ADJUSTMENT);
@@ -370,8 +372,7 @@ namespace CubePdf.Wpf
                 foreach (var oldindex in indices)
                 {
                     if (oldindex < 0) continue;
-                    var newindex = oldindex + delta;
-                    if (newindex < 0 || newindex >= ViewModel.PageCount) continue;
+                    var newindex = Math.Max(Math.Min(oldindex + delta, ViewModel.PageCount - 1), 0);
                     ViewModel.Move(oldindex, newindex);
                 }
             }
@@ -590,9 +591,13 @@ namespace CubePdf.Wpf
             var dest = GetItemIndex(current);
             if (dest == -1)
             {
-                var rect = GetItemBounds(AssociatedObject.Items[0]);
-                if (AssociatedObject.ActualWidth - current.X < rect.Width)
-                {   // 右端の処理
+                var rect = GetItemBounds(AssociatedObject.Items[AssociatedObject.Items.Count - 1]);
+                if (current.Y > rect.Bottom || current.X > rect.Right && current.Y > rect.Top)
+                {   // 最後の項目の右側の処理
+                    return AssociatedObject.Items.Count;
+                }
+                else if (AssociatedObject.ActualWidth - current.X < rect.Width)
+                {   // それ以外の右端の処理
                     current.X = AssociatedObject.ActualWidth - rect.Width;
                 }
                 else
@@ -617,7 +622,7 @@ namespace CubePdf.Wpf
         private int GetTargetItemIndex(Point current)
         {
             var index = GetPointedItemIndex(current);
-            if (index == -1) return index;
+            if (index == -1 || index == AssociatedObject.Items.Count) return index;
 
             var rect = GetItemBounds(AssociatedObject.Items[index]);
             var center = PointToWindow(new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
