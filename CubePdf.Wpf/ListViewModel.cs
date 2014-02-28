@@ -1362,11 +1362,11 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Image GetLoadingImage(CubePdf.Data.IPage page)
         {
-            var image = (ItemWidth > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
-                        (ItemWidth > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
+            var size  = GetSize(page);
+            var image = (size.Width > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
+                        (size.Width > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
                 Properties.Resources.LoadingSmall;
 
-            var size = GetSize(page);
             var x = Math.Max((size.Width - image.Width) / 2.0, 0);
             var y = Math.Max((size.Height - image.Height) / 2.0, 0);
             var pos = new Point((int)x, (int)y);
