@@ -865,13 +865,7 @@ namespace CubePdf.Wpf
                 if (page.Rotation < 0) page.Rotation += 360;
                 if (page.Rotation >= 360) page.Rotation -= 360;
                 _pages[index] = page;
-
-                // NOTE: 非同期で内容（イメージ）の差し替えを行うと、GUI への
-                // 反応が遅れるので、暫定的に Remove&Insert を行っている。
-                var image = _images.RawAt(index);
-                _images.RemoveAt(index);
-                if (image != null) image.Dispose();
-                _images.Insert(index, new Drawing.ImageContainer());
+                _images.RawAt(index).DeleteImage();
 
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
