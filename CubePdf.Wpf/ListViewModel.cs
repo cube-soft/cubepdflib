@@ -1294,12 +1294,11 @@ namespace CubePdf.Wpf
                 var scroll = VisualHelper.FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 if (scroll == null) return all;
 
-                var margin = 20; // empirical
                 var width  = Math.Max(ItemWidth, 1);
                 var height = Math.Max(ItemHeight, 1);
                 var column = (int)_view.ActualWidth / width;
                 var row    = (int)_view.ActualHeight / height;
-                var index  = (int)(scroll.VerticalOffset / (height + margin)) * column;
+                var index  = (int)(scroll.VerticalOffset / height) * column;
                 if (index < 0 || index > _pages.Count) return all;
                 return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
             }
