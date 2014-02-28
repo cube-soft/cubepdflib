@@ -118,12 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AccessDenied" xml:space="preserve">
-    <value>別のプロセスで使用されているため、プロセスはファイル '{0}' にアクセスできません。再実行するには、ファイルを閉じてから「OK」ボタンを押して下さい。</value>
+    <value>ファイル '{0}' へのアクセスが拒否されました。別のプロセスによって使用されていないか確認して下さい。再実行するには、ファイルを閉じる等の対策を行った後に「OK」ボタンを押して下さい。</value>
   </data>
   <data name="AccessDeniedTitle" xml:space="preserve">
-    <value>使用中のファイル</value>
+    <value>アクセスの拒否</value>
   </data>
   <data name="ParseRangeException" xml:space="preserve">
     <value>範囲の解析に失敗しました。不適切な文字が含まれていないか確認して下さい。</value>
+  </data>
+  <data name="UserCancelled" xml:space="preserve">
+    <value>ユーザによって処理がキャンセルされました。</value>
   </data>
 </root>
