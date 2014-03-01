@@ -1271,9 +1271,14 @@ namespace CubePdf.Wpf
         /// </summary>
         /// 
         /// <remarks>
-        /// TODO: margin の値は、現在の CubePDF Utility に基づいた値である。
-        /// 項目ごとの Margin の値（現在は 3 に設定）によって変化するので、
-        /// それらの値に応じて変更するような形に修正する。
+        /// TODO:
+        /// - margin の値は、現在の CubePDF Utility に基づいた値である。
+        ///   項目ごとの Margin の値（現在は 3 に設定）によって変化するので、
+        ///   それらの値に応じて変更するような形に修正する。
+        /// - 現時点でも、幅一杯にギリギリ収まる場合とギリギリ収まらない場合
+        ///   (ほぼ 1 個分の余白が右側に空く) とで、うまく整合性が取れて
+        ///   いない。現状では、ギリギリ収まる場合を優先している（ギリギリ
+        ///   収まらない場合のサムネイル表示がおかしくなる）。
         /// </remarks>
         /// 
         /* ----------------------------------------------------------------- */
@@ -1287,15 +1292,14 @@ namespace CubePdf.Wpf
                 var scroll = VisualHelper.FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 if (scroll == null) return all;
 
-                var margin = 4.1;
+                var margin = 3.0;
                 var width  = Math.Max(ItemWidth, 1);
                 var height = Math.Max(ItemHeight, 1);
                 var column = (int)(_view.ActualWidth / (width + margin));
-                var row    = (int)(_view.ActualHeight / (height + margin));
+                var row    = (int)(_view.ActualHeight / (double)height);
                 var index  = (int)(scroll.VerticalOffset / height) * column;
                 if (index < 0 || index > _pages.Count) return all;
-                var dest = new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
-                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
+                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 1), _pages.Count - 1));
             }
             catch (Exception err)
             {
