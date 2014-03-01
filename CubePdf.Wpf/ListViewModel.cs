@@ -1293,8 +1293,8 @@ namespace CubePdf.Wpf
                 if (scroll == null) return all;
 
                 var margin = 3.0;
-                var width  = Math.Max(ItemWidth, 1);
-                var height = Math.Max(ItemHeight, 1);
+                var width  = (double)Math.Max(ItemWidth, 1);
+                var height = (double)Math.Max(ItemHeight, 1);
                 var column = (int)(_view.ActualWidth / (width + margin));
                 var row    = (int)(_view.ActualHeight / (height + margin));
                 var index  = (int)(scroll.VerticalOffset / height) * column;
