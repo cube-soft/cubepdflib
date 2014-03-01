@@ -1296,10 +1296,10 @@ namespace CubePdf.Wpf
                 var width  = Math.Max(ItemWidth, 1);
                 var height = Math.Max(ItemHeight, 1);
                 var column = (int)(_view.ActualWidth / (width + margin));
-                var row    = (int)(_view.ActualHeight / (double)height);
+                var row    = (int)(_view.ActualHeight / (height + margin));
                 var index  = (int)(scroll.VerticalOffset / height) * column;
                 if (index < 0 || index > _pages.Count) return all;
-                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 1), _pages.Count - 1));
+                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
             }
             catch (Exception err)
             {
