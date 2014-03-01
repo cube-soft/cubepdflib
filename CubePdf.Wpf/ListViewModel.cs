@@ -867,6 +867,14 @@ namespace CubePdf.Wpf
                 _pages[index] = page;
                 _images.RawAt(index).DeleteImage();
 
+                // NOTE: 非同期で内容（イメージ）の差し替えを行うと、GUI への
+                // 反応が遅れる場合があるので、暫定的に Remove&Insert を行っている。
+                var image = _images.RawAt(index);
+                var selected = _view.SelectedItems.Contains(image);
+                _images.RemoveAt(index);
+                _images.Insert(index, image);
+                if (selected) _view.SelectedItems.Add(image);
+
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
 
