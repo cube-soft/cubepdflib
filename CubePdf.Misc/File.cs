@@ -1,9 +1,9 @@
 ﻿/* ------------------------------------------------------------------------- */
-/*
- *  File.cs
- *
- *  Copyright (c) 2009 - 2013 CubeSoft, Inc. All rights reserved.
- *
+///
+/// File.cs
+///
+/// Copyright (c) 2009 - 2013 CubeSoft, Inc. All rights reserved.
+///
 /// This program is free software: you can redistribute it and/or modify
 /// it under the terms of the GNU Affero General Public License as published
 /// by the Free Software Foundation, either version 3 of the License, or
@@ -75,10 +75,14 @@ namespace CubePdf.Misc
         public static void Delete(string path, bool show_prompt)
         {
             try { System.IO.File.Delete(path); }
-            catch (System.IO.IOException err)
+            catch (System.Exception err)
             {
-                if (show_prompt && ShowPrompt(path)) Delete(path, show_prompt);
-                else throw err;
+                if (IsAccessDenied(err))
+                {
+                    if (show_prompt && ShowPrompt(path)) Delete(path, show_prompt);
+                    else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
+                }
+                throw err;
             }
         }
 
@@ -99,10 +103,14 @@ namespace CubePdf.Misc
         public static void Copy(string src, string dest, bool show_prompt)
         {
             try { System.IO.File.Copy(src, dest, true); }
-            catch (System.IO.IOException err)
+            catch (System.Exception err)
             {
-                if (show_prompt && ShowPrompt(dest)) Copy(src, dest, show_prompt);
-                else throw err;
+                if (IsAccessDenied(err))
+                {
+                    if (show_prompt && ShowPrompt(dest)) Copy(src, dest, show_prompt);
+                    else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
+                }
+                throw err;
             }
         }
 
@@ -127,14 +135,32 @@ namespace CubePdf.Misc
                 System.IO.File.Delete(dest);
                 System.IO.File.Move(src, dest);
             }
-            catch (System.IO.IOException err)
+            catch (System.Exception err)
             {
-                if (show_prompt && ShowPrompt(dest)) Move(src, dest, show_prompt);
-                else throw err;
+                if (IsAccessDenied(err))
+                {
+                    if (show_prompt && ShowPrompt(dest)) Move(src, dest, show_prompt);
+                    else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
+                }
+                throw err;
             }
         }
 
         #region Private methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsAccessDenied
+        /// 
+        /// <summary>
+        /// アクセスが拒否されたかどうかを判別します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private static bool IsAccessDenied(System.Exception err)
+        {
+            return (err is System.IO.IOException || err is System.UnauthorizedAccessException);
+        }
 
         /* ----------------------------------------------------------------- */
         ///

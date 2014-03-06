@@ -865,13 +865,15 @@ namespace CubePdf.Wpf
                 if (page.Rotation < 0) page.Rotation += 360;
                 if (page.Rotation >= 360) page.Rotation -= 360;
                 _pages[index] = page;
+                _images.RawAt(index).DeleteImage();
 
                 // NOTE: 非同期で内容（イメージ）の差し替えを行うと、GUI への
-                // 反応が遅れるので、暫定的に Remove&Insert を行っている。
+                // 反応が遅れる場合があるので、暫定的に Remove&Insert を行っている。
                 var image = _images.RawAt(index);
+                var selected = (_view != null) ? _view.SelectedItems.Contains(image) : false;
                 _images.RemoveAt(index);
-                if (image != null) image.Dispose();
-                _images.Insert(index, new Drawing.ImageContainer());
+                _images.Insert(index, image);
+                if (selected) _view.SelectedItems.Add(image);
 
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
@@ -1277,10 +1279,10 @@ namespace CubePdf.Wpf
         /// </summary>
         /// 
         /// <remarks>
-        /// TODO: margin の値は、現在の CubePDF Utility に基づいた値である。
-        /// 恐らく項目ごとの Margin や Padding の値（現在、ともに 3 に設定）
-        /// によって変化するので、それらの値に応じて変更するような形に
-        /// 修正する。
+        /// TODO:
+        /// - margin の値は、テストを基に現状でもっともずれの少ない算出
+        ///   方法を用いている。実際には、項目の余白、および枠線の値を
+        ///   基に算出する必要があると思われる。
         /// </remarks>
         /// 
         /* ----------------------------------------------------------------- */
@@ -1293,15 +1295,21 @@ namespace CubePdf.Wpf
             {
                 var scroll = VisualHelper.FindVisualChild<System.Windows.Controls.ScrollViewer>(View);
                 if (scroll == null) return all;
-
-                var margin = 20; // empirical
-                var width  = Math.Max(ItemWidth, 1);
-                var height = Math.Max(ItemHeight, 1);
-                var column = (int)_view.ActualWidth / width;
-                var row    = (int)_view.ActualHeight / height;
-                var index  = (int)(scroll.VerticalOffset / (height + margin)) * column;
+                
+                var width  = (double)Math.Max(ItemWidth, 1);
+                var height = (double)Math.Max(ItemHeight, 1);
+                var margin = 1.5 * width / 100.0; // NOTE: empirically
+                var column = (int)(_view.ActualWidth / (width + margin));
+                var row    = (int)(_view.ActualHeight / (height + margin));
+                var index  = (int)(scroll.VerticalOffset / height) * column;
                 if (index < 0 || index > _pages.Count) return all;
-                return new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
+
+                var dest = new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
+                Debug.WriteLine(string.Format("col:{0}({1}/{2}), row:{3}({4}/{5}) => [{6}-{7}]",
+                    column, _view.ActualWidth,  width  + margin,
+                    row,    _view.ActualHeight, height + margin,
+                    dest.Key, dest.Value));
+                return dest;
             }
             catch (Exception err)
             {
@@ -1363,11 +1371,11 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Image GetLoadingImage(CubePdf.Data.IPage page)
         {
-            var image = (ItemWidth > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
-                        (ItemWidth > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
+            var size  = GetSize(page);
+            var image = (size.Width > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
+                        (size.Width > Properties.Resources.LoadingMiddle.Width) ? Properties.Resources.LoadingMiddle :
                 Properties.Resources.LoadingSmall;
 
-            var size = GetSize(page);
             var x = Math.Max((size.Width - image.Width) / 2.0, 0);
             var y = Math.Max((size.Height - image.Height) / 2.0, 0);
             var pos = new Point((int)x, (int)y);
