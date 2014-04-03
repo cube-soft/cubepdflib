@@ -89,6 +89,7 @@
     <Compile Include="CommandLine.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="FileFormat.cs" />
+    <Compile Include="Installer.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeSet.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
