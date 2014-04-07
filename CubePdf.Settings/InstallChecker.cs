@@ -58,7 +58,14 @@ namespace CubePdf.Settings
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public InstallChecker(string[] args) { }
+        public InstallChecker(string[] args)
+        {
+            for (int i = 0; i < args.Length; ++i)
+            {
+                if (args[i] == "/medium") _medium = args[i + 1];
+                if (args[i] == "/content") _content = args[i + 1];
+            }
+        }
 
         #endregion
 
@@ -110,6 +117,8 @@ namespace CubePdf.Settings
         public void Notify()
         {
             var request = GetRequest();
+            if (request == null) return;
+
             using (var response = request.GetResponse())
             using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.GetEncoding("UTF-8")))
             {
@@ -132,6 +141,8 @@ namespace CubePdf.Settings
         /* ----------------------------------------------------------------- */
         private System.Net.WebRequest GetRequest()
         {
+            if (string.IsNullOrEmpty(_medium) || string.IsNullOrEmpty(_content)) return null;
+
             var url = string.Format("{0}?utm_medium={1}&utm_content={2}",
                 _EndPoint, _medium, _content.Replace("\"", ""));
             var dest = System.Net.WebRequest.Create(url);
