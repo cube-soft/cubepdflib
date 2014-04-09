@@ -141,13 +141,12 @@ namespace CubePdf.Settings
         /* ----------------------------------------------------------------- */
         private System.Net.WebRequest GetRequest()
         {
-            if (string.IsNullOrEmpty(_medium) || string.IsNullOrEmpty(_content)) return null;
+            if (string.IsNullOrEmpty(_medium)) return null;
 
-            var url = string.Format("{0}?utm_medium={1}&utm_content={2}",
-                _EndPoint, _medium, _content.Replace("\"", ""));
+            var url = string.Format("{0}?utm_medium={1}", _EndPoint, _medium);
+            if (!string.IsNullOrEmpty(_content)) url += string.Format("&utm_content={0}", _content.Replace("\"", ""));
             var dest = System.Net.WebRequest.Create(url);
             dest.Proxy = null;
-            Debug.WriteLine(url);
             return dest;
         }
 
