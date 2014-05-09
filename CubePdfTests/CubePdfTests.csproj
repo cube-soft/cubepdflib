@@ -81,7 +81,7 @@
       <HintPath>..\CubePdf.Editing\itextsharp.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\..\..\..\..\Program Files (x86)\NUnit 2.6.1\bin\framework\nunit.framework.dll</HintPath>
+      <HintPath>C:\Program Files (x86)\NUnit\bin\framework\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

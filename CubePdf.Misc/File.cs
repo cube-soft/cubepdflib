@@ -82,7 +82,7 @@ namespace CubePdf.Misc
                     if (show_prompt && ShowPrompt(path)) Delete(path, show_prompt);
                     else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
                 }
-                throw err;
+                else throw err;
             }
         }
 
@@ -110,7 +110,7 @@ namespace CubePdf.Misc
                     if (show_prompt && ShowPrompt(dest)) Copy(src, dest, show_prompt);
                     else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
                 }
-                throw err;
+                else throw err;
             }
         }
 
@@ -142,7 +142,7 @@ namespace CubePdf.Misc
                     if (show_prompt && ShowPrompt(dest)) Move(src, dest, show_prompt);
                     else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
                 }
-                throw err;
+                else throw err;
             }
         }
 
