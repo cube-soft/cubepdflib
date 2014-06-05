@@ -300,7 +300,7 @@ namespace CubePdf.Editing
             {
                 var method = Translator.ToIText(_encrypt.Method);
                 var permission = Translator.ToIText(_encrypt.Permission);
-                var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
+                var userpassword = _encrypt.IsUserPasswordEnabled ? (_encrypt.UserPassword.Length > 0 ? _encrypt.UserPassword : _encrypt.OwnerPassword) : "";
                 writer.Writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
             }
         }
