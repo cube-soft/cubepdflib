@@ -102,6 +102,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("ButtonDown");
+            _isLeftButtonDown = true;
+            _isInvalidDrop = false;
             _position = e.GetPosition(AssociatedObject);
             var item = GetItem(_position);
             _source = (item != null) ? AssociatedObject.Items.IndexOf(item) : -1;
@@ -130,13 +133,15 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("ButtonUP");
             _canvas.Visibility = Visibility.Collapsed;
 
             if (_source == -1)
             {
                 AssociatedObject.ReleaseMouseCapture();
-                SelectRange();
+                if (!_isInvalidDrop)SelectRange();
             }
+            _isLeftButtonDown = false;
         }
 
         /* ----------------------------------------------------------------- */
@@ -194,6 +199,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("DragEnter");
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
             if (data == null) return;
             if (data.ProccessId != Process.GetCurrentProcess().Id) _source = ViewModel.PageCount;
@@ -210,6 +216,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragOver(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("DragOver");
             var pos = e.GetPosition(AssociatedObject);
             RefreshDragScroll(pos);
             RefreshMovingPosition(pos);
@@ -226,14 +233,17 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDrop(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("Drop");
+            _isInvalidDrop = false;
             _canvas.Visibility = Visibility.Collapsed;
 
             e.Effects = GetDragDropEffect(sender, e);
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
 
-            if (e.Effects == DragDropEffects.Move && data.ProccessId == Process.GetCurrentProcess().Id)
+            if (e.Effects == DragDropEffects.Move && data.ProccessId == Process.GetCurrentProcess().Id )
             {
-                MoveItems(e.GetPosition(AssociatedObject));
+                if (_isLeftButtonDown == true) MoveItems(e.GetPosition(AssociatedObject));
+                else if (_isLeftButtonDown == false) _isInvalidDrop = true;
             }
             else if (data != null) InsertItems(e.GetPosition(AssociatedObject), data);
             
@@ -276,7 +286,6 @@ namespace CubePdf.Wpf
         {
             _canvas.Visibility = Visibility.Collapsed;
             AssociatedObject.AllowDrop = true;
-
             var data = new DragDropPages(Process.GetCurrentProcess().Id);
             foreach (var index in GetSelectedIndices(-1))
             {
@@ -362,7 +371,7 @@ namespace CubePdf.Wpf
         {
             var index = GetTargetItemIndex(current);
             if (index == -1 || index == _source) return;
-
+            Debug.WriteLine("MoveItems");
             try
             {
                 var delta = index - _source;
@@ -692,6 +701,8 @@ namespace CubePdf.Wpf
         private Border _rect = new Border();
         private Point _position = new Point();
         private int _source = -1;
+        private bool _isLeftButtonDown = false;
+        private bool _isInvalidDrop = false;
         #endregion
 
         #region Constant variables
