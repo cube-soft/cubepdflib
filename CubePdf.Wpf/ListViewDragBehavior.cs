@@ -139,7 +139,7 @@ namespace CubePdf.Wpf
             if (_source == -1)
             {
                 AssociatedObject.ReleaseMouseCapture();
-                if (!_isInvalidDrop)SelectRange();
+                if (!_isInvalidDrop && _isLeftButtonDown)SelectRange();
             }
             _isLeftButtonDown = false;
         }
@@ -248,6 +248,7 @@ namespace CubePdf.Wpf
             else if (data != null) InsertItems(e.GetPosition(AssociatedObject), data);
             
             _source = -1;
+            _isLeftButtonDown = false;
         }
 
         #endregion
