@@ -171,7 +171,6 @@ namespace CubePdf.Editing
                 {
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
-                    // PDFversion >= 1.5でのみFullCompressionは実行可
                     if (Metadata.Version.Minor >= 5) writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
