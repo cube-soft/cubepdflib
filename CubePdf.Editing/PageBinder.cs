@@ -171,7 +171,7 @@ namespace CubePdf.Editing
                 {
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
-                    writer.SetFullCompression();
+                    if (Metadata.Version.Minor >= 5) writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
                 File.Delete(tmp);
