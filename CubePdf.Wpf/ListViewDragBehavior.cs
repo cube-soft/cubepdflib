@@ -84,6 +84,46 @@ namespace CubePdf.Wpf
 
         #endregion
 
+        #region Private properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsLeftButtonDown
+        /// 
+        /// <summary>
+        /// マウスの左ボタンが押下されているかどうかを取得、または設定します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// TODO: Mouse.LeftButton の値を用いて判別したいが、OnDrop 時に
+        /// 問題が発生する（OnDrop 直前まで左ボタンが押下されていたかどうかを
+        /// 判別する術がない）。もう少し良い方法もありそうなので検討する。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        private bool IsLeftButtonDown
+        {
+            get { return _leftbutton; }
+            set { _leftbutton = value; }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsValidAction
+        /// 
+        /// <summary>
+        /// 正常な処理であるかどうかを取得、または設定します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private bool IsValidAction
+        {
+            get { return _valid; }
+            set { _valid = value; }
+        }
+
+        #endregion
+
         #region Event handlers
 
         /* ----------------------------------------------------------------- */
@@ -102,6 +142,11 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("ListViewDragBehavir::OnMouseLeftButtonDown");
+
+            IsLeftButtonDown = true;
+            IsValidAction = true;
+
             _position = e.GetPosition(AssociatedObject);
             var item = GetItem(_position);
             _source = (item != null) ? AssociatedObject.Items.IndexOf(item) : -1;
@@ -130,13 +175,17 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("ListViewDragBehavir::OnMouseLeftButtonUp");
+
             _canvas.Visibility = Visibility.Collapsed;
 
             if (_source == -1)
             {
                 AssociatedObject.ReleaseMouseCapture();
-                SelectRange();
+                if (IsValidAction && IsLeftButtonDown) SelectRange();
             }
+
+            IsLeftButtonDown = false;
         }
 
         /* ----------------------------------------------------------------- */
@@ -194,6 +243,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragEnter(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("ListViewDragBehavir::OnDragEnter");
+
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
             if (data == null) return;
             if (data.ProccessId != Process.GetCurrentProcess().Id) _source = ViewModel.PageCount;
@@ -210,6 +261,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDragOver(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("ListViewDragBehavir::OnDragOver");
+
             var pos = e.GetPosition(AssociatedObject);
             RefreshDragScroll(pos);
             RefreshMovingPosition(pos);
@@ -226,18 +279,24 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void OnDrop(object sender, DragEventArgs e)
         {
+            Debug.WriteLine("ListViewDragBehavir::OnDrop");
+
+            IsValidAction = true;
+
             _canvas.Visibility = Visibility.Collapsed;
 
             e.Effects = GetDragDropEffect(sender, e);
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
 
-            if (e.Effects == DragDropEffects.Move && data.ProccessId == Process.GetCurrentProcess().Id)
+            if (e.Effects == DragDropEffects.Move && data.ProccessId == Process.GetCurrentProcess().Id )
             {
-                MoveItems(e.GetPosition(AssociatedObject));
+                if (IsLeftButtonDown) MoveItems(e.GetPosition(AssociatedObject));
+                else IsValidAction = false;
             }
             else if (data != null) InsertItems(e.GetPosition(AssociatedObject), data);
             
             _source = -1;
+            IsLeftButtonDown = false;
         }
 
         #endregion
@@ -276,7 +335,6 @@ namespace CubePdf.Wpf
         {
             _canvas.Visibility = Visibility.Collapsed;
             AssociatedObject.AllowDrop = true;
-
             var data = new DragDropPages(Process.GetCurrentProcess().Id);
             foreach (var index in GetSelectedIndices(-1))
             {
@@ -362,7 +420,7 @@ namespace CubePdf.Wpf
         {
             var index = GetTargetItemIndex(current);
             if (index == -1 || index == _source) return;
-
+            Debug.WriteLine("MoveItems");
             try
             {
                 var delta = index - _source;
@@ -692,6 +750,8 @@ namespace CubePdf.Wpf
         private Border _rect = new Border();
         private Point _position = new Point();
         private int _source = -1;
+        private bool _leftbutton = false;
+        private bool _valid = false;
         #endregion
 
         #region Constant variables
