@@ -300,9 +300,24 @@ namespace CubePdf.Editing
             {
                 var method = Translator.ToIText(_encrypt.Method);
                 var permission = Translator.ToIText(_encrypt.Permission);
-                var userpassword = _encrypt.IsUserPasswordEnabled ? _encrypt.UserPassword : "";
-                writer.Writer.SetEncryption(method, userpassword, _encrypt.OwnerPassword, permission);
+                var user = _encrypt.IsUserPasswordEnabled ?
+                    Alternate(_encrypt.UserPassword, _encrypt.OwnerPassword) : "";
+                writer.Writer.SetEncryption(method, user, _encrypt.OwnerPassword, permission);
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Alternate
+        /// 
+        /// <summary>
+        /// どちらか有効な値を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private string Alternate(string value, string alt)
+        {
+            return !string.IsNullOrEmpty(value) ? value : alt;
         }
 
         #endregion
