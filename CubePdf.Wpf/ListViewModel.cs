@@ -1952,9 +1952,13 @@ namespace CubePdf.Wpf
             var expire = DateTime.Today.AddDays(-_maxbackup).ToString("yyyyMMdd");
             foreach (var path in System.IO.Directory.GetDirectories(_backup))
             {
-                var leaf = System.IO.Path.GetFileName(path);
-                if (leaf.CompareTo(expire) >= 0) continue;
-                System.IO.Directory.Delete(path, true);
+                try
+                {
+                    var leaf = System.IO.Path.GetFileName(path);
+                    if (leaf.CompareTo(expire) >= 0) continue;
+                    System.IO.Directory.Delete(path, true);
+                }
+                catch (Exception err) { Trace.TraceError(err.ToString()); }
             }
         }
 
