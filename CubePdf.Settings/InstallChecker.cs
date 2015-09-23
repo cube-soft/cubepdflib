@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using IoEx = System.IO;
 
 namespace CubePdf.Settings
 {
@@ -120,7 +121,7 @@ namespace CubePdf.Settings
             if (request == null) return;
 
             using (var response = request.GetResponse())
-            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), Encoding.GetEncoding("UTF-8")))
+            using (var reader = new IoEx.StreamReader(response.GetResponseStream(), Encoding.GetEncoding("UTF-8")))
             {
                 Debug.WriteLine(reader.ReadToEnd());
             }
