@@ -18,6 +18,7 @@
 /// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
+using IoEx = System.IO;
 
 namespace CubePdf.Misc
 {
@@ -55,7 +56,7 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static bool Exists(string path)
         {
-            return System.IO.File.Exists(path);
+            return IoEx.File.Exists(path);
         }
 
         /* ----------------------------------------------------------------- */
@@ -74,7 +75,7 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Delete(string path, bool show_prompt)
         {
-            try { System.IO.File.Delete(path); }
+            try { IoEx.File.Delete(path); }
             catch (System.Exception err)
             {
                 if (IsAccessDenied(err))
@@ -102,7 +103,7 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Copy(string src, string dest, bool show_prompt)
         {
-            try { System.IO.File.Copy(src, dest, true); }
+            try { IoEx.File.Copy(src, dest, true); }
             catch (System.Exception err)
             {
                 if (IsAccessDenied(err))
@@ -132,8 +133,8 @@ namespace CubePdf.Misc
         {
             try
             {
-                System.IO.File.Delete(dest);
-                System.IO.File.Move(src, dest);
+                IoEx.File.Delete(dest);
+                IoEx.File.Move(src, dest);
             }
             catch (System.Exception err)
             {
@@ -159,7 +160,7 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         private static bool IsAccessDenied(System.Exception err)
         {
-            return (err is System.IO.IOException || err is System.UnauthorizedAccessException);
+            return (err is IoEx.IOException || err is System.UnauthorizedAccessException);
         }
 
         /* ----------------------------------------------------------------- */

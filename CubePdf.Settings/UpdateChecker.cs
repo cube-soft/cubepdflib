@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using IoEx = System.IO;
 
 namespace CubePdf.Settings
 {
@@ -178,7 +179,7 @@ namespace CubePdf.Settings
                 var request = GetRequest("");
                 using (var response = request.GetResponse())
                 using (var stream = response.GetResponseStream())
-                using (var reader = new System.IO.StreamReader(stream, System.Text.Encoding.GetEncoding("UTF-8")))
+                using (var reader = new IoEx.StreamReader(stream, System.Text.Encoding.GetEncoding("UTF-8")))
                 {
                     var line = reader.ReadLine();
                     while (line != null)
@@ -267,7 +268,7 @@ namespace CubePdf.Settings
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private IDictionary<string, string> ParseResponse(System.IO.StreamReader reader)
+        private IDictionary<string, string> ParseResponse(IoEx.StreamReader reader)
         {
             var dest = new Dictionary<string, string>();
             var line = reader.ReadLine();

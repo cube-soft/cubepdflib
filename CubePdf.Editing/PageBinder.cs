@@ -20,9 +20,9 @@
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
+using IoEx = System.IO;
 
 namespace CubePdf.Editing
 {
@@ -162,19 +162,19 @@ namespace CubePdf.Editing
         {
             try
             {
-                var tmp = Path.GetTempFileName();
-                File.Delete(tmp);
+                var tmp = IoEx.Path.GetTempFileName();
+                IoEx.File.Delete(tmp);
                 BindPages(tmp);
 
                 using (var reader = new PdfReader(tmp))
-                using (var writer = new PdfStamper(reader, new FileStream(path, FileMode.Create)))
+                using (var writer = new PdfStamper(reader, new IoEx.FileStream(path, IoEx.FileMode.Create)))
                 {
                     AddMetadata(reader, writer);
                     AddSecurity(writer);
                     if (Metadata.Version.Minor >= 5) writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
-                File.Delete(tmp);
+                IoEx.File.Delete(tmp);
             }
             catch (iTextSharp.text.pdf.BadPasswordException err)
             {
@@ -207,8 +207,8 @@ namespace CubePdf.Editing
             var pagenum = 1;
             var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
             var document = new iTextSharp.text.Document();
-            var writer = _smart ? new PdfSmartCopy(document, new FileStream(dest, FileMode.Create)) :
-                new PdfCopy(document, new FileStream(dest, FileMode.Create));            
+            var writer = _smart ? new PdfSmartCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create)) :
+                new PdfCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create));            
             
             writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
             writer.ViewerPreferences = _metadata.ViewerPreferences;
