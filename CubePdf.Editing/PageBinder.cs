@@ -176,7 +176,7 @@ namespace CubePdf.Editing
                 }
                 IoEx.File.Delete(tmp);
             }
-            catch (iTextSharp.text.pdf.BadPasswordException err)
+            catch (iTextSharp.text.exceptions.BadPasswordException err)
             {
                 throw new CubePdf.Data.EncryptionException(err.Message, err);
             }
