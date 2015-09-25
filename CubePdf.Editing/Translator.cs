@@ -142,7 +142,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static Permission ToPermission(int value)
+        public static Permission ToPermission(long value)
         {
             var dest = new Permission();
             if ((value & PdfWriter.AllowPrinting) != 0)          dest.Printing = true;
