@@ -131,19 +131,38 @@ namespace CubePdf.Misc
         /* ----------------------------------------------------------------- */
         public static void Move(string src, string dest, bool show_prompt)
         {
+            var backup = IoEx.Path.GetTempFileName();
+
             try
             {
-                IoEx.File.Delete(dest);
+                IoEx.File.Delete(backup);
+                IoEx.File.Move(dest, backup);
                 IoEx.File.Move(src, dest);
             }
             catch (System.Exception err)
             {
-                if (IsAccessDenied(err))
+                if (IsAccessDenied(err) && show_prompt)
                 {
-                    if (show_prompt && ShowPrompt(dest)) Move(src, dest, show_prompt);
+                    if (ShowPrompt(dest))
+                    {
+                        if (!IoEx.File.Exists(dest) && IoEx.File.Exists(backup)) IoEx.File.Move(backup, dest);
+                        Move(src, dest, show_prompt);
+                    }
                     else throw new UserCancelledException(Properties.Resources.UserCancelled, err);
                 }
                 else throw err;
+            }
+            finally
+            {
+                try
+                {
+                    if (IoEx.File.Exists(backup))
+                    {
+                        if (IoEx.File.Exists(dest)) IoEx.File.Delete(backup);
+                        else IoEx.File.Move(backup, dest);
+                    }
+                }
+                catch (System.Exception /* err */) { }
             }
         }
 

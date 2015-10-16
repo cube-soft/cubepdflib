@@ -207,6 +207,35 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public bool TemplatePage { get; set; }
 
+        /* ----------------------------------------------------------------- */
+        ///
+        /// FullAccess
+        /// 
+        /// <summary>
+        /// 全ての操作が許可されているかどうか示す値を取得します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// Signature と TemplatePage に関しては各種ライブラリが未対応
+        /// なので、現時点では判別対象から外します。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool FullAccess { get
+            {
+                return Printing          &&
+                       Assembly          &&
+                       ModifyContents    &&
+                       CopyContents      &&
+                       Accessibility     &&
+                       ExtractPage       &&
+                       ModifyAnnotations &&
+                       InputFormFields;//&&
+                       //Signature         &&
+                       //TemplatePage;
+            }
+        }
+
         #endregion
     }
 }

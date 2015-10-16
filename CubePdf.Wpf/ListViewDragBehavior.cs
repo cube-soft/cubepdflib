@@ -418,6 +418,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void MoveItems(Point current)
         {
+            if (ViewModel.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess) return;
+
             var index = GetTargetItemIndex(current);
             if (index == -1 || index == _source) return;
             Debug.WriteLine("MoveItems");
