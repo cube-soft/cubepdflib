@@ -138,7 +138,7 @@ namespace CubePdf.Editing
                 ExtractEncryption(_core, password);
                 ExtractTaggedData(_core);
             }
-            catch (iTextSharp.text.pdf.BadPasswordException err)
+            catch (iTextSharp.text.exceptions.BadPasswordException err)
             {
                 throw new CubePdf.Data.EncryptionException(err.Message, err);
             }
