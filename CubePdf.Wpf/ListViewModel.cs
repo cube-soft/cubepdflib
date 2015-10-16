@@ -1200,23 +1200,28 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void BitmapEngine_ImageCreated(object sender, CubePdf.Drawing.ImageEventArgs e)
         {
-            var index = _creating;
-            if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
-
-            var range = GetVisibleRange();
-            if (e.Image != null && index >= range.Key && index <= range.Value &&
-                e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == _pages[index].PageNumber)
+            try
             {
-                RotateImage(e.Image, _pages[index], e.Page);
-                lock (_images)
+                if (e.Image == null) return;
+
+                var index = _creating;
+                if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
+
+                var range = GetVisibleRange();
+                if (index >= range.Key && index <= range.Value &&
+                    e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == _pages[index].PageNumber)
                 {
-                    _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
-                    _created.Capacity = (int)((range.Value - range.Key + 1) * 1.5);
-                    _created.Update(index);
+                    RotateImage(e.Image, _pages[index], e.Page);
+                    lock (_images)
+                    {
+                        _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
+                        _created.Capacity = (int)((range.Value - range.Key + 1) * 1.5);
+                        _created.Update(index);
+                    }
                 }
+                else e.Image.Dispose();
             }
-            else if (e.Image != null) e.Image.Dispose();
-            FetchRequest();
+            finally { FetchRequest(); }
         }
 
         #endregion
