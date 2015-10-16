@@ -136,8 +136,8 @@ namespace CubePdf.Misc
             try
             {
                 IoEx.File.Delete(backup);
-                IoEx.File.Move(dest, backup);
-                IoEx.File.Move(src, dest);
+                if (IoEx.File.Exists(dest)) IoEx.File.Move(dest, backup);
+                if (IoEx.File.Exists(src))  IoEx.File.Move(src, dest);
             }
             catch (System.Exception err)
             {
