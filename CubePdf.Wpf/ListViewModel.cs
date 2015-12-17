@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
+using CubePdf.Data.Extensions;
 
 namespace CubePdf.Wpf
 {
@@ -158,7 +159,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IMetadata Metadata
+        public CubePdf.Data.Metadata Metadata
         {
             get { return _metadata; }
             set
@@ -180,7 +181,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.IMetadata CubePdf.Data.IDocumentReader.Metadata
+        CubePdf.Data.Metadata CubePdf.Data.IDocumentReader.Metadata
         {
             get { return _metadata; }
         }
@@ -195,7 +196,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IEncryption Encryption
+        public CubePdf.Data.Encryption Encryption
         {
             get { return _encrypt; }
             set
@@ -217,7 +218,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.IEncryption CubePdf.Data.IDocumentReader.Encryption
+        CubePdf.Data.Encryption CubePdf.Data.IDocumentReader.Encryption
         {
             get { return _encrypt; }
         }
@@ -1041,8 +1042,8 @@ namespace CubePdf.Wpf
             if (index < 0 || index >= _pages.Count) return null;
 
             var page = _pages[index];
-            var horizontal = bound.Width / (double)page.ViewSize.Width;
-            var vertical = bound.Height / (double)page.ViewSize.Height;
+            var horizontal = bound.Width / (double)page.ViewSize().Width;
+            var vertical = bound.Height / (double)page.ViewSize().Height;
             var power = (horizontal < vertical) ? horizontal : vertical;
 
             lock (_engines)
@@ -1261,16 +1262,16 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private Size GetSize(CubePdf.Data.IPage page)
         {
-            if (page.ViewSize.Width > page.ViewSize.Height)
+            if (page.ViewSize().Width > page.ViewSize().Height)
             {
                 var width  = ItemWidth;
-                var height = page.ViewSize.Height * (width / (double)page.ViewSize.Width);
+                var height = page.ViewSize().Height * (width / (double)page.ViewSize().Width);
                 return new Size(width, (int)height);
             }
             else
             {
                 var height = ItemHeight;
-                var width  = page.ViewSize.Width * (height / (double)page.ViewSize.Height);
+                var width  = page.ViewSize().Width * (height / (double)page.ViewSize().Height);
                 return new Size((int)width, height);
             }
         }
@@ -1335,8 +1336,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private double GetPower(CubePdf.Data.IPage page)
         {
-            var horizontal = ItemWidth / (double)page.ViewSize.Width;
-            var vertical = ItemHeight / (double)page.ViewSize.Height;
+            var horizontal = ItemWidth / (double)page.ViewSize().Width;
+            var vertical = ItemHeight / (double)page.ViewSize().Height;
             return (horizontal < vertical) ? horizontal : vertical;
         }
 
@@ -1738,15 +1739,15 @@ namespace CubePdf.Wpf
         private void UpdateImageSize(CubePdf.Data.IPage page)
         {
             var update = false;
-            if (page.ViewSize.Width > _maxwidth)
+            if (page.ViewSize().Width > _maxwidth)
             {
-                _maxwidth = page.ViewSize.Width;
+                _maxwidth = page.ViewSize().Width;
                 update = true;
             }
 
-            if (page.ViewSize.Height > _maxheight)
+            if (page.ViewSize().Height > _maxheight)
             {
-                _maxheight = page.ViewSize.Height;
+                _maxheight = page.ViewSize().Height;
                 update = true;
             }
 
@@ -2116,7 +2117,7 @@ namespace CubePdf.Wpf
         private void UndoMetadata(IList parameters)
         {
             if (parameters == null) return;
-            var metadata = parameters[0] as CubePdf.Data.IMetadata;
+            var metadata = parameters[0] as CubePdf.Data.Metadata;
             if (metadata == null) return;
 
             Metadata = metadata;
@@ -2136,7 +2137,7 @@ namespace CubePdf.Wpf
         private void UndoEncryption(IList parameters)
         {
             if (parameters == null) return;
-            var encrypt = parameters[0] as CubePdf.Data.IEncryption;
+            var encrypt = parameters[0] as CubePdf.Data.Encryption;
             if (encrypt == null) return;
 
             Encryption = encrypt;
@@ -2228,8 +2229,8 @@ namespace CubePdf.Wpf
 
         #region Implementations for IDocumentReader and IDocumentWriter
         private string _path = string.Empty;
-        private CubePdf.Data.IMetadata _metadata = null;
-        private CubePdf.Data.IEncryption _encrypt = null;
+        private CubePdf.Data.Metadata _metadata = null;
+        private CubePdf.Data.Encryption _encrypt = null;
         private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
         private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion

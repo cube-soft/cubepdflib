@@ -129,7 +129,7 @@
       <Name>CubePdf.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Drawing\CubePdf.Drawing.csproj">
-      <Project>{FDC7F8BE-E421-45F9-9544-FFFC7A0CC2AE}</Project>
+      <Project>{fdc7f8be-e421-45f9-9544-fffc7a0cc2ae}</Project>
       <Name>CubePdf.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Editing\CubePdf.Editing.csproj">

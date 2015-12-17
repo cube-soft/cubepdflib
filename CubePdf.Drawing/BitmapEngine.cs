@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Collections.Generic;
 using System.ComponentModel;
+using CubePdf.Data.Extensions;
 
 namespace CubePdf.Drawing
 {
@@ -305,8 +306,8 @@ namespace CubePdf.Drawing
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
                 
                 var page = _pages[index];
-                int width = (int)(page.ViewSize.Width * power);
-                int height = (int)(page.ViewSize.Height * power);
+                int width = (int)(page.ViewSize().Width * power);
+                int height = (int)(page.ViewSize().Height * power);
                 return obj.GetBitmap(width, height, true);
             }
         }
@@ -445,7 +446,7 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IMetadata Metadata
+        public CubePdf.Data.Metadata Metadata
         {
             get { return _metadata; }
         }
@@ -464,7 +465,7 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IEncryption Encryption
+        public CubePdf.Data.Encryption Encryption
         {
             get { return _encrypt; }
         }
@@ -647,8 +648,8 @@ namespace CubePdf.Drawing
         private string _path = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
         private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
-        private CubePdf.Data.IMetadata _metadata = null;
-        private CubePdf.Data.IEncryption _encrypt = null;
+        private CubePdf.Data.Metadata _metadata = null;
+        private CubePdf.Data.Encryption _encrypt = null;
         private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
         private BackgroundWorker _creator = new BackgroundWorker();
         private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();

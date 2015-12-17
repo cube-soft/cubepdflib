@@ -1,8 +1,8 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// DocumentReader.cs
+/// PageBinder.cs
 ///
-/// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
+/// Copyright (c) 2010 CubeSoft, Inc.
 ///
 /// This program is free software: you can redistribute it and/or modify
 /// it under the terms of the GNU Affero General Public License as published
@@ -22,6 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
+using iTextSharp.text.exceptions;
+using CubePdf.Editing.Extensions;
+using CubePdf.Data;
 using IoEx = System.IO;
 
 namespace CubePdf.Editing
@@ -36,16 +39,16 @@ namespace CubePdf.Editing
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public class PageBinder : CubePdf.Data.IDocumentWriter
+    public class PageBinder : IDocumentWriter
     {
-        #region Initialization and Termination
+        #region Constructors
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PageBinder (constructor)
+        /// PageBinder
         /// 
         /// <summary>
-        /// 既定の値で DocumentReader クラスを初期化します。
+        /// オブジェクトを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -60,44 +63,33 @@ namespace CubePdf.Editing
         /// Metadata
         /// 
         /// <summary>
-        /// PDF ファイルのメタデータを取得、または設定します。
+        /// PDF ファイルのメタデータを取得または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IMetadata Metadata
-        {
-            get { return _metadata; }
-            set { _metadata = value; }
-        }
+        public Metadata Metadata { get; set; } = new Metadata();
 
         /* ----------------------------------------------------------------- */
         ///
         /// Encryption
         /// 
         /// <summary>
-        /// 暗号化に関する情報をを取得、または設定します。
+        /// 暗号化に関する情報をを取得または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IEncryption Encryption
-        {
-            get { return _encrypt; }
-            set { _encrypt = value; }
-        }
+        public Encryption Encryption { get; set; } = new Encryption();
 
         /* ----------------------------------------------------------------- */
         ///
         /// Pages
         /// 
         /// <summary>
-        /// PDF ファイルの各ページ情報を取得、または設定します。
+        /// PDF ファイルの各ページ情報を取得または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ICollection<CubePdf.Data.IPage> Pages
-        {
-            get { return _pages; }
-        }
+        public ICollection<IPage> Pages { get; } = new List<IPage>();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -121,38 +113,38 @@ namespace CubePdf.Editing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public bool UseSmartCopy
-        {
-            get { return _smart; }
-            set { _smart = value; }
-        }
+        public bool UseSmartCopy { get; set; } = true;
 
         #endregion
 
-        #region Public Methods
+        #region Methods
 
         /* ----------------------------------------------------------------- */
         ///
         /// Reset
         /// 
         /// <summary>
-        /// PageBinder クラスを初期状態にリセットします。
+        /// 初期状態にリセットします。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            _metadata = new CubePdf.Data.Metadata();
-            _encrypt = new CubePdf.Data.Encryption();
-            _pages.Clear();
+            Metadata = new Metadata();
+            Encryption = new Encryption();
+            Pages.Clear();
         }
+
+        #endregion
+
+        #region Other private methods
 
         /* ----------------------------------------------------------------- */
         ///
         /// Save
         /// 
         /// <summary>
-        /// 現在メンバ変数が保持している、メタデータ、暗号化に関する情報、
+        /// メンバ変数が保持している、メタデータ、暗号化に関する情報、
         /// 各ページ情報に基づいた PDF ファイルを指定されたパスに保存
         /// します。
         /// </summary>
@@ -160,35 +152,27 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
+            var tmp = IoEx.Path.GetTempFileName();
+
             try
             {
-                var tmp = IoEx.Path.GetTempFileName();
-                IoEx.File.Delete(tmp);
-                BindPages(tmp);
-
+                Bind(tmp);
                 using (var reader = new PdfReader(tmp))
                 using (var writer = new PdfStamper(reader, new IoEx.FileStream(path, IoEx.FileMode.Create)))
                 {
                     AddMetadata(reader, writer);
-                    AddSecurity(writer);
+                    AddEncryption(writer);
                     if (Metadata.Version.Minor >= 5) writer.SetFullCompression();
                     writer.Writer.Outlines = _bookmarks;
                 }
-                IoEx.File.Delete(tmp);
             }
-            catch (iTextSharp.text.exceptions.BadPasswordException err)
-            {
-                throw new CubePdf.Data.EncryptionException(err.Message, err);
-            }
+            catch (BadPasswordException err) { throw new EncryptionException(err.Message, err); }
+            finally { TryDelete(tmp); }
         }
-
-        #endregion
-
-        #region Other methods
 
         /* ----------------------------------------------------------------- */
         ///
-        /// BindPages
+        /// Bind
         /// 
         /// <summary>
         /// 指定された各ページを結合し、新たな PDF ファイルを生成します。
@@ -202,36 +186,36 @@ namespace CubePdf.Editing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        private void BindPages(string dest)
+        private void Bind(string dest)
         {
-            var pagenum = 1;
-            var readers = new Dictionary<string, iTextSharp.text.pdf.PdfReader>();
+            if (IoEx.File.Exists(dest)) IoEx.File.Delete(dest);
+
+            var readers = new Dictionary<string, PdfReader>();
             var document = new iTextSharp.text.Document();
-            var writer = _smart ? new PdfSmartCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create)) :
-                new PdfCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create));            
-            
-            writer.PdfVersion = _metadata.Version.Minor.ToString()[0];
-            writer.ViewerPreferences = _metadata.ViewerPreferences;
+            var writer = UseSmartCopy ?
+                           new PdfSmartCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create)) :
+                           new PdfCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create));
+
+            writer.PdfVersion = Metadata.Version.Minor.ToString()[0];
+            writer.ViewerPreferences = Metadata.ViewerPreferences;
+
             document.Open();
             _bookmarks.Clear();
-            foreach (var page in _pages)
+            foreach (var page in Pages)
             {
-                if (!readers.ContainsKey(page.FilePath))
+                switch (page.Type)
                 {
-                    var item = page.Password.Length > 0 ?
-                        new iTextSharp.text.pdf.PdfReader(page.FilePath, System.Text.Encoding.UTF8.GetBytes(page.Password)) :
-                        new iTextSharp.text.pdf.PdfReader(page.FilePath);
-                    readers.Add(page.FilePath, item);
+                    case PageType.Image:
+                        AddImagePage(page as ImagePage, writer);
+                        break;
+                    case PageType.Pdf:
+                        AddPage(page as Page, writer, readers);
+                        break;
+                    default:
+                        break;
                 }
-
-                var reader = readers[page.FilePath];
-                var rot = reader.GetPageRotation(page.PageNumber);
-                var dic = reader.GetPageN(page.PageNumber);
-                if (rot != page.Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(page.Rotation));
-
-                writer.AddPage(writer.GetImportedPage(reader, page.PageNumber));
-                AddBookmarks(reader, page.PageNumber, pagenum++);
             }
+
             document.Close();
             writer.Close();
             foreach (var reader in readers.Values) reader.Close();
@@ -240,28 +224,92 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// AddBookmarks
+        /// AddPage
         /// 
         /// <summary>
-        /// PDF ファイルに存在するしおり情報を取得して追加します。
+        /// PDF ページを追加します。
         /// </summary>
-        /// 
-        /// <remarks>
-        /// 実際にしおりをPDFに追加するには PdfWriter クラスの Outlines
-        /// プロパティに代入する必要があります。
-        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        private void AddBookmarks(PdfReader reader, int srcpage, int destpage)
+        private void AddPage(PdfReader src, PdfCopy dest)
         {
-            var bookmarks = SimpleBookmark.GetBookmark(reader);
-            if (bookmarks == null) return;
-
-            var pattern = string.Format("^{0} (XYZ|Fit|FitH|FitBH)", destpage);
-            SimpleBookmark.ShiftPageNumbers(bookmarks, destpage - srcpage, null);
-            foreach (var bm in bookmarks)
+            for (var i = 0; i < src.NumberOfPages; ++i)
             {
-                if (bm.ContainsKey("Page") && Regex.IsMatch(bm["Page"].ToString(), pattern)) _bookmarks.Add(bm);
+                var page = dest.GetImportedPage(src, i + 1);
+                dest.AddPage(page);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AddPage
+        /// 
+        /// <summary>
+        /// PDF ページを追加します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void AddPage(Page src, PdfCopy dest, Dictionary<string, PdfReader> readers)
+        {
+            if (src == null) return;
+
+            if (!readers.ContainsKey(src.FilePath))
+            {
+                var item = src.Password.Length > 0 ?
+                           new PdfReader(src.FilePath, System.Text.Encoding.UTF8.GetBytes(src.Password)) :
+                           new PdfReader(src.FilePath);
+                readers.Add(src.FilePath, item);
+            }
+
+            var reader = readers[src.FilePath];
+            var rot = reader.GetPageRotation(src.PageNumber);
+            var dic = reader.GetPageN(src.PageNumber);
+            if (rot != src.Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(src.Rotation));
+
+            dest.AddPage(dest.GetImportedPage(reader, src.PageNumber));
+            StockBookmarks(reader, src.PageNumber, dest.PageNumber);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AddImagePage
+        /// 
+        /// <summary>
+        /// 画像ファイルを 1 ページの PDF として追加します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void AddImagePage(ImagePage src, PdfCopy dest)
+        {
+            if (src == null) return;
+
+            using (var image = new System.Drawing.Bitmap(src.FilePath))
+            using (var stream = new IoEx.MemoryStream())
+            {
+                var document = new iTextSharp.text.Document();
+                var writer = PdfWriter.GetInstance(document, stream);
+                document.Open();
+
+                var guid = image.FrameDimensionsList[0];
+                var dimension = new System.Drawing.Imaging.FrameDimension(guid);
+                for (var i = 0; i < image.GetFrameCount(dimension); ++i)
+                {
+                    image.SelectActiveFrame(dimension, i);
+
+                    var dpi = GetImageDpiScale(image);
+                    var width = src.OriginalSize.IsEmpty ? (int)(image.Width * dpi) : src.OriginalSize.Width;
+                    var height = src.OriginalSize.IsEmpty ? (int)(image.Height * dpi) : src.OriginalSize.Height;
+                    var obj = CreateImage(src, image);
+
+                    document.SetPageSize(new iTextSharp.text.Rectangle(width, height));
+                    document.NewPage();
+                    document.Add(obj);
+                }
+
+                document.Close();
+                writer.Close();
+
+                using (var reader = new PdfReader(stream.ToArray())) AddPage(reader, dest);
             }
         }
 
@@ -277,57 +325,178 @@ namespace CubePdf.Editing
         private void AddMetadata(PdfReader reader, PdfStamper writer)
         {
             var info = reader.Info;
-            info.Add("Title",    _metadata.Title);
-            info.Add("Subject",  _metadata.Subtitle);
-            info.Add("Keywords", _metadata.Keywords);
-            info.Add("Creator",  _metadata.Creator);
-            info.Add("Author",   _metadata.Author);
+            info.Add("Title", Metadata.Title);
+            info.Add("Subject", Metadata.Subtitle);
+            info.Add("Keywords", Metadata.Keywords);
+            info.Add("Creator", Metadata.Creator);
+            info.Add("Author", Metadata.Author);
             writer.MoreInfo = info;
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// AddSecurity
+        /// AddEncryption
         /// 
         /// <summary>
         /// 各種セキュリティ情報を付加します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void AddSecurity(PdfStamper writer)
+        private void AddEncryption(PdfStamper writer)
         {
-            if (_encrypt.IsEnabled && _encrypt.OwnerPassword.Length > 0)
+            if (Encryption.IsEnabled && Encryption.OwnerPassword.Length > 0)
             {
-                var method = Translator.ToIText(_encrypt.Method);
-                var permission = Translator.ToIText(_encrypt.Permission);
-                var user = _encrypt.IsUserPasswordEnabled ?
-                    Alternate(_encrypt.UserPassword, _encrypt.OwnerPassword) : "";
-                writer.Writer.SetEncryption(method, user, _encrypt.OwnerPassword, permission);
+                var method = Translator.ToIText(Encryption.Method);
+                var permission = Translator.ToIText(Encryption.Permission);
+                var userpass = Encryption.IsUserPasswordEnabled ?
+                                 GetUserPassword(Encryption.UserPassword, Encryption.OwnerPassword) :
+                                 string.Empty;
+                writer.Writer.SetEncryption(method, userpass, Encryption.OwnerPassword, permission);
             }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Alternate
+        /// StockBookmarks
         /// 
         /// <summary>
-        /// どちらか有効な値を取得します。
+        /// PDF ファイルに存在するしおり情報を取得して保存しておきます。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// 実際にしおりを PDF に追加するには PdfWriter クラスの Outlines
+        /// プロパティに代入する必要があります。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void StockBookmarks(PdfReader reader, int srcPage, int destPage)
+        {
+            var bookmarks = SimpleBookmark.GetBookmark(reader);
+            if (bookmarks == null) return;
+
+            var pattern = string.Format("^{0} (XYZ|Fit|FitH|FitBH)", destPage);
+            SimpleBookmark.ShiftPageNumbers(bookmarks, destPage - srcPage, null);
+            foreach (var bm in bookmarks)
+            {
+                if (bm.ContainsKey("Page") && Regex.IsMatch(bm["Page"].ToString(), pattern)) _bookmarks.Add(bm);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateImage
+        /// 
+        /// <summary>
+        /// イメージオブジェクトを生成します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private iTextSharp.text.Image CreateImage(ImagePage src, System.Drawing.Image image)
+        {
+            var width = src.OriginalSize.IsEmpty ? image.Width : src.OriginalSize.Width;
+            var height = src.OriginalSize.IsEmpty ? image.Height : src.OriginalSize.Height;
+            var dpi = GetImageDpiScale(image);
+            var scale = GetImageScale(image, width, height);
+            var pos = src.OriginalSize.IsEmpty ?
+                         new System.Drawing.Point(0, 0) :
+                         GetImagePosition(image, width, height, scale * dpi);
+
+            var dest = iTextSharp.text.Image.GetInstance(image, image.GuessImageFormat());
+            dest.SetAbsolutePosition(pos.X, pos.Y);
+            dest.ScalePercent((float)(scale * dpi * 100.0));
+            return dest;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetImageDpiScale
+        /// 
+        /// <summary>
+        /// イメージの解像度の差を考慮した縮小倍率を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private double GetImageDpiScale(System.Drawing.Image image)
+        {
+            var w = 72.0 / image.HorizontalResolution;
+            var h = 72.0 / image.VerticalResolution;
+            return Math.Min(w, h);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetImageScale
+        /// 
+        /// <summary>
+        /// イメージの縮小倍率を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private double GetImageScale(System.Drawing.Image image, int width, int height)
+        {
+            var x = width / (double)image.Width;
+            var y = height / (double)image.Height;
+            return Math.Min(Math.Min(x, y), 1.0);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetImagePosition
+        /// 
+        /// <summary>
+        /// イメージの表示位置を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private System.Drawing.Point GetImagePosition(System.Drawing.Image image, int width, int height, double ratio)
+        {
+            var x = (width - image.Width * ratio) / 2.0;
+            var y = (height - image.Height * ratio) / 2.0;
+            return new System.Drawing.Point((int)x, (int)y);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetUserPassword
+        /// 
+        /// <summary>
+        /// ユーザパスワードを取得します。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// ユーザから明示的にユーザパスワードが指定されていない場合、
+        /// オーナパスワードと同じ文字列を使用します。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        private string GetUserPassword(string userPassword, string ownerPassword)
+        {
+            return !string.IsNullOrEmpty(userPassword) ? userPassword : ownerPassword;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// TryDelete
+        /// 
+        /// <summary>
+        /// ファイルの削除を試行します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private string Alternate(string value, string alt)
+        private bool TryDelete(string path)
         {
-            return !string.IsNullOrEmpty(value) ? value : alt;
+            try
+            {
+                IoEx.File.Delete(path);
+                return true;
+            }
+            catch (Exception /* err */) { return false; }
         }
 
         #endregion
 
-        #region Variables
-        private CubePdf.Data.IMetadata _metadata = new CubePdf.Data.Metadata();
-        private CubePdf.Data.IEncryption _encrypt = new CubePdf.Data.Encryption();
-        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
-        private bool _smart = true;
-        private IList<Dictionary<String, Object>> _bookmarks = new List<Dictionary<String, Object>>();
+        #region Fields
+        private List<Dictionary<string, object>> _bookmarks = new List<Dictionary<string, object>>();
         #endregion
     }
 }

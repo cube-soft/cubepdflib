@@ -76,8 +76,8 @@ namespace CubePdf.Data
         public Page(IPage cp)
         {
             _path = cp.FilePath;
-            _password = cp.Password;
-            _pagenum = cp.PageNumber;
+            //_password = cp.Password;
+            //_pagenum = cp.PageNumber;
             _size = cp.OriginalSize;
             _rotation = cp.Rotation;
             _power = cp.Power;
@@ -86,6 +86,20 @@ namespace CubePdf.Data
         #endregion
 
         #region Properties
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Type
+        /// 
+        /// <summary>
+        /// オブジェクトの種類を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public PageType Type
+        {
+            get { return PageType.Pdf; }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -232,7 +246,8 @@ namespace CubePdf.Data
         /* ----------------------------------------------------------------- */
         public bool Equals(IPage other)
         {
-            return FilePath == other.FilePath && PageNumber == other.PageNumber;
+            if (!(other is Page)) return false;
+            return FilePath == other.FilePath && PageNumber == ((Page)other).PageNumber;
         }
 
         /* ----------------------------------------------------------------- */

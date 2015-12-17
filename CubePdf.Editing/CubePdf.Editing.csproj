@@ -93,8 +93,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DocumentReader.cs" />
+    <Compile Include="Extensions\ImageExtensions.cs" />
+    <Compile Include="Extensions\PdfReaderExtensions.cs" />
+    <Compile Include="ImageRenderListener.cs" />
+    <Compile Include="IReadOnlyCollection.cs" />
     <Compile Include="PageBinder.cs" />
+    <Compile Include="PageSplitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadOnlyPageCollection.cs" />
     <Compile Include="Translator.cs" />
   </ItemGroup>
   <ItemGroup>
