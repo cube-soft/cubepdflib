@@ -628,13 +628,8 @@ namespace CubePdf.Wpf
                 _pages.Insert(index, item);
                 UpdateImageSize(item);
 
-                if (!_engines.ContainsKey(item.FilePath))
-                {
-                    using (var reader = new CubePdf.Editing.DocumentReader(item.FilePath, item.Password))
-                    {
-                        CreateEngine(reader);
-                    }
-                }
+                if (!_engines.ContainsKey(item.FilePath)) CreateEngine(item as CubePdf.Data.Page);
+
                 _images.Insert(index, new Drawing.ImageContainer());
                 _created.ItemInserted(index);
                 UpdateImageText(index);
@@ -1041,7 +1036,7 @@ namespace CubePdf.Wpf
         {
             if (index < 0 || index >= _pages.Count) return null;
 
-            var page = _pages[index];
+            var page = _pages[index] as CubePdf.Data.Page;
             var horizontal = bound.Width / (double)page.ViewSize().Width;
             var vertical = bound.Height / (double)page.ViewSize().Height;
             var power = (horizontal < vertical) ? horizontal : vertical;
@@ -1209,10 +1204,11 @@ namespace CubePdf.Wpf
                 if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
 
                 var range = GetVisibleRange();
+                var page = _pages[index] as CubePdf.Data.Page;
                 if (index >= range.Key && index <= range.Value &&
-                    e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == _pages[index].PageNumber)
+                    e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == page.PageNumber)
                 {
-                    RotateImage(e.Image, _pages[index], e.Page);
+                    RotateImage(e.Image, page, e.Page);
                     lock (_images)
                     {
                         _images.RawAt(index).UpdateImage(e.Image, Drawing.ImageStatus.Created);
@@ -1635,6 +1631,25 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// CreateEngine
+        /// 
+        /// <summary>
+        /// 新しい BitmapEngine オブジェクトを生成して、エンジン一覧に
+        /// 登録します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private CubePdf.Data.IDocumentReader CreateEngine(CubePdf.Data.Page item)
+        {
+            if (item == null) return null;
+            using (var reader = new CubePdf.Editing.DocumentReader(item.FilePath, item.Password))
+            {
+                return CreateEngine(reader);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// DisposeEngine
         /// 
         /// <summary>
@@ -1899,11 +1914,12 @@ namespace CubePdf.Wpf
                 while (_requests.Count > 0)
                 {
                     var key = _requests.Keys[0];
-                    var value = _requests[key];
+                    var value = _requests[key] as CubePdf.Data.Page;
+                    var page = _pages[key] as CubePdf.Data.Page;
                     _requests.Remove(key);
                     if (key < 0 || key >= _pages.Count) continue;
                     if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
-                        value.FilePath != _pages[key].FilePath || value.PageNumber != _pages[key].PageNumber)
+                        value.FilePath != _pages[key].FilePath || value.PageNumber != page.PageNumber)
                     {
                         if (key < range.Key || key > range.Value) _images.RawAt(key).DeleteImage();
                         continue;

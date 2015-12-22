@@ -84,14 +84,14 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Image
+        /// Page
         /// 
         /// <summary>
         /// 生成されたイメージのページ情報を取得、または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage Page
+        public CubePdf.Data.Page Page
         {
             get { return _page; }
             set { _page = value; }
@@ -101,7 +101,7 @@ namespace CubePdf.Drawing
 
         #region Variables
         private Image _image = null;
-        private CubePdf.Data.IPage _page = null;
+        private CubePdf.Data.Page _page = null;
         #endregion
     }
 

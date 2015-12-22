@@ -44,6 +44,18 @@ namespace CubePdf.Editing
     public class DocumentReader : IDocumentReader
     {
         #region Constructors and destructors
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// DocumentReader
+        /// 
+        /// <summary>
+        /// オブジェクトを初期化します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public DocumentReader() { }
+
         /* ----------------------------------------------------------------- */
         ///
         /// DocumentReader (constructor)
@@ -114,6 +126,17 @@ namespace CubePdf.Editing
         ///
         /* ----------------------------------------------------------------- */
         public Encryption Encryption { get; private set; } = null;
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// IsTaggedDocument
+        /// 
+        /// <summary>
+        /// タグ情報が存在する PDF ファイルかどうかを示す値を取得します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public bool IsTaggedDocument { get; private set; } = false;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -197,6 +220,30 @@ namespace CubePdf.Editing
 
         /* ----------------------------------------------------------------- */
         ///
+        /// Open
+        /// 
+        /// <summary>
+        /// PDF ファイルを開きます。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void Open(string path, string password)
+        {
+            try
+            {
+                var bytes = !string.IsNullOrEmpty(password) ? System.Text.Encoding.UTF8.GetBytes(password) : null;
+                _impl = new PdfReader(path, bytes, true);
+                FilePath = path;
+                _pages = new ReadOnlyPageCollection(_impl, FilePath, GetInputPassword());
+                Metadata = GetMetadata(_impl);
+                EncryptionStatus = GetEncryptionStatus(_impl, password);
+                Encryption = GetEncryption(_impl, password, EncryptionStatus);
+            }
+            catch (BadPasswordException err) { throw new EncryptionException(err.Message, err); }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// GetPage
         /// 
         /// <summary>
@@ -207,6 +254,25 @@ namespace CubePdf.Editing
         public IPage GetPage(int pagenum)
         {
             return _impl != null ? _impl.CreatePage(FilePath, GetInputPassword(), pagenum) : null;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// GetImages
+        /// 
+        /// <summary>
+        /// 指定されたページ中に存在する画像を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        public IList<Image> GetImages(int pagenum)
+        {
+            if (pagenum < 0 || pagenum > _pages.Count) throw new IndexOutOfRangeException();
+
+            var parser = new iTextSharp.text.pdf.parser.PdfReaderContentParser(_impl);
+            var listener = new ImageRenderListener();
+            parser.ProcessContent(pagenum, listener);
+            return listener.Images;
         }
 
         #endregion
@@ -232,30 +298,6 @@ namespace CubePdf.Editing
         #endregion
 
         #region Other private methods
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Open
-        /// 
-        /// <summary>
-        /// PDF ファイルを開きます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Open(string path, string password)
-        {
-            try
-            {
-                var bytes = !string.IsNullOrEmpty(password) ? System.Text.Encoding.UTF8.GetBytes(password) : null;
-                _impl = new PdfReader(path, bytes, true);
-                FilePath = path;
-                _pages = new ReadOnlyPageCollection(_impl, FilePath, GetInputPassword());
-                Metadata = GetMetadata(_impl);
-                EncryptionStatus = GetEncryptionStatus(_impl, password);
-                Encryption = GetEncryption(_impl, password, EncryptionStatus);
-            }
-            catch (BadPasswordException err) { throw new EncryptionException(err.Message, err); }
-        }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -357,25 +399,6 @@ namespace CubePdf.Editing
             else return EncryptionStatus.RestrictedAccess;
         }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetImages
-        /// 
-        /// <summary>
-        /// 指定されたページ中に存在する画像を取得します。
-        /// </summary>
-        /// 
-        /* ----------------------------------------------------------------- */
-        public IList<Image> GetImages(int pagenum)
-        {
-            if (pagenum < 0 || pagenum > _pages.Count) throw new IndexOutOfRangeException();
-
-            var parser = new iTextSharp.text.pdf.parser.PdfReaderContentParser(_impl);
-            var listener = new ImageRenderListener();
-            parser.ProcessContent(pagenum, listener);
-            return listener.Images;
-        }
-
         #endregion
 
         #region Other private methods
@@ -398,6 +421,23 @@ namespace CubePdf.Editing
                 return Encryption.UserPassword;
             }
             else return string.Empty;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ContainsTaggedData
+        /// 
+        /// <summary>
+        /// タグ付き PDF（構造化された PDF）に関わる情報が存在するかどうかを
+        /// 判別します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private bool ContainsTaggedData(iTextSharp.text.pdf.PdfReader reader)
+        {
+            var catalog = reader.Catalog;
+            var root = catalog.GetAsDict(iTextSharp.text.pdf.PdfName.STRUCTTREEROOT);
+            return (root != null);
         }
 
         #endregion
