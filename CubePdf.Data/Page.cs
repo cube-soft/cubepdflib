@@ -197,32 +197,6 @@ namespace CubePdf.Data
             set { _power = value; }
         }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ViewSize
-        /// 
-        /// <summary>
-        /// 該当ページを表示する際のサイズ（幅、および高さ）を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Size ViewSize
-        {
-            get
-            {
-                var degree = _rotation;
-                if (degree < 0) degree += 360;
-                else if (degree >= 360) degree -= 360;
-
-                var radian = Math.PI * degree / 180.0;
-                var sin = Math.Abs(Math.Sin(radian));
-                var cos = Math.Abs(Math.Cos(radian));
-                var width = _size.Width * cos + _size.Height * sin;
-                var height = _size.Width * sin + _size.Height * cos;
-                return new Size((int)(width * _power), (int)(height * _power));
-            }
-        }
-
         #endregion
 
         #region Public Methods
