@@ -219,6 +219,8 @@ namespace CubePdf.Drawing
                     other.Encryption.OwnerPassword : other.Encryption.UserPassword;
                 OpenFile(other.FilePath, password);
             }
+
+            // TODO: 要素をコピーして代入
             foreach (var page in other.Pages) _pages.Add(page);
         }
 
@@ -335,7 +337,7 @@ namespace CubePdf.Drawing
             lock (_creating)
             {
                 if (index >= _pages.Count) return;
-                var page = new CubePdf.Data.Page(_pages[index]);
+                var page = new CubePdf.Data.Page(_pages[index] as CubePdf.Data.Page);
                 page.Power = power;
                 var entry = new ImageEventArgs(page);
                 _creating.Enqueue(entry);

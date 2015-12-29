@@ -17,8 +17,8 @@
 /// limitations under the License.
 ///
 /* ------------------------------------------------------------------------- */
-using Size = System.Drawing.Size;
-using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using System;
+using System.Drawing;
 
 namespace CubePdf.Data
 {
@@ -31,6 +31,7 @@ namespace CubePdf.Data
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
+    [Serializable]
     public class ImagePage : IPage
     {
         #region IPage properties

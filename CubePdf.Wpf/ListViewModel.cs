@@ -856,7 +856,7 @@ namespace CubePdf.Wpf
             lock (_pages)
             lock (_images)
             {
-                var page = new CubePdf.Data.Page(_pages[index]);
+                var page = new CubePdf.Data.Page(_pages[index] as CubePdf.Data.Page);
                 page.Rotation += degree;
                 if (page.Rotation < 0) page.Rotation += 360;
                 if (page.Rotation >= 360) page.Rotation -= 360;
@@ -1199,12 +1199,12 @@ namespace CubePdf.Wpf
             try
             {
                 if (e.Image == null) return;
-
+                
                 var index = _creating;
                 if (index >= 0 && index < _images.RawCount) _images.RawAt(index).DeleteImage();
 
                 var range = GetVisibleRange();
-                var page = _pages[index] as CubePdf.Data.Page;
+                var page = _pages[index];
                 if (index >= range.Key && index <= range.Value &&
                     e.Page.FilePath == _pages[index].FilePath && e.Page.PageNumber == page.PageNumber)
                 {
@@ -2184,7 +2184,7 @@ namespace CubePdf.Wpf
             System.IO.File.Delete(tmp);
 
             var binder = new CubePdf.Editing.PageBinder();
-            foreach (var page in reader.Pages) binder.Pages.Add(new CubePdf.Data.Page(page));
+            foreach (var page in reader.Pages) binder.Pages.Add(page);
             binder.Metadata = reader.Metadata;
             binder.Save(tmp);
             _garbade.Add(tmp);

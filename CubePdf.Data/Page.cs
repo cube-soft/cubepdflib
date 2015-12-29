@@ -73,11 +73,11 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Page(IPage cp)
+        public Page(Page cp)
         {
             _path = cp.FilePath;
-            //_password = cp.Password;
-            //_pagenum = cp.PageNumber;
+            _password = cp.Password;
+            _pagenum = cp.PageNumber;
             _size = cp.OriginalSize;
             _rotation = cp.Rotation;
             _power = cp.Power;
