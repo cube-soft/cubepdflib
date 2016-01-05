@@ -328,18 +328,18 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public void CreateImageAsync(int pagenum, double power = 1.0)
-        {
-            lock (_creating)
-            {
-                if (pagenum > _pages.Count) return;
-                var page = _core.CreatePage(FilePath, GetInputPassword(), pagenum);
-                page.Power = power;
-                var entry = new ImageEventArgs(page);
-                _creating.Enqueue(entry);
-            }
-            if (!_creator.IsBusy) _creator.RunWorkerAsync();
-        }
+        //public void CreateImageAsync(int pagenum, double power = 1.0)
+        //{
+        //    lock (_creating)
+        //    {
+        //        if (pagenum > _pages.Count) return;
+        //        var page = _core.CreatePage(FilePath, GetInputPassword(), pagenum);
+        //        page.Power = power;
+        //        var entry = new ImageEventArgs(page);
+        //        _creating.Enqueue(entry);
+        //    }
+        //    if (!_creator.IsBusy) _creator.RunWorkerAsync();
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -350,11 +350,11 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void CancelImageCreation()
-        {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
-        }
+        //public void CancelImageCreation()
+        //{
+        //    lock (_creating) _creating.Clear();
+        //    if (_creator.IsBusy) _creator.CancelAsync();
+        //}
 
         /* ----------------------------------------------------------------- */
         ///

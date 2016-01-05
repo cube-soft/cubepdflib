@@ -283,30 +283,30 @@ namespace CubePdfTests.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestCreateImageAsync()
-        {
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
-            Assert.IsTrue(System.IO.File.Exists(src));
+        //[Test]
+        //public void TestCreateImageAsync()
+        //{
+        //    var src = System.IO.Path.Combine(_src, "rotated.pdf");
+        //    Assert.IsTrue(System.IO.File.Exists(src));
 
-            int created = 0;
-            using (var engine = new CubePdf.Drawing.BitmapEngine(src))
-            {
-                engine.ImageCreated += (sender, e) => {
-                    Assert.NotNull(e.Image);
-                    Assert.AreEqual(e.Page.ViewSize().Width, e.Image.Width);
-                    Assert.AreEqual(e.Page.ViewSize().Height, e.Image.Height);
-                    created += 1;
-                    var filename = String.Format("TestCreateImageAsync-{0}.png", e.Page.PageNumber);
-                    e.Image.Save(System.IO.Path.Combine(_dest, filename));
-                    e.Image.Dispose();
-                };
+        //    int created = 0;
+        //    using (var engine = new CubePdf.Drawing.BitmapEngine(src))
+        //    {
+        //        engine.ImageCreated += (sender, e) => {
+        //            Assert.NotNull(e.Image);
+        //            Assert.AreEqual(e.Page.ViewSize().Width, e.Image.Width);
+        //            Assert.AreEqual(e.Page.ViewSize().Height, e.Image.Height);
+        //            created += 1;
+        //            var filename = String.Format("TestCreateImageAsync-{0}.png", e.Page.PageNumber);
+        //            e.Image.Save(System.IO.Path.Combine(_dest, filename));
+        //            e.Image.Dispose();
+        //        };
 
-                for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
-                while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
-                Assert.AreEqual(engine.Pages.Count, created);
-            }
-        }
+        //        for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+        //        while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
+        //        Assert.AreEqual(engine.Pages.Count, created);
+        //    }
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -320,30 +320,30 @@ namespace CubePdfTests.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestCancelImageCreation()
-        {
-            var src = System.IO.Path.Combine(_src, "rotated.pdf");
-            Assert.IsTrue(System.IO.File.Exists(src));
+        //[Test]
+        //public void TestCancelImageCreation()
+        //{
+        //    var src = System.IO.Path.Combine(_src, "rotated.pdf");
+        //    Assert.IsTrue(System.IO.File.Exists(src));
 
-            int created = 0;
-            using (var engine = new CubePdf.Drawing.BitmapEngine(src))
-            {
-                engine.ImageCreated += (sender, e) => {
-                    Assert.NotNull(e.Image);
-                    created += 1;
-                    var filename = String.Format("TestCancelImageCreation-{0}.png", e.Page.PageNumber);
-                    e.Image.Save(System.IO.Path.Combine(_dest, filename));
-                    e.Image.Dispose();
-                };
+        //    int created = 0;
+        //    using (var engine = new CubePdf.Drawing.BitmapEngine(src))
+        //    {
+        //        engine.ImageCreated += (sender, e) => {
+        //            Assert.NotNull(e.Image);
+        //            created += 1;
+        //            var filename = String.Format("TestCancelImageCreation-{0}.png", e.Page.PageNumber);
+        //            e.Image.Save(System.IO.Path.Combine(_dest, filename));
+        //            e.Image.Dispose();
+        //        };
 
-                for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
-                engine.CancelImageCreation();
-                var savepoint = created;
-                while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
-                Assert.AreEqual(savepoint, created);
-            }
-        }
+        //        for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+        //        engine.CancelImageCreation();
+        //        var savepoint = created;
+        //        while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
+        //        Assert.AreEqual(savepoint, created);
+        //    }
+        //}
 
         /* ----------------------------------------------------------------- */
         ///
@@ -355,44 +355,44 @@ namespace CubePdfTests.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestReOpen()
-        {
-            using (var engine = new CubePdf.Drawing.BitmapEngine())
-            {
-                try
-                {
-                    var filename = System.IO.Path.Combine(_src, "rotated.pdf");
-                    Assert.That(engine.Pages.Count, Is.EqualTo(0));
-                    Assert.IsFalse(engine.UnderImageCreation);
+        //[Test]
+        //public void TestReOpen()
+        //{
+        //    using (var engine = new CubePdf.Drawing.BitmapEngine())
+        //    {
+        //        try
+        //        {
+        //            var filename = System.IO.Path.Combine(_src, "rotated.pdf");
+        //            Assert.That(engine.Pages.Count, Is.EqualTo(0));
+        //            Assert.IsFalse(engine.UnderImageCreation);
 
-                    engine.Open(filename);
-                    Assert.AreEqual(9, engine.Pages.Count);
-                    engine.ImageCreated += (sender, e) => {
-                        Assert.NotNull(e.Image);
-                        Assert.AreEqual(e.Page.ViewSize().Width, e.Image.Width);
-                        Assert.AreEqual(e.Page.ViewSize().Height, e.Image.Height);
-                        e.Image.Dispose();
-                    };
-                    for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
-                    engine.CancelImageCreation();
-                    engine.Close();
-                    Assert.That(engine.Pages.Count, Is.EqualTo(0));
-                    while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
+        //            engine.Open(filename);
+        //            Assert.AreEqual(9, engine.Pages.Count);
+        //            engine.ImageCreated += (sender, e) => {
+        //                Assert.NotNull(e.Image);
+        //                Assert.AreEqual(e.Page.ViewSize().Width, e.Image.Width);
+        //                Assert.AreEqual(e.Page.ViewSize().Height, e.Image.Height);
+        //                e.Image.Dispose();
+        //            };
+        //            for (int i = 0; i < engine.Pages.Count; ++i) engine.CreateImageAsync(i + 1, _power);
+        //            engine.CancelImageCreation();
+        //            engine.Close();
+        //            Assert.That(engine.Pages.Count, Is.EqualTo(0));
+        //            while (engine.UnderImageCreation) System.Threading.Thread.Sleep(1);
 
-                    // 別のファイルを開いてみる
-                    filename = System.IO.Path.Combine(_src, "password.pdf");
-                    var password = "view"; // UserPassword
-                    engine.Open(filename, password);
-                    Assert.AreEqual(2, engine.Pages.Count);
-                    Assert.IsFalse(engine.UnderImageCreation);
-                }
-                catch (Exception err)
-                {
-                    Assert.Fail(err.ToString());
-                }
-            }
-        }
+        //            // 別のファイルを開いてみる
+        //            filename = System.IO.Path.Combine(_src, "password.pdf");
+        //            var password = "view"; // UserPassword
+        //            engine.Open(filename, password);
+        //            Assert.AreEqual(2, engine.Pages.Count);
+        //            Assert.IsFalse(engine.UnderImageCreation);
+        //        }
+        //        catch (Exception err)
+        //        {
+        //            Assert.Fail(err.ToString());
+        //        }
+        //    }
+        //}
 
         #endregion
 

@@ -1,8 +1,8 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// PageCollection.cs
+/// PdfWrapperExtensions.cs
 ///
-/// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
+/// Copyright (c) 2010 CubeSoft, Inc. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify
 /// it under the terms of the GNU Affero General Public License as published
@@ -18,35 +18,36 @@
 /// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
-using System.Collections.Generic;
+using PDFLibNet;
+using System.Drawing;
+using CubePdf.Data;
 
-namespace CubePdf.Data
+namespace CubePdf.Drawing.Extensions
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// PageCollection
+    /// CubePdf.Drawing.Extensions.PdfWrapperExtensions
     /// 
     /// <summary>
-    /// ページ一覧を格納するためのクラスです。
+    /// PDFLibNet の PDFWrapper に関する拡張メソッド群を定義するクラスです。
     /// </summary>
-    /// 
-    /// <remarks>
-    /// .NET 4.5 以降であれば List(T) が IReadOnlyCollection(T) を
-    /// 実装しているため、List(T) クラスをそのまま使用する事ができます。
-    /// </remarks>
     ///
     /* --------------------------------------------------------------------- */
-    public class PageCollection : List<PageBase>, IReadOnlyCollection<PageBase>
+    internal static class PdfWrapperExtensions
     {
-        /* ----------------------------------------------------------------- */
-        ///
-        /// PageCollection
-        /// 
-        /// <summary>
-        /// オブジェクトを初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public PageCollection() : base() { }
+        public static Page CreatePage(this PDFWrapper reader, string path, string password, int pagenum)
+        {
+            PDFPage obj;
+            if (!reader.Pages.TryGetValue(pagenum, out obj)) return null;
+
+            var dest = new Page();
+            dest.FilePath = path;
+            dest.PageNumber = pagenum;
+            dest.Password = password;
+            dest.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
+            dest.Rotation = obj.Rotation;
+            return dest;
+        }
+
     }
 }
