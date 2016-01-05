@@ -91,7 +91,9 @@
     <Compile Include="IDocumentWriter.cs" />
     <Compile Include="IDocumentReader.cs" />
     <Compile Include="ImagePage.cs" />
-    <Compile Include="IReadOnlyCollection.cs" />
+    <Compile Include="Porting\DataCancelEventArgs.cs" />
+    <Compile Include="Porting\DataEventArgs.cs" />
+    <Compile Include="Porting\IReadOnlyCollection.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="PageBase.cs" />

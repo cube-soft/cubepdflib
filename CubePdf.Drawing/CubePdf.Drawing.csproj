@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitmapEngine.cs" />
+    <Compile Include="BitmapEnginePool.cs" />
     <Compile Include="Extensions\PdfWrapperExtensions.cs" />
     <Compile Include="ImageContainer.cs" />
     <Compile Include="ImageEventArgs.cs" />
