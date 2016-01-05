@@ -57,7 +57,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ImageEventArgs(CubePdf.Data.Page page)
+        public ImageEventArgs(CubePdf.Data.PageBase page)
             : base()
         {
             _page = page;
@@ -91,7 +91,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.Page Page
+        public CubePdf.Data.PageBase Page
         {
             get { return _page; }
             set { _page = value; }
@@ -101,7 +101,7 @@ namespace CubePdf.Drawing
 
         #region Variables
         private Image _image = null;
-        private CubePdf.Data.Page _page = null;
+        private CubePdf.Data.PageBase _page = null;
         #endregion
     }
 

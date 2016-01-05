@@ -83,14 +83,16 @@
     <CodeAnalysisFailOnMissingRules>true</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PDFLibNet">
-      <HintPath>.\PDFLibNet.dll</HintPath>
+    <Reference Include="PDFLibNet, Version=1.0.6.6, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\PDFLibNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitmapEngine.cs" />
+    <Compile Include="Extensions\PdfWrapperExtensions.cs" />
     <Compile Include="ImageContainer.cs" />
     <Compile Include="ImageEventArgs.cs" />
     <Compile Include="ImageStatus.cs" />
@@ -100,6 +102,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="ReadOnlyPageCollection.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CubePdf.Data\CubePdf.Data.csproj">

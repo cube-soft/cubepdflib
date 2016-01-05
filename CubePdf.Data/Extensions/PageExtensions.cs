@@ -18,7 +18,9 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.IO;
 using System.Drawing;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace CubePdf.Data.Extensions
 {
@@ -42,7 +44,7 @@ namespace CubePdf.Data.Extensions
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static Size ViewSize(this IPage page)
+        public static Size ViewSize(this PageBase page)
         {
             var degree = page.Rotation;
             if (degree < 0) degree += 360;
@@ -54,6 +56,26 @@ namespace CubePdf.Data.Extensions
             var width  = page.OriginalSize.Width * cos + page.OriginalSize.Height * sin;
             var height = page.OriginalSize.Width * sin + page.OriginalSize.Height * cos;
             return new Size((int)(width * page.Power), (int)(height * page.Power));
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Copy
+        /// 
+        /// <summary>
+        /// オブジェクトをコピーします。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public static PageBase Copy(this PageBase target)
+        {
+            var formatter = new BinaryFormatter();
+            using (var stream = new MemoryStream())
+            {
+                formatter.Serialize(stream, target);
+                stream.Seek(0, SeekOrigin.Begin);
+                return (PageBase)formatter.Deserialize(stream);
+            }
         }
     }
 }

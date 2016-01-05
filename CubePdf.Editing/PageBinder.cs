@@ -19,13 +19,13 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
 using iTextSharp.text.exceptions;
 using CubePdf.Editing.Extensions;
 using CubePdf.Data;
-using IoEx = System.IO;
 
 namespace CubePdf.Editing
 {
@@ -89,7 +89,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ICollection<IPage> Pages { get; } = new List<IPage>();
+        public ICollection<PageBase> Pages { get; } = new List<PageBase>();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -152,13 +152,13 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         public void Save(string path)
         {
-            var tmp = IoEx.Path.GetTempFileName();
+            var tmp = Path.GetTempFileName();
 
             try
             {
                 Bind(tmp);
                 using (var reader = new PdfReader(tmp))
-                using (var writer = new PdfStamper(reader, new IoEx.FileStream(path, IoEx.FileMode.Create)))
+                using (var writer = new PdfStamper(reader, new FileStream(path, FileMode.Create)))
                 {
                     AddMetadata(reader, writer);
                     AddEncryption(writer);
@@ -188,13 +188,13 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private void Bind(string dest)
         {
-            if (IoEx.File.Exists(dest)) IoEx.File.Delete(dest);
+            if (File.Exists(dest)) File.Delete(dest);
 
             var readers = new Dictionary<string, PdfReader>();
             var document = new iTextSharp.text.Document();
             var writer = UseSmartCopy ?
-                           new PdfSmartCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create)) :
-                           new PdfCopy(document, new IoEx.FileStream(dest, IoEx.FileMode.Create));
+                           new PdfSmartCopy(document, new FileStream(dest, FileMode.Create)) :
+                           new PdfCopy(document, new FileStream(dest, FileMode.Create));
 
             writer.PdfVersion = Metadata.Version.Minor.ToString()[0];
             writer.ViewerPreferences = Metadata.ViewerPreferences;
@@ -284,7 +284,7 @@ namespace CubePdf.Editing
             if (src == null) return;
 
             using (var image = new System.Drawing.Bitmap(src.FilePath))
-            using (var stream = new IoEx.MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 var document = new iTextSharp.text.Document();
                 var writer = PdfWriter.GetInstance(document, stream);
@@ -487,7 +487,7 @@ namespace CubePdf.Editing
         {
             try
             {
-                IoEx.File.Delete(path);
+                File.Delete(path);
                 return true;
             }
             catch (Exception /* err */) { return false; }

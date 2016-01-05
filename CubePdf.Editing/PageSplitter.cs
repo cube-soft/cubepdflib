@@ -76,7 +76,7 @@ namespace CubePdf.Editing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ICollection<IPage> Pages { get; } = new List<IPage>();
+        public ICollection<PageBase> Pages { get; } = new List<PageBase>();
 
         /* ----------------------------------------------------------------- */
         ///

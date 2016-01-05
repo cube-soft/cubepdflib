@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Input;
+using CubePdf.Data;
 using CubePdf.Data.Extensions;
 
 namespace CubePdf.Wpf
@@ -43,7 +44,7 @@ namespace CubePdf.Wpf
     ///
     /* --------------------------------------------------------------------- */
     [Serializable]
-    public class ListViewModel : CubePdf.Data.IDocumentReader, CubePdf.Data.IDocumentWriter,
+    public class ListViewModel : IDocumentReader, IDocumentWriter,
         IItemsProvider<CubePdf.Drawing.ImageContainer>, INotifyPropertyChanged, IDisposable
     {
         #region Initialization and Termination
@@ -248,7 +249,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IEnumerable<CubePdf.Data.IPage> Pages
+        public IReadOnlyCollection<PageBase> Pages
         {
             get { return _pages; }
         }
@@ -264,7 +265,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        ICollection<CubePdf.Data.IPage> CubePdf.Data.IDocumentWriter.Pages
+        ICollection<PageBase> IDocumentWriter.Pages
         {
             get { return _pages; }
         }
@@ -604,7 +605,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Add(CubePdf.Data.IPage item) { Insert(_pages.Count, item); }
+        public void Add(PageBase item) { Insert(_pages.Count, item); }
         public void Add(CubePdf.Data.IDocumentReader reader) { Insert(_pages.Count, reader); }
         public void Add(string path, string password = "") { Insert(_pages.Count, path, password); }
 
@@ -618,7 +619,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Insert(int index, CubePdf.Data.IPage item)
+        public void Insert(int index, PageBase item)
         {
             lock (_pages)
             lock (_images)
@@ -633,7 +634,7 @@ namespace CubePdf.Wpf
                 _images.Insert(index, new Drawing.ImageContainer());
                 _created.ItemInserted(index);
                 UpdateImageText(index);
-                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, item));
+                UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, PageBase>(index, item));
             }
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
@@ -687,7 +688,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Extract(IList<CubePdf.Data.IPage> pages, string path)
+        public void Extract(IList<PageBase> pages, string path)
         {
             var binder = new CubePdf.Editing.PageBinder();
             foreach (var page in pages) binder.Pages.Add(page);
@@ -709,7 +710,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Extract(IList items, string path)
         {
-            IList<CubePdf.Data.IPage> list = new List<CubePdf.Data.IPage>();
+            IList<PageBase> list = new List<PageBase>();
             foreach (var item in items)
             {
                 var page = ToPage(item);
@@ -728,7 +729,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public void Split(IList<CubePdf.Data.IPage> pages, string directory)
+        public void Split(IList<PageBase> pages, string directory)
         {
             foreach (var page in pages) SaveDocument(directory, _pages.IndexOf(page));
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
@@ -760,7 +761,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Remove(object item) { RemoveAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer)); }
-        public void Remove(CubePdf.Data.IPage item) { RemoveAt(_pages.IndexOf(item)); }
+        public void Remove(PageBase item) { RemoveAt(_pages.IndexOf(item)); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -788,7 +789,7 @@ namespace CubePdf.Wpf
                 _created.ItemRemoved(index);
                 DeleteRequest(index);
                 UpdateImageText(index);
-                UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                UpdateHistory(ListViewCommands.Remove, new KeyValuePair<int, PageBase>(index, page));
             }
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
@@ -836,7 +837,7 @@ namespace CubePdf.Wpf
         ///
         /* ----------------------------------------------------------------- */
         public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer), degree); }
-        public void Rotate(CubePdf.Data.IPage item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
+        public void Rotate(PageBase item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -856,7 +857,7 @@ namespace CubePdf.Wpf
             lock (_pages)
             lock (_images)
             {
-                var page = new CubePdf.Data.Page(_pages[index] as CubePdf.Data.Page);
+                var page = _pages[index].Copy();
                 page.Rotation += degree;
                 if (page.Rotation < 0) page.Rotation += 360;
                 if (page.Rotation >= 360) page.Rotation -= 360;
@@ -1017,7 +1018,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage GetPage(int pagenum)
+        public PageBase GetPage(int pagenum)
         {
             return _pages[pagenum - 1];
         }
@@ -1062,7 +1063,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
         public int IndexOf(CubePdf.Drawing.ImageContainer item) { return _images.IndexOf(item); }
-        public int IndexOf(CubePdf.Data.IPage page) { return _pages.IndexOf(page); }
+        public int IndexOf(PageBase page) { return _pages.IndexOf(page); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -1074,7 +1075,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage ToPage(object item)
+        public PageBase ToPage(object item)
         {
             var image = item as CubePdf.Drawing.ImageContainer;
             if (image == null) return null;
@@ -1256,7 +1257,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private Size GetSize(CubePdf.Data.IPage page)
+        private Size GetSize(PageBase page)
         {
             if (page.ViewSize().Width > page.ViewSize().Height)
             {
@@ -1330,7 +1331,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private double GetPower(CubePdf.Data.IPage page)
+        private double GetPower(PageBase page)
         {
             var horizontal = ItemWidth / (double)page.ViewSize().Width;
             var vertical = ItemHeight / (double)page.ViewSize().Height;
@@ -1347,7 +1348,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private Image GetDummyImage(CubePdf.Data.IPage page)
+        private Image GetDummyImage(PageBase page)
         {
             var tolerance = 0.1f;
             var size = GetSize(page);            
@@ -1371,7 +1372,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private Image GetLoadingImage(CubePdf.Data.IPage page)
+        private Image GetLoadingImage(PageBase page)
         {
             var size  = GetSize(page);
             var image = (size.Width > Properties.Resources.LoadingLarge.Width) ? Properties.Resources.LoadingLarge :
@@ -1430,7 +1431,7 @@ namespace CubePdf.Wpf
             _metadata = reader.Metadata;
             _encrypt = reader.Encryption;
             _encrypt_status = reader.EncryptionStatus;
-            _pages.Capacity = reader.PageCount + 1;
+            _pages.Capacity = reader.Pages.Count + 1;
 
             var engine = CreateEngine(reader);
             InsertDocument(_pages.Count, engine);
@@ -1462,7 +1463,7 @@ namespace CubePdf.Wpf
                 using (var reader = new CubePdf.Editing.DocumentReader(_path, password))
                 {
                     _pages.Clear();
-                    _pages.Capacity = reader.PageCount + 1;
+                    _pages.Capacity = reader.Pages.Count + 1;
                     var engine = CreateEngine(reader);
                     foreach (var page in engine.Pages) _pages.Add(page);
                 }
@@ -1584,10 +1585,10 @@ namespace CubePdf.Wpf
                     _pages.Insert(index, page);
                     UpdateImageSize(page);
                     _images.Insert(index, new Drawing.ImageContainer());
-                    UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, CubePdf.Data.IPage>(index, page));
+                    UpdateHistory(ListViewCommands.Insert, new KeyValuePair<int, PageBase>(index, page));
                     ++index;
                 }
-                _created.ItemInserted(first, reader.PageCount);
+                _created.ItemInserted(first, reader.Pages.Count);
             }
             UpdateImageText(first);
         }
@@ -1751,7 +1752,7 @@ namespace CubePdf.Wpf
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        private void UpdateImageSize(CubePdf.Data.IPage page)
+        private void UpdateImageSize(PageBase page)
         {
             var update = false;
             if (page.ViewSize().Width > _maxwidth)
@@ -1802,7 +1803,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void RotateImage(Image image, CubePdf.Data.IPage current, CubePdf.Data.IPage original)
+        private void RotateImage(Image image, PageBase current, PageBase original)
         {
             var delta = current.Rotation - original.Rotation;
             if (delta < 0) delta += 360;
@@ -1827,10 +1828,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void RotateImage(Image image, int degree)
         {
-            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
-            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
-            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
-            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
+            var value = RotateFlipType.RotateNoneFlipNone;
+            if (degree >= 90 && degree < 180) value = RotateFlipType.Rotate90FlipNone;
+            else if (degree >= 180 && degree < 270) value = RotateFlipType.Rotate180FlipNone;
+            else if (degree >= 270 && degree < 360) value = RotateFlipType.Rotate270FlipNone;
             image.RotateFlip(value);
         }
 
@@ -1847,7 +1848,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void UpdateRequest(int index, CubePdf.Data.IPage page)
+        private void UpdateRequest(int index, PageBase page)
         {
             if (_images.RawAt(index).Status == Drawing.ImageStatus.Created) return;
 
@@ -1913,19 +1914,25 @@ namespace CubePdf.Wpf
                 var range = GetVisibleRange();
                 while (_requests.Count > 0)
                 {
-                    var key = _requests.Keys[0];
-                    var value = _requests[key] as CubePdf.Data.Page;
-                    var page = _pages[key] as CubePdf.Data.Page;
-                    _requests.Remove(key);
-                    if (key < 0 || key >= _pages.Count) continue;
-                    if (key < range.Key || key > range.Value || _images.RawAt(key).Status == Drawing.ImageStatus.Created ||
-                        value.FilePath != _pages[key].FilePath || value.PageNumber != page.PageNumber)
+                    var request = _requests.First();
+                    _requests.Remove(request.Key);
+                    if (request.Key < 0 || request.Key >= _pages.Count) continue;
+
+                    var page = _pages[request.Key];
+                    if (request.Key < range.Key ||
+                        request.Key > range.Value ||
+                        request.Value != page ||
+                        _images.RawAt(request.Key).Status == Drawing.ImageStatus.Created)
                     {
-                        if (key < range.Key || key > range.Value) _images.RawAt(key).DeleteImage();
+                        if (request.Key < range.Key || request.Key > range.Value)
+                        {
+                            _images.RawAt(request.Key).DeleteImage();
+                        }
                         continue;
                     }
-                    _creating = key;
-                    _engines[value.FilePath].CreateImageAsync(value.PageNumber, GetPower(value));
+
+                    _creating = request.Key;
+                    _engines[request.Value.FilePath].CreateImageAsync(request.Value.PageNumber, GetPower(request.Value));
                     break;
                 }
             }
@@ -2037,7 +2044,7 @@ namespace CubePdf.Wpf
                 BeginCommand();
                 for (int i = parameters.Count - 1; i >= 0; --i)
                 {
-                    var param = (KeyValuePair<int, CubePdf.Data.IPage>)parameters[i];
+                    var param = (KeyValuePair<int, PageBase>)parameters[i];
                     RemoveAt(param.Key);
                 }
             }
@@ -2064,7 +2071,7 @@ namespace CubePdf.Wpf
                 BeginCommand();
                 for (int i = parameters.Count - 1; i >= 0; --i)
                 {
-                    var param = (KeyValuePair<int, CubePdf.Data.IPage>)parameters[i];
+                    var param = (KeyValuePair<int, PageBase>)parameters[i];
                     Insert(param.Key, param.Value);
                 }
             }
@@ -2173,11 +2180,11 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private CubePdf.Data.IDocumentReader DecryptDocument(CubePdf.Data.IDocumentReader reader)
+        private IDocumentReader DecryptDocument(IDocumentReader reader)
         {
             if (reader.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess)
             {
-                throw new CubePdf.Data.EncryptionException(string.Format("{0}: cannot decrypt file.", reader.FilePath));
+                throw new EncryptionException(string.Format("{0}: cannot decrypt file.", reader.FilePath));
             }
 
             var tmp = System.IO.Path.GetTempFileName();
@@ -2245,10 +2252,10 @@ namespace CubePdf.Wpf
 
         #region Implementations for IDocumentReader and IDocumentWriter
         private string _path = string.Empty;
-        private CubePdf.Data.Metadata _metadata = null;
-        private CubePdf.Data.Encryption _encrypt = null;
-        private CubePdf.Data.EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
-        private List<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
+        private Metadata _metadata = null;
+        private Encryption _encrypt = null;
+        private EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
+        private PageCollection _pages = new PageCollection();
         #endregion
 
         #region Others
@@ -2265,7 +2272,7 @@ namespace CubePdf.Wpf
         private int _creating = -1;
         private IndexTable _created = null;
         private SortedList<string, CubePdf.Drawing.BitmapEngine> _engines = new SortedList<string, CubePdf.Drawing.BitmapEngine>();
-        private SortedList<int, CubePdf.Data.IPage> _requests = new SortedList<int, CubePdf.Data.IPage>();
+        private SortedList<int, PageBase> _requests = new SortedList<int, PageBase>();
         private CommandStatus _status = CommandStatus.End;
         private UndoStatus _undostatus = UndoStatus.Normal;
         private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();

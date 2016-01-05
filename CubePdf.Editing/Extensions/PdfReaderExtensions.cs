@@ -19,7 +19,7 @@
 ///
 /* ------------------------------------------------------------------------- */
 using iTextSharp.text.pdf;
-using Size = System.Drawing.Size;
+using System.Drawing;
 using CubePdf.Data;
 
 namespace CubePdf.Editing.Extensions
