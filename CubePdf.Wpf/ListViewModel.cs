@@ -113,7 +113,6 @@ namespace CubePdf.Wpf
             {
                 CloseDocument();
                 DeleteBackup();
-                DeleteGarbade();
             }
         }
 
@@ -1557,9 +1556,32 @@ namespace CubePdf.Wpf
                     {
                         element.UpdateImage(GetLoadingImage(_pages[index]), Drawing.ImageStatus.Loading);
                     }
-                    UpdateRequest(index, _pages[index]);
+                    CreateImageAsync(index, _pages[index]);
                 }
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateImageAsync
+        /// 
+        /// <summary>
+        /// 非同期でサムネイルを作成します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void CreateImageAsync(int index, PageBase page)
+        {
+            if (_images.RawAt(index).Status == Drawing.ImageStatus.Created) return;
+            if (_visibility == ListViewItemVisibility.Minimum)
+            {
+                _creator.Clear();
+                return;
+            }
+
+            var copy = page.Copy();
+            copy.Power = GetPower(page);
+            _creator.CreateAsync(copy, index);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1644,76 +1666,6 @@ namespace CubePdf.Wpf
         {
             if (last == -1) last = _images.RawCount - 1;
             for (int i = first; i <= last; ++i) _images.RawAt(i).Text = (i + 1).ToString();
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RotateImage
-        /// 
-        /// <summary>
-        /// 現在のページ情報とオリジナル（BitmapEngine オブジェクトが保持
-        /// しているページ情報）を比較して、必要であればイメージを回転
-        /// させます。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotateImage(Image image, PageBase current, PageBase original)
-        {
-            var delta = current.Rotation - original.Rotation;
-            if (delta < 0) delta += 360;
-            if (delta >= 360) delta -= 360;
-            if (delta == 0) return;
-
-            RotateImage(image, delta);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// RotateImage
-        /// 
-        /// <summary>
-        /// 引数に指定された image を degree 度だけ回転させます。
-        /// 
-        /// NOTE: System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
-        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
-        /// で丸めています。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void RotateImage(Image image, int degree)
-        {
-            var value = RotateFlipType.RotateNoneFlipNone;
-            if (degree >= 90 && degree < 180) value = RotateFlipType.Rotate90FlipNone;
-            else if (degree >= 180 && degree < 270) value = RotateFlipType.Rotate180FlipNone;
-            else if (degree >= 270 && degree < 360) value = RotateFlipType.Rotate270FlipNone;
-            image.RotateFlip(value);
-        }
-
-        #endregion
-
-        #region Event handlers
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UpdateRequest
-        /// 
-        /// <summary>
-        /// 引数に指定されたインデックスをリクエストキューに追加します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void UpdateRequest(int index, PageBase page)
-        {
-            if (_images.RawAt(index).Status == Drawing.ImageStatus.Created) return;
-            if (_visibility == ListViewItemVisibility.Minimum)
-            {
-                _creator.Clear();
-                return;
-            }
-
-            var copy = page.Copy();
-            copy.Power = GetPower(page);
-            _creator.CreateAsync(copy, index);
         }
 
         #endregion
@@ -1946,58 +1898,6 @@ namespace CubePdf.Wpf
 
         #endregion
 
-        #region Private methods for security
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// DecryptDocument
-        /// 
-        /// <summary>
-        /// 引数に指定された reader オブジェクトからセキュリティ設定を解除
-        /// した CubePdf.Editing.DocumentReader オブジェクトを生成します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private IDocumentReader DecryptDocument(IDocumentReader reader)
-        {
-            if (reader.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess)
-            {
-                throw new EncryptionException(string.Format("{0}: cannot decrypt file.", reader.FilePath));
-            }
-
-            var tmp = System.IO.Path.GetTempFileName();
-            System.IO.File.Delete(tmp);
-
-            var binder = new CubePdf.Editing.PageBinder();
-            foreach (var page in reader.Pages) binder.Pages.Add(page);
-            binder.Metadata = reader.Metadata;
-            binder.Save(tmp);
-            _garbade.Add(tmp);
-
-            return new CubePdf.Editing.DocumentReader(tmp);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// DeleteGarbade
-        /// 
-        /// <summary>
-        /// セキュリティ設定を解除するために生成した一時ファイルを全て削除
-        /// します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void DeleteGarbade()
-        {
-            foreach (var path in _garbade)
-            {
-                try { System.IO.File.Delete(path); }
-                catch (Exception err) { Trace.WriteLine(err.ToString()); }
-            }
-        }
-
-        #endregion
-
         #region Internal classes
 
         /* ----------------------------------------------------------------- */
@@ -2054,7 +1954,6 @@ namespace CubePdf.Wpf
         private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
         private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
         private System.Windows.Controls.ListView _view = null;
-        private IList<string> _garbade = new List<string>();
         #endregion
 
         #endregion

@@ -48,7 +48,17 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public static BitmapEngine Get(PageBase page)
         {
-            return (page.Type == PageType.Pdf) ? Get(page.FilePath) : null;
+            switch (page.Type)
+            {
+                case PageType.Pdf:
+                    var pdf = page as Page;
+                    return (pdf != null) ? Get(pdf.FilePath, pdf.Password) : null;
+                case PageType.Image:
+                    return null;
+                default:
+                    break;
+            }
+            return null;
         }
 
         /* ----------------------------------------------------------------- */
@@ -60,18 +70,22 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public static BitmapEngine Get(string path)
+        public static BitmapEngine Get(string path, string password)
         {
             if (_dic.ContainsKey(path)) return _dic[path];
 
             try
             {
                 var engine = new CubePdf.Drawing.BitmapEngine();
-                engine.Open(path);
+                engine.Open(path, password);
                 _dic.Add(path, engine);
                 return engine;
             }
-            catch (Exception /* err */) { return null; }
+            catch (Exception /* err */)
+            {
+                Decrypt(path, password);
+                return Get(path, password);
+            }
         }
 
         /* ----------------------------------------------------------------- */
@@ -108,6 +122,42 @@ namespace CubePdf.Drawing
             _dic = new Dictionary<string, BitmapEngine>();
             foreach (var item in gc) item.Value.Dispose();
             gc.Clear();
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Decrypt
+        /// 
+        /// <summary>
+        /// PDF ファイルを復号します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private static void Decrypt(string path, string password)
+        {
+            using (var reader = new CubePdf.Editing.DocumentReader(path, password))
+            {
+                if (reader.EncryptionStatus == Data.EncryptionStatus.RestrictedAccess)
+                {
+                    throw new EncryptionException(string.Format("{0}: cannot decrypt file.", reader.FilePath));
+                }
+
+                var tmp = System.IO.Path.GetTempFileName();
+                System.IO.File.Delete(tmp);
+
+                var binder = new CubePdf.Editing.PageBinder();
+                foreach (var page in reader.Pages) binder.Pages.Add(page);
+                binder.Metadata = reader.Metadata;
+                binder.Save(tmp);
+
+                var engine = new CubePdf.Drawing.BitmapEngine();
+                engine.Open(path, password);
+                _dic.Add(path, engine);
+            }
         }
 
         #endregion
