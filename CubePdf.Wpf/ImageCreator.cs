@@ -351,6 +351,7 @@ namespace CubePdf.Wpf
                 if (e.Cancelled || e.Error != null || result == null) return;
                 OnCreated(new DataEventArgs<ImageEntry>(result));
             }
+            catch (Exception /* err */) { return; }
             finally { Fetch(); }
         }
 

@@ -104,7 +104,10 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public static void Clear()
         {
-            foreach (var key in _dic.Keys) Remove(key);
+            var gc = _dic;
+            _dic = new Dictionary<string, BitmapEngine>();
+            foreach (var item in gc) item.Value.Dispose();
+            gc.Clear();
         }
 
         #endregion
