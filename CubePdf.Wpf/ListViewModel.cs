@@ -130,10 +130,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-        }
+        public string FilePath { get; private set; } = string.Empty;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -187,10 +184,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionStatus EncryptionStatus
-        {
-            get { return _encrypt_status; }
-        }
+        public CubePdf.Data.EncryptionStatus EncryptionStatus { get; private set; } = EncryptionStatus.NotEncrypted;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -235,7 +229,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public bool IsModified
         {
-            get { return _modified || _undo.Count > 0; }
+            get { return _modified || History.Count > 0; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -269,10 +263,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ObservableCollection<CommandElement> History
-        {
-            get { return _undo; }
-        }
+        public ObservableCollection<CommandElement> History { get; } = new ObservableCollection<CommandElement>();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -283,10 +274,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public ObservableCollection<CommandElement> UndoHistory
-        {
-            get { return _redo; }
-        }
+        public ObservableCollection<CommandElement> UndoHistory { get; } = new ObservableCollection<CommandElement>();
 
         /* ----------------------------------------------------------------- */
         ///
@@ -317,7 +305,7 @@ namespace CubePdf.Wpf
         /// ItemWidth
         /// 
         /// <summary>
-        /// ListView で表示されるサムネイルの幅を取得、または設定します。
+        /// ListView で表示されるサムネイルの幅の最大値を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
@@ -396,11 +384,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public System.Windows.Controls.ListView View
-        {
-            get { return _view; }
-            set { _view = value; }
-        }
+        public System.Windows.Controls.ListView View { get; set; } = null;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -413,11 +397,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string BackupFolder
-        {
-            get { return _backup; }
-            set { _backup = value; }
-        }
+        public string BackupFolder { get; set; } = string.Empty;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -429,11 +409,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int BackupDays
-        {
-            get { return _maxbackup; }
-            set { _maxbackup = value; }
-        }
+        public int BackupDays { get; set; } = 0;
 
         #endregion
 
@@ -521,7 +497,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Save()
         {
-            Save(_path);
+            Save(FilePath);
         }
 
         /* ----------------------------------------------------------------- */
@@ -535,7 +511,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void SaveOnClose(string path = "")
         {
-            if (String.IsNullOrEmpty(path)) path = _path;
+            if (String.IsNullOrEmpty(path)) path = FilePath;
             var binder = new CubePdf.Editing.PageBinder();
             SaveDocument(path, binder);
             CloseDocument();
@@ -782,10 +758,10 @@ namespace CubePdf.Wpf
                 // NOTE: 非同期で内容（イメージ）の差し替えを行うと、GUI への
                 // 反応が遅れる場合があるので、暫定的に Remove&Insert を行っている。
                 var image = _images.RawAt(index);
-                var selected = (_view != null) ? _view.SelectedItems.Contains(image) : false;
+                var selected = (View != null) ? View.SelectedItems.Contains(image) : false;
                 _images.RemoveAt(index);
                 _images.Insert(index, image);
-                if (selected) _view.SelectedItems.Add(image);
+                if (selected) View.SelectedItems.Add(image);
 
                 UpdateHistory(ListViewCommands.Rotate, new KeyValuePair<int, int>(index, degree));
             }
@@ -833,13 +809,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Undo()
         {
-            if (_undo.Count == 0) return;
+            if (History.Count == 0) return;
 
             try
             {
                 _undostatus = UndoStatus.Undo;
-                var element = _undo[0];
-                _undo.Remove(element);
+                var element = History[0];
+                History.Remove(element);
                 if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
                 else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
                 else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
@@ -861,13 +837,13 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Redo()
         {
-            if (_redo.Count == 0) return;
+            if (UndoHistory.Count == 0) return;
 
             try
             {
                 _undostatus = UndoStatus.Redo;
-                var element = _redo[0];
-                _redo.Remove(element);
+                var element = UndoHistory[0];
+                UndoHistory.Remove(element);
                 if (element.Command == ListViewCommands.Insert) UndoInsert(element.Parameters);
                 else if (element.Command == ListViewCommands.Remove) UndoRemove(element.Parameters);
                 else if (element.Command == ListViewCommands.Move) UndoMove(element.Parameters);
@@ -1205,7 +1181,7 @@ namespace CubePdf.Wpf
         private KeyValuePair<int, int> GetVisibleRange()
         {
             var all = new KeyValuePair<int, int>(0, _pages.Count - 1);
-            if (_view == null) return all;
+            if (View == null) return all;
 
             try
             {
@@ -1215,15 +1191,15 @@ namespace CubePdf.Wpf
                 var width  = (double)Math.Max(ItemWidth, 1);
                 var height = (double)Math.Max(ItemHeight, 1);
                 var margin = 1.5 * width / 100.0; // NOTE: empirically
-                var column = (int)(_view.ActualWidth / (width + margin));
-                var row    = (int)(_view.ActualHeight / (height + margin));
+                var column = (int)(View.ActualWidth / (width + margin));
+                var row    = (int)(View.ActualHeight / (height + margin));
                 var index  = (int)(scroll.VerticalOffset / height) * column;
                 if (index < 0 || index > _pages.Count) return all;
 
                 var dest = new KeyValuePair<int, int>(index, Math.Min(index + column * (row + 2), _pages.Count - 1));
                 Debug.WriteLine(string.Format("col:{0}({1}/{2}), row:{3}({4}/{5}) => [{6}-{7}]",
-                    column, _view.ActualWidth,  width  + margin,
-                    row,    _view.ActualHeight, height + margin,
+                    column, View.ActualWidth,  width  + margin,
+                    row,    View.ActualHeight, height + margin,
                     dest.Key, dest.Value));
                 return dest;
             }
@@ -1354,17 +1330,17 @@ namespace CubePdf.Wpf
         {
 
             // Properties for IDocumentReader
-            _path = reader.FilePath;
+            FilePath = reader.FilePath;
             _metadata = reader.Metadata;
             _encrypt = reader.Encryption;
-            _encrypt_status = reader.EncryptionStatus;
+            EncryptionStatus = reader.EncryptionStatus;
             _pages.Capacity = reader.Pages.Count + 1;
 
             InsertDocument(_pages.Count, reader);
 
             // Properties for others
-            _undo.Clear();
-            _redo.Clear();
+            History.Clear();
+            UndoHistory.Clear();
             _modified = false;
         }
 
@@ -1381,7 +1357,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void ReOpenDocument(string path, CubePdf.Editing.PageBinder binder)
         {
-            _path = path;
+            FilePath = path;
 
             var password = Encryption.IsEnabled && !string.IsNullOrEmpty(Encryption.OwnerPassword) ?
                            Encryption.OwnerPassword :
@@ -1402,8 +1378,8 @@ namespace CubePdf.Wpf
                 }
             }
 
-            _undo.Clear();
-            _redo.Clear();
+            History.Clear();
+            UndoHistory.Clear();
             _modified = false;
         }
 
@@ -1430,7 +1406,7 @@ namespace CubePdf.Wpf
 
                 _creator.Clear();
                 CubePdf.Drawing.BitmapEnginePool.Clear();
-                if (path == _path) CreateBackup();
+                if (path == FilePath) CreateBackup();
                 CubePdf.Misc.File.Move(tmp, path, true);
             }
         }
@@ -1453,8 +1429,8 @@ namespace CubePdf.Wpf
             var binder = new CubePdf.Editing.PageBinder();
             binder.Pages.Add(page);
 
-            var format = String.Format("{{0}}-{{1:D{0}}}.pdf", _pages.Count.ToString().Length);
-            var filename = String.Format(format, System.IO.Path.GetFileNameWithoutExtension(_path), index + 1);
+            var format = string.Format("{{0}}-{{1:D{0}}}.pdf", _pages.Count.ToString().Length);
+            var filename = string.Format(format, System.IO.Path.GetFileNameWithoutExtension(FilePath), index + 1);
             var dest = System.IO.Path.Combine(directory, filename);
 
             var tmp = System.IO.Path.GetTempFileName();
@@ -1474,18 +1450,17 @@ namespace CubePdf.Wpf
         private void CloseDocument()
         {
             _modified = false;
-            _path = string.Empty;
+            FilePath = string.Empty;
             _metadata = null;
             _encrypt = null;
-            _encrypt_status = Data.EncryptionStatus.NotEncrypted;
-            _encrypt = null;
+            EncryptionStatus = Data.EncryptionStatus.NotEncrypted;
             _maxwidth = 0;
             _maxheight = 0;
-            _undo.Clear();
-            _redo.Clear();
+            History.Clear();
+            UndoHistory.Clear();
 
             lock (_pages) _pages.Clear();
-            lock (_creator) _creator.Clear();
+            _creator.Clear();
             lock (_images)
             {
                 ClearImage();
@@ -1685,14 +1660,14 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void CreateBackup()
         {
-            if (String.IsNullOrEmpty(_backup) || _maxbackup <= 0) return;
+            if (string.IsNullOrEmpty(BackupFolder) || BackupDays <= 0) return;
 
-            var dir = System.IO.Path.Combine(_backup, DateTime.Today.ToString("yyyyMMdd"));
+            var dir = System.IO.Path.Combine(BackupFolder, DateTime.Today.ToString("yyyyMMdd"));
             if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
 
-            var filename = System.IO.Path.GetFileName(_path);
+            var filename = System.IO.Path.GetFileName(FilePath);
             var dest = System.IO.Path.Combine(dir, filename);
-            if (!System.IO.File.Exists(dest)) System.IO.File.Copy(_path, dest);
+            if (!System.IO.File.Exists(dest)) System.IO.File.Copy(FilePath, dest);
         }
 
         /* ----------------------------------------------------------------- */
@@ -1706,10 +1681,10 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void DeleteBackup()
         {
-            if (String.IsNullOrEmpty(_backup) || !System.IO.Directory.Exists(_backup) || _maxbackup <= 0) return;
+            if (string.IsNullOrEmpty(BackupFolder) || !System.IO.Directory.Exists(BackupFolder) || BackupDays <= 0) return;
 
-            var expire = DateTime.Today.AddDays(-_maxbackup).ToString("yyyyMMdd");
-            foreach (var path in System.IO.Directory.GetDirectories(_backup))
+            var expire = DateTime.Today.AddDays(-BackupDays).ToString("yyyyMMdd");
+            foreach (var path in System.IO.Directory.GetDirectories(BackupFolder))
             {
                 try
                 {
@@ -1737,7 +1712,7 @@ namespace CubePdf.Wpf
         private void UpdateHistory(ICommand command, object parameter) { UpdateHistory(command, new ArrayList() { parameter }); }
         private void UpdateHistory(ICommand command, IList parameters)
         {
-            var history = (_undostatus == UndoStatus.Undo) ? _redo : _undo;
+            var history = (_undostatus == UndoStatus.Undo) ? UndoHistory : History;
             if (_status != CommandStatus.Continue) history.Insert(0, new CommandElement(command));
             var element = history[0];
             if (command != element.Command) throw new ArgumentException(Properties.Resources.HistoryCommandException);
@@ -1746,10 +1721,10 @@ namespace CubePdf.Wpf
             element.Text = GetCommandText(element);
 
             if (_status == CommandStatus.Begin) _status = CommandStatus.Continue;            
-            if (_undostatus == UndoStatus.Normal) _redo.Clear();
-            if (_undo.Count > _maxundo)
+            if (_undostatus == UndoStatus.Normal) UndoHistory.Clear();
+            if (History.Count > _maxundo)
             {
-                _undo.RemoveAt(_undo.Count - 1);
+                History.RemoveAt(History.Count - 1);
                 _modified = true;
             }
         }
@@ -1929,10 +1904,8 @@ namespace CubePdf.Wpf
         #region Variables
 
         #region Implementations for IDocumentReader and IDocumentWriter
-        private string _path = string.Empty;
         private Metadata _metadata = null;
         private Encryption _encrypt = null;
-        private EncryptionStatus _encrypt_status = Data.EncryptionStatus.NotEncrypted;
         private PageCollection _pages = new PageCollection();
         #endregion
 
@@ -1943,17 +1916,12 @@ namespace CubePdf.Wpf
         private int _maxheight = 0;
         private int _maxundo = 30;
         private bool _modified = false;
-        private string _backup = string.Empty;
-        private int _maxbackup = 0;
         private ListViewItemVisibility _visibility = ListViewItemVisibility.Normal;
         private IListProxy<CubePdf.Drawing.ImageContainer> _images = null;
         private ImageCreator _creator = new ImageCreator();
         private IndexTable _created = null;
         private CommandStatus _status = CommandStatus.End;
         private UndoStatus _undostatus = UndoStatus.Normal;
-        private ObservableCollection<CommandElement> _undo = new ObservableCollection<CommandElement>();
-        private ObservableCollection<CommandElement> _redo = new ObservableCollection<CommandElement>();
-        private System.Windows.Controls.ListView _view = null;
         #endregion
 
         #endregion

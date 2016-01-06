@@ -104,7 +104,7 @@ namespace CubePdf.Drawing
 
             var engine = _dic[path];
             _dic.Remove(path);
-            lock (engine) engine.Dispose();
+            engine.Dispose();
         }
 
         /* ----------------------------------------------------------------- */

@@ -48,6 +48,5 @@ namespace CubePdf.Drawing.Extensions
             dest.Rotation = obj.Rotation;
             return dest;
         }
-
     }
 }
