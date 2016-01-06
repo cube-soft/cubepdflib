@@ -302,7 +302,7 @@ namespace CubePdf.Drawing
                 PDFLibNet.PDFPage obj;
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
 
-                var page = _core.CreatePage(FilePath, GetInputPassword(), pagenum);
+                var page = GetPage(pagenum);
                 if (page == null) return null;
 
                 int width = (int)(page.ViewSize().Width * power);

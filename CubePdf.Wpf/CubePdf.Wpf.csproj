@@ -104,6 +104,7 @@
     <Compile Include="IListProxy.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="ImageCreator.cs" />
+    <Compile Include="ImageEntry.cs" />
     <Compile Include="IndexTable.cs" />
     <Compile Include="IsEnabledToVisibilityConverter.cs" />
     <Compile Include="ListProxy.cs" />

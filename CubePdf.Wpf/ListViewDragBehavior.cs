@@ -247,7 +247,7 @@ namespace CubePdf.Wpf
 
             var data = e.Data.GetData(DataFormats.Serializable) as DragDropPages;
             if (data == null) return;
-            if (data.ProccessId != Process.GetCurrentProcess().Id) _source = ViewModel.PageCount;
+            if (data.ProccessId != Process.GetCurrentProcess().Id) _source = ViewModel.Pages.Count;
         }
 
         /* ----------------------------------------------------------------- */
@@ -432,7 +432,7 @@ namespace CubePdf.Wpf
                 foreach (var oldindex in indices)
                 {
                     if (oldindex < 0) continue;
-                    var newindex = Math.Max(Math.Min(oldindex + delta, ViewModel.PageCount - 1), 0);
+                    var newindex = Math.Max(Math.Min(oldindex + delta, ViewModel.Pages.Count - 1), 0);
                     ViewModel.Move(oldindex, newindex);
                 }
             }
