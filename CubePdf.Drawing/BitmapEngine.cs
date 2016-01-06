@@ -60,17 +60,7 @@ namespace CubePdf.Drawing
         /// </summary>
         /// 
         /* ----------------------------------------------------------------- */
-        public BitmapEngine()
-        {
-            _creating.Clear();
-
-            // for CreateImageAsync() method
-            _creator.WorkerSupportsCancellation = true;
-            _creator.DoWork -= new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.DoWork += new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
-            _creator.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
-        }
+        public BitmapEngine() { }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -231,9 +221,6 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Close()
         {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
-
             lock (_lock)
             {
                 FilePath = string.Empty;
@@ -261,12 +248,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
-            lock (_lock)
-            {
-                _core.CurrentPage = 1;
-            }
+            lock (_lock) _core.CurrentPage = 1;
         }
 
         /* ----------------------------------------------------------------- */
@@ -313,51 +295,6 @@ namespace CubePdf.Drawing
 
         /* ----------------------------------------------------------------- */
         ///
-        /// CreateImageAsync
-        /// 
-        /// <summary>
-        /// 指定されたページ番号に対応するイメージを非同期で生成します。
-        /// CreateImageAsync() メソッドで指定したイメージの生成が終了
-        /// すると ImageGenerated イベントが発生するので、ユーザはこの
-        /// イベントを監視する事で生成されたイメージを取得する事ができます。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: CubePDF Viewer ではキューに上限値を設けていた。同様の
-        /// 処理が必要かどうかを検討する。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        //public void CreateImageAsync(int pagenum, double power = 1.0)
-        //{
-        //    lock (_creating)
-        //    {
-        //        if (pagenum > _pages.Count) return;
-        //        var page = _core.CreatePage(FilePath, GetInputPassword(), pagenum);
-        //        page.Power = power;
-        //        var entry = new ImageEventArgs(page);
-        //        _creating.Enqueue(entry);
-        //    }
-        //    if (!_creator.IsBusy) _creator.RunWorkerAsync();
-        //}
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CancelImageCreation
-        /// 
-        /// <summary>
-        /// 非同期で実行中のイメージ生成処理をキャンセルします。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        //public void CancelImageCreation()
-        //{
-        //    lock (_creating) _creating.Clear();
-        //    if (_creator.IsBusy) _creator.CancelAsync();
-        //}
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// ToString
         ///
         /// <summary>
@@ -397,20 +334,6 @@ namespace CubePdf.Drawing
         public IReadOnlyCollection<CubePdf.Data.PageBase> Pages
         {
             get { return _pages; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UnderImageCreation
-        /// 
-        /// <summary>
-        /// 非同期で実行中のイメージ作成処理が存在するかどうかを判定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public bool UnderImageCreation
-        {
-            get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -460,83 +383,6 @@ namespace CubePdf.Drawing
         ///
         /* ----------------------------------------------------------------- */
         public CubePdf.Data.EncryptionStatus EncryptionStatus { get; private set; } = Data.EncryptionStatus.NotEncrypted;
-
-        #endregion
-
-        #region Event Handlers
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ImageGenerated
-        ///
-        /// <summary>
-        /// あるページのイメージ生成が終了した際に発生するイベントです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public event ImageEventHandler ImageCreated;
-        protected virtual void OnImageCreated(ImageEventArgs e)
-        {
-            if (ImageCreated != null) ImageCreated(this, e);
-            else if (e.Image != null) e.Image.Dispose();
-        }
-
-        #endregion
-
-        #region Methods for BackgroundWorker
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateImageAsync_DoWork
-        ///
-        /// <summary>
-        /// 非同期で要求されたイメージを作成していくためのメソッドです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void CreateImageAsync_DoWork(object sender, DoWorkEventArgs e)
-        {
-            ImageEventArgs task = null;
-            lock (_creating)
-            {
-                if (_creating.Count == 0) return;
-                task = _creating.Dequeue();
-            }
-
-            if (_creator.CancellationPending) return;
-            lock (_lock)
-            {
-                if (_creator.CancellationPending) return;
-                task.Image = this.CreateImage(task.Page.PageNumber, task.Page.Power);
-            }
-            e.Result = task;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateImageAsync_RunWorkerCompleted
-        ///
-        /// <summary>
-        /// 要求されたイメージの作成が完了した際に ImageCreated イベントを
-        /// 発生させるためのメソッドです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void CreateImageAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            var args = e.Result as ImageEventArgs;
-            if (_creator.CancellationPending)
-            {
-                if (args != null && args.Image != null) args.Image.Dispose();
-                return;
-            }
-
-            lock (_creating)
-            {
-                if (_creating.Count > 0 && !_creator.IsBusy) _creator.RunWorkerAsync();
-            }
-            if (args != null) this.OnImageCreated(args);
-        }
 
         #endregion
 
@@ -602,8 +448,6 @@ namespace CubePdf.Drawing
         private object _lock = new object();
         private PDFLibNet.PDFWrapper _core = null;
         private ReadOnlyPageCollection _pages = new ReadOnlyPageCollection();
-        private BackgroundWorker _creator = new BackgroundWorker();
-        private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
         #endregion
 
     }

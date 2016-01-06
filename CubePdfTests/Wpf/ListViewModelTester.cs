@@ -433,38 +433,6 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
-        /// TestRemove
-        /// 
-        /// <summary>
-        /// 対象となる PDF ページを対応する画像オブジェクトで指定して
-        /// 削除するテストです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestRemove()
-        {
-            var viewmodel = CreateViewModel();
-
-            viewmodel.Remove(viewmodel.Items[0]);
-            viewmodel.Remove(viewmodel.Items[viewmodel.Pages.Count - 1]);
-            Assert.IsTrue(viewmodel.IsModified);
-
-            var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemove.pdf");
-            System.IO.File.Delete(dest);
-            viewmodel.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
-
-            viewmodel.Close();
-
-            using (var doc = new CubePdf.Editing.DocumentReader(dest))
-            {
-                Assert.AreEqual(7, doc.Pages.Count);
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// TestExtract
         /// 
         /// <summary>

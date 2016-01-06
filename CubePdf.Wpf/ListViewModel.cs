@@ -674,7 +674,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList<PageBase> pages, string directory)
         {
-            foreach (var page in pages) SaveDocument(directory, _pages.IndexOf(page));
+            for (var i = 0; i < pages.Count; ++i) SaveDocument(directory, i);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -690,21 +690,9 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList items, string directory)
         {
-            foreach (var obj in items) SaveDocument(directory, _images.IndexOf(obj as CubePdf.Drawing.ImageContainer));
+            for (var i = 0; i < items.Count; ++i) SaveDocument(directory, i);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Remove
-        /// 
-        /// <summary>
-        /// 引数に指定されたオブジェクトに対応する PDF ページを削除します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Remove(object item) { RemoveAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer)); }
-        public void Remove(PageBase item) { RemoveAt(_pages.IndexOf(item)); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -766,20 +754,6 @@ namespace CubePdf.Wpf
 
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Rotate
-        /// 
-        /// <summary>
-        /// 引数に指定されたオブジェクトに対応する PDF ページを degree 度
-        /// 回転させます。角度は、現在表示されている画像に対する相対度数で
-        /// 指定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Rotate(object item, int degree) { RotateAt(_images.IndexOf(item as CubePdf.Drawing.ImageContainer), degree); }
-        public void Rotate(PageBase item, int degree) { RotateAt(_pages.IndexOf(item), degree); }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -989,6 +963,10 @@ namespace CubePdf.Wpf
         /// ListView で表示されている項目、またはページ情報に対応する
         /// インデックスを取得します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// TODO: 将来的にこのメソッドは削除したい。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
@@ -1003,6 +981,10 @@ namespace CubePdf.Wpf
         /// ListView で表示されているサムネイルに対応する PDF ページの情報を
         /// 取得します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// TODO: IndexOf を使用せずに実装したい。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public PageBase ToPage(object item)
