@@ -639,6 +639,42 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// ExtractImage
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルの各ページに含まれる画像を
+        /// direcotry 下に保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void ExtractImage(IList<PageBase> pages, string directory)
+        {
+            throw new NotImplementedException();
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ExtractImage
+        /// 
+        /// <summary>
+        /// 引数に指定された PDF ファイルの各ページに含まれる画像を
+        /// direcotry 下に保存します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void ExtractImage(IList items, string directory)
+        {
+            IList<PageBase> list = new List<PageBase>();
+            foreach (var item in items)
+            {
+                var page = ToPage(item);
+                if (page != null) list.Add(page);
+            }
+            ExtractImage(list, directory);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Split
         /// 
         /// <summary>
