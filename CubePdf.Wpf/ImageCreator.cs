@@ -116,19 +116,14 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public Image Create(PageBase page)
         {
-            var engine = CubePdf.Drawing.BitmapEnginePool.Get(page);
-            if (engine == null) return null;
-
-            Image image = null;
-            PageBase original = null;
-            lock (engine)
+            switch (page.Type)
             {
-                image = engine.CreateImage(page.PageNumber, page.Power);
-                if (image == null) return null;
-                original = engine.GetPage(page.PageNumber);
+                case PageType.Pdf:   return CreateUsingPage(page as Page);
+                case PageType.Image: return CreateUsingImagePage(page as ImagePage);
+                default:
+                    break;
             }
-            RotateImage(image, page, original);
-            return image;
+            return null;
         }
 
         /* ----------------------------------------------------------------- */
@@ -255,6 +250,50 @@ namespace CubePdf.Wpf
                     break;
                 }
             }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateUsingPage
+        /// 
+        /// <summary>
+        /// Page オブジェクトの情報を用いてイメージを生成します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Image CreateUsingPage(Page page)
+        {
+            if (page == null) return null;
+
+            var engine = CubePdf.Drawing.BitmapEnginePool.Get(page);
+            if (engine == null) return null;
+
+            Image image = null;
+            PageBase original = null;
+            lock (engine)
+            {
+                image = engine.CreateImage(page.PageNumber, page.Power);
+                if (image == null) return null;
+                original = engine.GetPage(page.PageNumber);
+            }
+            RotateImage(image, page, original);
+            return image;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreateUsingImagePage
+        /// 
+        /// <summary>
+        /// ImagePage オブジェクトの情報を用いてイメージを生成します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private Image CreateUsingImagePage(ImagePage page)
+        {
+            if (page == null) return null;
+
+            throw new NotImplementedException();
         }
 
         /* ----------------------------------------------------------------- */
