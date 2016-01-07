@@ -534,6 +534,41 @@ namespace CubePdf.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// InsertImage
+        /// 
+        /// <summary>
+        /// 引数に指定された画像ファイルを index の位置に挿入します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public void InsertImage(int index, string path)
+        {
+            using (var image = Bitmap.FromFile(path))
+            {
+                try
+                {
+                    BeginCommand();
+
+                    var guid = image.FrameDimensionsList[0];
+                    var dim = new System.Drawing.Imaging.FrameDimension(guid);
+                    for (var i = 0; i < image.GetFrameCount(dim); ++i)
+                    {
+                        image.SelectActiveFrame(dim, i);
+                        Insert(index + i, new ImagePage
+                        {
+                            FilePath = path,
+                            PageNumber = i + 1,
+                            OriginalSize = new Size(image.Width, image.Height),
+                            Rotation = 0
+                        });
+                    }
+                }
+                finally { EndCommand(); }
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// Insert
         /// 
         /// <summary>

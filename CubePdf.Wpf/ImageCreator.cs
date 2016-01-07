@@ -307,6 +307,7 @@ namespace CubePdf.Wpf
 
                     var dest = new Bitmap(width, height);
                     using (var gs = Graphics.FromImage(dest)) gs.DrawImage(src, 0, 0, width, height);
+                    RotateImage(dest, page.Rotation);
                     return dest;
                 }
             }
@@ -350,6 +351,8 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         private void RotateImage(Image image, int degree)
         {
+            if (degree == 0) return;
+
             var value = RotateFlipType.RotateNoneFlipNone;
             if (degree >= 90 && degree < 180) value = RotateFlipType.Rotate90FlipNone;
             else if (degree >= 180 && degree < 270) value = RotateFlipType.Rotate180FlipNone;
