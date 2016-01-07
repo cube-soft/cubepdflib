@@ -265,19 +265,20 @@ namespace CubePdf.Wpf
         {
             if (page == null) return null;
 
-            var engine = CubePdf.Drawing.BitmapEnginePool.Get(page);
-            if (engine == null) return null;
-
-            Image image = null;
-            PageBase original = null;
-            lock (engine)
+            try
             {
-                image = engine.CreateImage(page.PageNumber, page.Power);
+                var engine = CubePdf.Drawing.BitmapEnginePool.Get(page);
+                if (engine == null) return null;
+
+                var image = engine.CreateImage(page.PageNumber, page.Power);
                 if (image == null) return null;
-                original = engine.GetPage(page.PageNumber);
+
+                var original = engine.GetPage(page.PageNumber);
+                RotateImage(image, page, original);
+
+                return image;
             }
-            RotateImage(image, page, original);
-            return image;
+            catch (Exception /* err */) { return null; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -293,7 +294,23 @@ namespace CubePdf.Wpf
         {
             if (page == null) return null;
 
-            throw new NotImplementedException();
+            try
+            {
+                using (var src = new Bitmap(page.FilePath))
+                {
+                    var width  = (int)(page.OriginalSize.Width * page.Power);
+                    var height = (int)(page.OriginalSize.Height * page.Power);
+                    var guid   = src.FrameDimensionsList[0];
+                    var dim    = new System.Drawing.Imaging.FrameDimension(guid);
+                    var index  = page.PageNumber - 1;
+                    if (index > 0 && index < src.GetFrameCount(dim)) src.SelectActiveFrame(dim, index);
+
+                    var dest = new Bitmap(width, height);
+                    using (var gs = Graphics.FromImage(dest)) gs.DrawImage(src, 0, 0, width, height);
+                    return dest;
+                }
+            }
+            catch (Exception /* err */) { return null; }
         }
 
         /* ----------------------------------------------------------------- */
