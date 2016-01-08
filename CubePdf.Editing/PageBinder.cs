@@ -24,8 +24,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using iTextSharp.text.pdf;
 using iTextSharp.text.exceptions;
-using CubePdf.Editing.Extensions;
 using CubePdf.Data;
+using CubePdf.Data.Extensions;
+using CubePdf.Editing.Extensions;
 
 namespace CubePdf.Editing
 {
@@ -295,10 +296,11 @@ namespace CubePdf.Editing
                 for (var i = 0; i < image.GetFrameCount(dimension); ++i)
                 {
                     image.SelectActiveFrame(dimension, i);
+                    RotateImage(image, src.Rotation);
 
                     var dpi = GetImageDpiScale(image);
-                    var width = src.OriginalSize.IsEmpty ? (int)(image.Width * dpi) : src.OriginalSize.Width;
-                    var height = src.OriginalSize.IsEmpty ? (int)(image.Height * dpi) : src.OriginalSize.Height;
+                    var width = (int)(src.ViewSize().Width * dpi);
+                    var height = (int)(src.ViewSize().Height * dpi);
                     var obj = CreateImage(src, image);
 
                     document.SetPageSize(new iTextSharp.text.Rectangle(width, height));
@@ -393,18 +395,36 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private iTextSharp.text.Image CreateImage(ImagePage src, System.Drawing.Image image)
         {
-            var width = src.OriginalSize.IsEmpty ? image.Width : src.OriginalSize.Width;
-            var height = src.OriginalSize.IsEmpty ? image.Height : src.OriginalSize.Height;
-            var dpi = GetImageDpiScale(image);
-            var scale = GetImageScale(image, width, height);
-            var pos = src.OriginalSize.IsEmpty ?
-                         new System.Drawing.Point(0, 0) :
-                         GetImagePosition(image, width, height, scale * dpi);
-
             var dest = iTextSharp.text.Image.GetInstance(image, image.GuessImageFormat());
-            dest.SetAbsolutePosition(pos.X, pos.Y);
-            dest.ScalePercent((float)(scale * dpi * 100.0));
+            dest.SetAbsolutePosition(0, 0);
+            dest.ScalePercent((float)(GetImageDpiScale(image) * 100.0));
             return dest;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// RotateImage
+        /// 
+        /// <summary>
+        /// 引数に指定された image を degree 度だけ回転させます。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// System.Drawing.Image.RotateFlip メソッドは 90 度単位でしか
+        /// 回転させる事ができないので、引数に指定された回転度数を 90 度単位
+        /// で丸めています。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void RotateImage(System.Drawing.Image image, int degree)
+        {
+            if (degree == 0) return;
+
+            var value = System.Drawing.RotateFlipType.RotateNoneFlipNone;
+            if (degree >= 90 && degree < 180) value = System.Drawing.RotateFlipType.Rotate90FlipNone;
+            else if (degree >= 180 && degree < 270) value = System.Drawing.RotateFlipType.Rotate180FlipNone;
+            else if (degree >= 270 && degree < 360) value = System.Drawing.RotateFlipType.Rotate270FlipNone;
+            image.RotateFlip(value);
         }
 
         /* ----------------------------------------------------------------- */
@@ -421,38 +441,6 @@ namespace CubePdf.Editing
             var w = 72.0 / image.HorizontalResolution;
             var h = 72.0 / image.VerticalResolution;
             return Math.Min(w, h);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetImageScale
-        /// 
-        /// <summary>
-        /// イメージの縮小倍率を取得します。
-        /// </summary>
-        /// 
-        /* ----------------------------------------------------------------- */
-        private double GetImageScale(System.Drawing.Image image, int width, int height)
-        {
-            var x = width / (double)image.Width;
-            var y = height / (double)image.Height;
-            return Math.Min(Math.Min(x, y), 1.0);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// GetImagePosition
-        /// 
-        /// <summary>
-        /// イメージの表示位置を取得します。
-        /// </summary>
-        /// 
-        /* ----------------------------------------------------------------- */
-        private System.Drawing.Point GetImagePosition(System.Drawing.Image image, int width, int height, double ratio)
-        {
-            var x = (width - image.Width * ratio) / 2.0;
-            var y = (height - image.Height * ratio) / 2.0;
-            return new System.Drawing.Point((int)x, (int)y);
         }
 
         /* ----------------------------------------------------------------- */

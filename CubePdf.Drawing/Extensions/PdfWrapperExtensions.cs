@@ -35,6 +35,17 @@ namespace CubePdf.Drawing.Extensions
     /* --------------------------------------------------------------------- */
     internal static class PdfWrapperExtensions
     {
+        #region Methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// CreatePage
+        /// 
+        /// <summary>
+        /// Page オブジェクトを生成します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
         public static Page CreatePage(this PDFWrapper reader, string path, string password, int pagenum)
         {
             PDFPage obj;
@@ -44,9 +55,50 @@ namespace CubePdf.Drawing.Extensions
             dest.FilePath = path;
             dest.PageNumber = pagenum;
             dest.Password = password;
-            dest.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
+            dest.OriginalSize = new Size(Round(SizeHack(obj.Width)), Round(SizeHack(obj.Height)));
             dest.Rotation = obj.Rotation;
             return dest;
         }
+
+        #endregion
+
+        #region Other private methods
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// SizeHack
+        /// 
+        /// <summary>
+        /// 幅、高さに関するハック用メソッドです。
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// PDFLibNet/AFPDFLib/PDFPageInterop クラスの getPageWidth()、
+        /// および getPageHeight() メソッドにて、元の値に対して 254 / 72
+        /// と言う値を掛けてしまっているため、暫定的に逆数を掛ける事と
+        /// する。254 が何を意味するのか要調査。
+        /// </remarks>
+        ///
+        /* ----------------------------------------------------------------- */
+        private static double SizeHack(double src)
+        {
+            return src * (72 / 254.0);
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Round
+        /// 
+        /// <summary>
+        /// double の小数点第 1 位を四捨五入します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private static int Round(double value)
+        {
+            return (int)(value + 0.5);
+        }
+
+        #endregion
     }
 }
