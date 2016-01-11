@@ -684,7 +684,22 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void ExtractImage(IList<PageBase> pages, string directory)
         {
-            throw new NotImplementedException();
+            var worker = new BackgroundImageExtractor();
+            worker.Completed += (s, e) => OnRunCompleted(new EventArgs());
+            worker.ProgressChanged += (s, e) =>
+            {
+                var page     = e.Value.Page;
+                var basename = System.IO.Path.GetFileNameWithoutExtension(page.FilePath);
+                var count    = e.Value.Images.Count;
+                for (var i = 0; i < count; ++i)
+                {
+                    var dest = Unique(directory, basename, page.PageNumber, i, count);
+                    e.Value.Images[i].Save(dest, System.Drawing.Imaging.ImageFormat.Png);
+                }
+            };
+
+            foreach (var page in pages) worker.Pages.Add(page);
+            worker.RunAsync();
         }
 
         /* ----------------------------------------------------------------- */
@@ -716,6 +731,10 @@ namespace CubePdf.Wpf
         /// 引数に指定された PDF ファイルの各ページを direcotry 下に
         /// 1 ページずつ別ファイルとして保存します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// TODO: 処理内容が間違っている可能性があるので要調査。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         public void Split(IList<PageBase> pages, string directory)
@@ -1381,6 +1400,30 @@ namespace CubePdf.Wpf
             else if (element.Command == ListViewCommands.Metadata) return Properties.Resources.MetadataText;
             else if (element.Command == ListViewCommands.Encryption) return Properties.Resources.EncryptionText;
             return string.Empty;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// Unique
+        /// 
+        /// <summary>
+        /// 一意のパス名を取得します。
+        /// </summary>
+        /// 
+        /* ----------------------------------------------------------------- */
+        private string Unique(string folder, string basename, int pagenum, int index, int count)
+        {
+            var digit = string.Format("D{0}", count.ToString("D").Length);
+            for (var i = 1; i < 1000; ++i)
+            {
+                var filename = (i == 1) ?
+                               string.Format("{0}-{1}-{2}.png", basename, pagenum, index.ToString(digit)) :
+                               string.Format("{0}-{1}-{2} ({3}).png", basename, pagenum, index.ToString(digit), i);
+                var dest = System.IO.Path.Combine(folder, filename);
+                if (!System.IO.File.Exists(dest)) return dest;
+            }
+
+            return System.IO.Path.Combine(folder, System.IO.Path.GetRandomFileName());
         }
 
         #endregion
