@@ -19,7 +19,6 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
-using System.Drawing;
 
 namespace CubePdf.Data
 {
@@ -33,7 +32,7 @@ namespace CubePdf.Data
     ///
     /* --------------------------------------------------------------------- */
     [Serializable]
-    public class Page : IPage
+    public class Page : PageBase
     {
         #region Initialization and Termination
 
@@ -46,7 +45,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Page() { }
+        public Page() : base(PageType.Pdf) { }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -58,29 +57,10 @@ namespace CubePdf.Data
         ///
         /* ----------------------------------------------------------------- */
         public Page(string path, int pagenum)
+            : base(PageType.Pdf)
         {
-            _path = path;
-            _pagenum = pagenum;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Page (constructor)
-        /// 
-        /// <summary>
-        /// コピー元となる IReadOnlyPage オブジェクトを指定して Page クラス
-        /// を初期化します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Page(IPage cp)
-        {
-            _path = cp.FilePath;
-            _password = cp.Password;
-            _pagenum = cp.PageNumber;
-            _size = cp.OriginalSize;
-            _rotation = cp.Rotation;
-            _power = cp.Power;
+            FilePath = path;
+            PageNumber = pagenum;
         }
 
         #endregion
@@ -89,183 +69,15 @@ namespace CubePdf.Data
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FilePath
-        /// 
-        /// <summary>
-        /// 該当ページのファイルパスを取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-            set { _path = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Password
         /// 
         /// <summary>
-        /// 該当ページの PDF ファイルのパスワードを取得します。
+        /// PDF ファイルのパスワードを取得または設定します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string Password
-        {
-            get { return _password; }
-            set { _password = value; }
-        }
+        public string Password { get; set; } = string.Empty;
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// PageNumber
-        /// 
-        /// <summary>
-        /// 該当ページのページ番号を取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int PageNumber
-        {
-            get { return _pagenum; }
-            set { _pagenum = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// OriginalSize
-        /// 
-        /// <summary>
-        /// 該当ページのサイズ（幅、および高さ）を取得、または設定します。
-        /// 
-        /// NOTE: OriginalSize プロパティは、そのページの元々の幅と高さを
-        /// 表します。PDF 閲覧ソフト等で実際に表示されるイメージのサイズは
-        /// 回転角や表示倍率等の関係で、OriginalSize プロパティで取得できる
-        /// 値と異なる事があります。該当ページが PDF ビューワ等で表示される
-        /// 際の幅や高さは ViewSize プロパティで取得して下さい。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Size OriginalSize
-        {
-            get { return _size; }
-            set { _size = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Rotation
-        /// 
-        /// <summary>
-        /// 該当ページを表示する際の回転角を取得、または設定します (degree)。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int Rotation
-        {
-            get { return _rotation; }
-            set { _rotation = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Power
-        /// 
-        /// <summary>
-        /// 該当ページを表示する際の倍率を取得、または設定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public double Power
-        {
-            get { return _power; }
-            set { _power = value; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ViewSize
-        /// 
-        /// <summary>
-        /// 該当ページを表示する際のサイズ（幅、および高さ）を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public Size ViewSize
-        {
-            get
-            {
-                var degree = _rotation;
-                if (degree < 0) degree += 360;
-                else if (degree >= 360) degree -= 360;
-
-                var radian = Math.PI * degree / 180.0;
-                var sin = Math.Abs(Math.Sin(radian));
-                var cos = Math.Abs(Math.Cos(radian));
-                var width = _size.Width * cos + _size.Height * sin;
-                var height = _size.Width * sin + _size.Height * cos;
-                return new Size((int)(width * _power), (int)(height * _power));
-            }
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        /* --------------------------------------------------------------------- */
-        /// ToString
-        /* --------------------------------------------------------------------- */
-        public override string ToString()
-        {
-            if (_path.Length == 0) return "(empty instance of the CubePdf.Data.Page)";
-            return String.Format("{0}({1}): Width => {2}, Height => {3}, Rotation => {4}",
-                _path, _pagenum, _size.Width, _size.Height, _rotation);
-        }
-
-        #endregion
-
-        #region Implementations for IEquatable<IPage>
-
-        /* ----------------------------------------------------------------- */
-        /// Equals
-        /* ----------------------------------------------------------------- */
-        public bool Equals(IPage other)
-        {
-            return FilePath == other.FilePath && PageNumber == other.PageNumber;
-        }
-
-        /* ----------------------------------------------------------------- */
-        /// Equals
-        /* ----------------------------------------------------------------- */
-        public override bool Equals(object obj)
-        {
-            if (object.ReferenceEquals(obj, null)) return false;
-            if (object.ReferenceEquals(this, obj)) return true;
-
-            var other = obj as IPage;
-            if (other == null) return false;
-
-            return this.Equals(other);
-        }
-
-        /* ----------------------------------------------------------------- */
-        /// GetHashCode
-        /* ----------------------------------------------------------------- */
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        #endregion
-
-        #region Variables
-        private string _path = string.Empty;
-        private string _password = string.Empty;
-        private int _pagenum = 1;
-        private Size _size = new Size();
-        private int _rotation = 0;
-        private double _power = 1.0;
         #endregion
     }
 }

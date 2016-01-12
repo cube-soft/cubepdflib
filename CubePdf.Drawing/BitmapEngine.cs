@@ -19,10 +19,12 @@
 ///
 /* ------------------------------------------------------------------------- */
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Collections.Generic;
 using System.ComponentModel;
+using CubePdf.Data;
+using CubePdf.Data.Extensions;
+using CubePdf.Drawing.Extensions;
 
 namespace CubePdf.Drawing
 {
@@ -58,18 +60,7 @@ namespace CubePdf.Drawing
         /// </summary>
         /// 
         /* ----------------------------------------------------------------- */
-        public BitmapEngine()
-        {
-            _pages.Clear();
-            _creating.Clear();
-
-            // for CreateImageAsync() method
-            _creator.WorkerSupportsCancellation = true;
-            _creator.DoWork -= new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.DoWork += new DoWorkEventHandler(CreateImageAsync_DoWork);
-            _creator.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
-            _creator.RunWorkerCompleted += new RunWorkerCompletedEventHandler(CreateImageAsync_RunWorkerCompleted);
-        }
+        public BitmapEngine() { }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -97,7 +88,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public BitmapEngine(CubePdf.Data.IDocumentReader reader)
+        public BitmapEngine(IDocumentReader reader)
             : this()
         {
             Open(reader);
@@ -174,18 +165,17 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Open(string path, string password = "")
         {
-            _metadata = new CubePdf.Data.Metadata();
+            Metadata = new Metadata();
 
-            var encrypt = new CubePdf.Data.Encryption();
+            var encrypt = new Encryption();
             if (!string.IsNullOrEmpty(password))
             {
                 encrypt.IsEnabled = true;
                 encrypt.OwnerPassword = password;
             }
-            _encrypt = encrypt;
+            Encryption = encrypt;
 
             OpenFile(path, password);
-            ExtractPages();
         }
 
         /* ----------------------------------------------------------------- */
@@ -203,22 +193,21 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public void Open(CubePdf.Data.IDocumentReader other)
+        public void Open(IDocumentReader other)
         {
             try
             {
-                _metadata = new CubePdf.Data.Metadata(other.Metadata);
-                _encrypt  = new CubePdf.Data.Encryption(other.Encryption);
-                _status   = other.EncryptionStatus;
+                Metadata = new Metadata(other.Metadata);
+                Encryption = new Encryption(other.Encryption);
+                EncryptionStatus = other.EncryptionStatus;
                 OpenFile(other.FilePath, "");
             }
             catch (Exception /* err */)
             {
-                var password = (_encrypt.IsEnabled && !string.IsNullOrEmpty(_encrypt.OwnerPassword)) ?
+                var password = (Encryption.IsEnabled && !string.IsNullOrEmpty(Encryption.OwnerPassword)) ?
                     other.Encryption.OwnerPassword : other.Encryption.UserPassword;
                 OpenFile(other.FilePath, password);
             }
-            foreach (var page in other.Pages) _pages.Add(page);
         }
 
         /* ----------------------------------------------------------------- */
@@ -232,17 +221,14 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Close()
         {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
-
             lock (_lock)
             {
-                _pages.Clear();
-                _path = string.Empty;
-                _metadata = null;
-                _encrypt = null;
-                _status = Data.EncryptionStatus.NotEncrypted;
+                FilePath = string.Empty;
+                Metadata = null;
+                Encryption = null;
+                EncryptionStatus = EncryptionStatus.NotEncrypted;
 
+                _pages = new ReadOnlyPageCollection();
                 if (_core != null)
                 {
                     _core.Dispose();
@@ -262,12 +248,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public void Reset()
         {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
-            lock (_lock)
-            {
-                _core.CurrentPage = 1;
-            }
+            lock (_lock) _core.CurrentPage = 1;
         }
 
         /* ----------------------------------------------------------------- */
@@ -279,9 +260,9 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IPage GetPage(int pagenum)
+        public PageBase GetPage(int pagenum)
         {
-            return _pages[pagenum - 1];
+            return _core.CreatePage(FilePath, GetInputPassword(), pagenum);
         }
 
         /* ----------------------------------------------------------------- */
@@ -298,63 +279,18 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public Image CreateImage(int pagenum, double power = 1.0)
         {
-            var index = pagenum - 1;
             lock (_lock)
             {
                 PDFLibNet.PDFPage obj;
                 if (!_core.Pages.TryGetValue(pagenum, out obj)) return null;
-                
-                var page = _pages[index];
-                int width = (int)(page.ViewSize.Width * power);
-                int height = (int)(page.ViewSize.Height * power);
+
+                var page = GetPage(pagenum);
+                if (page == null) return null;
+
+                int width = (int)(page.ViewSize().Width * power);
+                int height = (int)(page.ViewSize().Height * power);
                 return obj.GetBitmap(width, height, true);
             }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateImageAsync
-        /// 
-        /// <summary>
-        /// 指定されたページ番号に対応するイメージを非同期で生成します。
-        /// CreateImageAsync() メソッドで指定したイメージの生成が終了
-        /// すると ImageGenerated イベントが発生するので、ユーザはこの
-        /// イベントを監視する事で生成されたイメージを取得する事ができます。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: CubePDF Viewer ではキューに上限値を設けていた。同様の
-        /// 処理が必要かどうかを検討する。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void CreateImageAsync(int pagenum, double power = 1.0)
-        {
-            var index = pagenum - 1;
-            lock (_creating)
-            {
-                if (index >= _pages.Count) return;
-                var page = new CubePdf.Data.Page(_pages[index]);
-                page.Power = power;
-                var entry = new ImageEventArgs(page);
-                _creating.Enqueue(entry);
-            }
-            if (!_creator.IsBusy) _creator.RunWorkerAsync();
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CancelImageCreation
-        /// 
-        /// <summary>
-        /// 非同期で実行中のイメージ生成処理をキャンセルします。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void CancelImageCreation()
-        {
-            lock (_creating) _creating.Clear();
-            if (_creator.IsBusy) _creator.CancelAsync();
         }
 
         /* ----------------------------------------------------------------- */
@@ -368,7 +304,7 @@ namespace CubePdf.Drawing
         /* ----------------------------------------------------------------- */
         public override string ToString()
         {
-            return (_core != null) ? String.Format("{0}({1})", _path, _pages.Count) : "(empty)";
+            return (_core != null) ? string.Format("{0}({1})", FilePath, Pages.Count) : "(empty)";
         }
 
         #endregion
@@ -384,24 +320,7 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public string FilePath
-        {
-            get { return _path; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// PageCount
-        /// 
-        /// <summary>
-        /// 現在、開いている PDF ファイルのページ数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public int PageCount
-        {
-            get { return _pages.Count; }
-        }
+        public string FilePath { get; private set; } = string.Empty;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -412,23 +331,9 @@ namespace CubePdf.Drawing
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IEnumerable<CubePdf.Data.IPage> Pages
+        public IReadOnlyCollection<CubePdf.Data.PageBase> Pages
         {
             get { return _pages; }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// UnderImageCreation
-        /// 
-        /// <summary>
-        /// 非同期で実行中のイメージ作成処理が存在するかどうかを判定します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public bool UnderImageCreation
-        {
-            get { lock (_creating) return _creating.Count > 0 || _creator.IsBusy; }
         }
 
         /* ----------------------------------------------------------------- */
@@ -445,10 +350,7 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IMetadata Metadata
-        {
-            get { return _metadata; }
-        }
+        public CubePdf.Data.Metadata Metadata { get; private set; } = null;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -464,10 +366,7 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.IEncryption Encryption
-        {
-            get { return _encrypt; }
-        }
+        public CubePdf.Data.Encryption Encryption { get; private set; } = null;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -483,87 +382,7 @@ namespace CubePdf.Drawing
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public CubePdf.Data.EncryptionStatus EncryptionStatus
-        {
-            get { return _status; }
-        }
-
-        #endregion
-
-        #region Event Handlers
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ImageGenerated
-        ///
-        /// <summary>
-        /// あるページのイメージ生成が終了した際に発生するイベントです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public event ImageEventHandler ImageCreated;
-        protected virtual void OnImageCreated(ImageEventArgs e)
-        {
-            if (ImageCreated != null) ImageCreated(this, e);
-            else if (e.Image != null) e.Image.Dispose();
-        }
-
-        #endregion
-
-        #region Methods for BackgroundWorker
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateImageAsync_DoWork
-        ///
-        /// <summary>
-        /// 非同期で要求されたイメージを作成していくためのメソッドです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void CreateImageAsync_DoWork(object sender, DoWorkEventArgs e)
-        {
-            ImageEventArgs task = null;
-            lock (_creating)
-            {
-                if (_creating.Count == 0) return;
-                task = _creating.Dequeue();
-            }
-
-            if (_creator.CancellationPending) return;
-            lock (_lock)
-            {
-                if (_creator.CancellationPending) return;
-                task.Image = this.CreateImage(task.Page.PageNumber, task.Page.Power);
-            }
-            e.Result = task;
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// CreateImageAsync_RunWorkerCompleted
-        ///
-        /// <summary>
-        /// 要求されたイメージの作成が完了した際に ImageCreated イベントを
-        /// 発生させるためのメソッドです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        private void CreateImageAsync_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            var args = e.Result as ImageEventArgs;
-            if (_creator.CancellationPending)
-            {
-                if (args != null && args.Image != null) args.Image.Dispose();
-                return;
-            }
-
-            lock (_creating)
-            {
-                if (_creating.Count > 0 && !_creator.IsBusy) _creator.RunWorkerAsync();
-            }
-            if (args != null) this.OnImageCreated(args);
-        }
+        public CubePdf.Data.EncryptionStatus EncryptionStatus { get; private set; } = Data.EncryptionStatus.NotEncrypted;
 
         #endregion
 
@@ -596,47 +415,30 @@ namespace CubePdf.Drawing
                 if (!_core.LoadPDF(path)) throw new System.IO.FileLoadException(Properties.Resources.FileLoadException, path);
 
                 _core.CurrentPage = 1;
-                _path = path;
+
+                FilePath = path;
+                _pages = new ReadOnlyPageCollection(_core, FilePath, password);
             }
         }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// ExtractPageProperties
+        /// GetInputPassword
         /// 
         /// <summary>
-        /// PDFLibNet から PDF の各ページの情報を抽出します。
-        /// 
-        /// NOTE: 各ページに関する情報を取得する際、PDFWrapper オブジェクト
-        /// をロックしなければならず、非同期でイメージを作成している時
-        /// などはページ情報の取得に予想外の時間を要する事もあるため、
-        /// ファイルから情報をロードした段階で予め全てのページの情報を
-        /// 取得しておきます。
-        /// 
-        /// TODO: PDF ファイルのページ数が増えると、この処理にかなりの
-        /// 時間を要するようになる事が考えられる。テスト結果次第では、
-        /// この処理を BackgroundWorker で行う等も検討する。
+        /// ユーザの入力したパスワードを取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void ExtractPages()
+        private string GetInputPassword()
         {
-            _pages.Clear();
-            for (int i = 0; i < _core.PageCount; ++i)
+            if (Encryption == null || !Encryption.IsEnabled) return string.Empty;
+            else if (!string.IsNullOrEmpty(Encryption.OwnerPassword)) return Encryption.OwnerPassword;
+            else if (Encryption.IsUserPasswordEnabled && !string.IsNullOrEmpty(Encryption.UserPassword))
             {
-                lock (_lock)
-                {
-                    PDFLibNet.PDFPage obj;
-                    if (!_core.Pages.TryGetValue(i + 1, out obj)) return;
-
-                    var page = new CubePdf.Data.Page(_path, i + 1);
-                    page.Password = _encrypt.OwnerPassword;
-                    page.OriginalSize = new Size((int)obj.Width, (int)obj.Height);
-                    page.Rotation = obj.Rotation;
-                    if (i >= _pages.Count) _pages.Add(page);
-                    else _pages[i] = page;
-                }
+                return Encryption.UserPassword;
             }
+            else return string.Empty;
         }
 
         #endregion
@@ -644,14 +446,8 @@ namespace CubePdf.Drawing
         #region Variables
         private bool _disposed = false;
         private object _lock = new object();
-        private string _path = string.Empty;
         private PDFLibNet.PDFWrapper _core = null;
-        private IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
-        private CubePdf.Data.IMetadata _metadata = null;
-        private CubePdf.Data.IEncryption _encrypt = null;
-        private CubePdf.Data.EncryptionStatus _status = Data.EncryptionStatus.NotEncrypted;
-        private BackgroundWorker _creator = new BackgroundWorker();
-        private Queue<ImageEventArgs> _creating = new Queue<ImageEventArgs>();
+        private ReadOnlyPageCollection _pages = new ReadOnlyPageCollection();
         #endregion
 
     }
