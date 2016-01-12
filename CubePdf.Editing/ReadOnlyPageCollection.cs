@@ -1,8 +1,8 @@
 ﻿/* ------------------------------------------------------------------------- */
 ///
-/// IEncryption.cs
+/// ReadOnlyPageCollection.cs
 ///
-/// Copyright (c) 2013 CubeSoft, Inc. All rights reserved.
+/// Copyright (c) 2010 CubeSoft, Inc. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify
 /// it under the terms of the GNU Affero General Public License as published
@@ -18,89 +18,114 @@
 /// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
-using System;
+using System.Collections;
+using System.Collections.Generic;
+using iTextSharp.text.pdf;
+using CubePdf.Data;
+using CubePdf.Editing.Extensions;
 
-namespace CubePdf.Data
+namespace CubePdf.Editing
 {
     /* --------------------------------------------------------------------- */
     ///
-    /// IEncryption
+    /// Cube.Pdf.Editing.ReadOnlyPageCollection
     /// 
     /// <summary>
-    /// PDF の暗号化に関するデータを提供するためのインターフェースです。
+    /// 読み取り専用で PDF ページ一覧へアクセスするためのクラスです。
     /// </summary>
     ///
     /* --------------------------------------------------------------------- */
-    public interface IEncryption
+    public class ReadOnlyPageCollection : IReadOnlyCollection<PageBase>
     {
-        /* ----------------------------------------------------------------- */
-        ///
-        /// IsEnabled
-        /// 
-        /// <summary>
-        /// この暗号化設定が適用するかどうかを取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        bool IsEnabled { get; }
+        #region Constructors
 
         /* ----------------------------------------------------------------- */
         ///
-        /// IsUserPasswordEnabled
+        /// ReadOnlyPageCollection
         /// 
         /// <summary>
-        /// ユーザパスワード（PDF ファイルを開く際に入力を求められる
-        /// パスワード）を適用するかどうかを取得、または設定します。
+        /// オブジェクトを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        bool IsUserPasswordEnabled { get; }
+        public ReadOnlyPageCollection() : this(null, string.Empty, string.Empty) { }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// OwnerPassword
+        /// ReadOnlyPageCollection
         /// 
         /// <summary>
-        /// 所有者パスワードを取得します。所有者パスワードとは PDF ファイルに
-        /// 設定されているマスターパスワードを表し、このパスワードによって
-        /// 再暗号化や各種権限の変更等すべての操作が可能となります。
+        /// オブジェクトを初期化します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        string OwnerPassword { get; }
+        public ReadOnlyPageCollection(PdfReader impl, string path, string password)
+        {
+            _impl = impl;
+            _path = path;
+            _password = password;
+        }
+
+        #endregion
+
+        #region Properties
 
         /* ----------------------------------------------------------------- */
         ///
-        /// UserPassword
+        /// Count
         /// 
         /// <summary>
-        /// ユーザパスワードを取得します。ユーザパスワードとは PDF ファイルを
-        /// 開く際に必要となるパスワードを表します。
+        /// ページ数を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        string UserPassword { get; }
+        public int Count
+        {
+            get { return (_impl != null) ? _impl.NumberOfPages : 0; }
+        }
+
+        #endregion
+
+        #region Methods
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Method
+        /// GetEnumerator
         /// 
         /// <summary>
-        /// 適用する暗号化方式を取得します。
+        /// 各ページオブジェクトへアクセスするための反復子を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        EncryptionMethod Method { get; }
+        public IEnumerator<PageBase> GetEnumerator()
+        {
+            for (var i = 0; i < Count; ++i)
+            {
+                var pagenum = i + 1;
+                yield return _impl.CreatePage(_path, _password, pagenum);
+            }
+        }
 
         /* ----------------------------------------------------------------- */
         ///
-        /// Permission
+        /// GetEnumerator
         /// 
         /// <summary>
-        /// 暗号化された PDF に設定されている各種権限の状態を取得します。
+        /// 各ページオブジェクトへアクセスするための反復子を取得します。
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        Permission Permission { get; }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
+
+        #region Fields
+        private PdfReader _impl = null;
+        private string _path = string.Empty;
+        private string _password = string.Empty;
+        #endregion
     }
 }

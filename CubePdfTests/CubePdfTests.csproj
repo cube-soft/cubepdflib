@@ -76,15 +76,12 @@
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="itextsharp, Version=5.5.7.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\iTextSharp.5.5.7\lib\itextsharp.dll</HintPath>
+    <Reference Include="itextsharp">
+      <HintPath>..\..\packages\iTextSharp.5.5.8\lib\itextsharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -116,33 +113,33 @@
     <Compile Include="Wpf\ValueConverterTester.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\CubePdf.Data\CubePdf.Data.csproj">
-      <Project>{0D7B710B-67CA-4E55-844A-31C6ACEADFED}</Project>
+      <Project>{0d7b710b-67ca-4e55-844a-31c6aceadfed}</Project>
       <Name>CubePdf.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Drawing\CubePdf.Drawing.csproj">
-      <Project>{FDC7F8BE-E421-45F9-9544-FFFC7A0CC2AE}</Project>
+      <Project>{fdc7f8be-e421-45f9-9544-fffc7a0cc2ae}</Project>
       <Name>CubePdf.Drawing</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Editing\CubePdf.Editing.csproj">
-      <Project>{6E397197-250C-404A-9FE9-BA8397C518C1}</Project>
+      <Project>{6e397197-250c-404a-9fe9-ba8397c518c1}</Project>
       <Name>CubePdf.Editing</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Misc\CubePdf.Misc.csproj">
-      <Project>{193B7028-1F28-462A-B172-36F485002349}</Project>
+      <Project>{193b7028-1f28-462a-b172-36f485002349}</Project>
       <Name>CubePdf.Misc</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Settings\CubePdf.Settings.csproj">
-      <Project>{0E3F9DF4-DAC5-4C36-B82A-5C8AA45A4E2D}</Project>
+      <Project>{0e3f9df4-dac5-4c36-b82a-5c8aa45a4e2d}</Project>
       <Name>CubePdf.Settings</Name>
     </ProjectReference>
     <ProjectReference Include="..\CubePdf.Wpf\CubePdf.Wpf.csproj">
-      <Project>{3AE6F4EA-CD53-48D0-92D4-D2A48ED54D87}</Project>
+      <Project>{3ae6f4ea-cd53-48d0-92d4-d2a48ed54d87}</Project>
       <Name>CubePdf.Wpf</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

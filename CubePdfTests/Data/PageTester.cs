@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using CubePdf.Data.Extensions;
 
 namespace CubePdfTests.Data
 {
@@ -74,8 +75,9 @@ namespace CubePdfTests.Data
             var page = new CubePdf.Data.Page("example.pdf", 10);
             page.Rotation = 90;
             page.Power = 0.5;
+            page.Password = "Test";
 
-            var copied = new CubePdf.Data.Page(page);
+            var copied = page.Copy() as CubePdf.Data.Page;
             copied.FilePath = "copied.pdf";
             copied.PageNumber = 20;
             copied.Rotation = 45;
@@ -87,6 +89,7 @@ namespace CubePdfTests.Data
             Assert.AreEqual(0.5, page.Power);
 
             Assert.AreEqual("copied.pdf", copied.FilePath);
+            Assert.AreEqual("Test", copied.Password);
             Assert.AreEqual(20, copied.PageNumber);
             Assert.AreEqual(45, copied.Rotation);
             Assert.AreEqual(2.5, copied.Power);
@@ -115,15 +118,15 @@ namespace CubePdfTests.Data
             Assert.IsFalse(page1.Equals(page3));
             Assert.IsFalse(page1.Equals(page4));
 
-            var page5 = page2 as CubePdf.Data.IPage;
+            var page5 = page2 as CubePdf.Data.PageBase;
             Assert.IsTrue(page1.Equals(page5));
             Assert.IsTrue(page5.Equals(page1));
 
-            var page6 = page3 as CubePdf.Data.IPage;
+            var page6 = page3 as CubePdf.Data.PageBase;
             Assert.IsFalse(page1.Equals(page6));
             Assert.IsFalse(page6.Equals(page1));
 
-            var list = new List<CubePdf.Data.IPage>();
+            var list = new List<CubePdf.Data.PageBase>();
             list.Add(page1);
             list.Add(page3);
             list.Add(page4);
@@ -157,12 +160,12 @@ namespace CubePdfTests.Data
         public void TestViewSize(int rotation, double power)
         {
             var page = new CubePdf.Data.Page("esample.pdf", 10);
-            Assert.AreEqual(0, page.ViewSize.Width);
-            Assert.AreEqual(0, page.ViewSize.Height);
+            Assert.AreEqual(0, page.ViewSize().Width);
+            Assert.AreEqual(0, page.ViewSize().Height);
 
             page.OriginalSize = new System.Drawing.Size(600, 400);
-            Assert.AreEqual(page.OriginalSize.Width, page.ViewSize.Width);
-            Assert.AreEqual(page.OriginalSize.Height, page.ViewSize.Height);
+            Assert.AreEqual(page.OriginalSize.Width, page.ViewSize().Width);
+            Assert.AreEqual(page.OriginalSize.Height, page.ViewSize().Height);
 
             page.Rotation = rotation;
             page.Power = power;
@@ -175,8 +178,8 @@ namespace CubePdfTests.Data
             var cos = Math.Abs(Math.Cos(radian));
             var width = (int)((page.OriginalSize.Width * cos + page.OriginalSize.Height * sin) * power);
             var height = (int)((page.OriginalSize.Width * sin + page.OriginalSize.Height * cos) * power);
-            Assert.AreEqual(width, page.ViewSize.Width);
-            Assert.AreEqual(height, page.ViewSize.Height);
+            Assert.AreEqual(width, page.ViewSize().Width);
+            Assert.AreEqual(height, page.ViewSize().Height);
         }
     }
 }

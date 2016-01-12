@@ -43,7 +43,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        void Open(string path, string password = "");
+        void Open(string path, string password);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -65,7 +65,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        CubePdf.Data.IPage GetPage(int pagenum);
+        PageBase GetPage(int pagenum);
 
         /* ----------------------------------------------------------------- */
         ///
@@ -80,17 +80,6 @@ namespace CubePdf.Data
 
         /* ----------------------------------------------------------------- */
         ///
-        /// PageCount
-        /// 
-        /// <summary>
-        /// PDF ファイルのページ数を取得します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        int PageCount { get; }
-
-        /* ----------------------------------------------------------------- */
-        ///
         /// Metadata
         /// 
         /// <summary>
@@ -98,7 +87,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IMetadata Metadata { get; }
+        Metadata Metadata { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -109,7 +98,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IEncryption Encryption { get; }
+        Encryption Encryption { get; }
 
         /* ----------------------------------------------------------------- */
         ///
@@ -131,6 +120,6 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        IEnumerable<IPage> Pages { get; }
+        IReadOnlyCollection<PageBase> Pages { get; }
     }
 }

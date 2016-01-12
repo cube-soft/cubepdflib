@@ -18,7 +18,6 @@
 /// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ///
 /* ------------------------------------------------------------------------- */
-using System;
 using NUnit.Framework;
 
 namespace CubePdfTests.Data
@@ -63,62 +62,6 @@ namespace CubePdfTests.Data
             Assert.IsFalse(encrypt.Permission.InputFormFields);
             Assert.IsFalse(encrypt.Permission.Signature);
             Assert.IsFalse(encrypt.Permission.TemplatePage);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestReadOnlyCast
-        /// 
-        /// <summary>
-        /// Encryption クラスの情報を読み取り専用にするテストを行います。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestReadOnlyCast()
-        {
-            var crypt = new CubePdf.Data.Encryption();
-            crypt.IsEnabled = true;
-            crypt.IsUserPasswordEnabled = true;
-            crypt.OwnerPassword = "owner";
-            crypt.UserPassword = "user";
-            crypt.Method = CubePdf.Data.EncryptionMethod.Aes256;
-            var permission = new CubePdf.Data.Permission(crypt.Permission);
-            permission.Printing = true;
-            permission.Accessibility = true;
-            crypt.Permission = permission;
-            Assert.IsTrue(crypt.IsEnabled);
-            Assert.IsTrue(crypt.IsUserPasswordEnabled);
-            Assert.AreEqual("owner", crypt.OwnerPassword);
-            Assert.AreEqual("user", crypt.UserPassword);
-            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, crypt.Method);
-            Assert.IsTrue(crypt.Permission.Printing);
-            Assert.IsFalse(crypt.Permission.Assembly);
-            Assert.IsFalse(crypt.Permission.ModifyContents);
-            Assert.IsFalse(crypt.Permission.CopyContents);
-            Assert.IsTrue(crypt.Permission.Accessibility);
-            Assert.IsFalse(crypt.Permission.ExtractPage);
-            Assert.IsFalse(crypt.Permission.ModifyAnnotations);
-            Assert.IsFalse(crypt.Permission.InputFormFields);
-            Assert.IsFalse(crypt.Permission.Signature);
-            Assert.IsFalse(crypt.Permission.TemplatePage);
-
-            var readable = new CubePdf.Data.Encryption(crypt) as CubePdf.Data.IEncryption;
-            Assert.IsTrue(readable.IsEnabled);
-            Assert.IsTrue(readable.IsUserPasswordEnabled);
-            Assert.AreEqual("owner", readable.OwnerPassword);
-            Assert.AreEqual("user", readable.UserPassword);
-            Assert.AreEqual(CubePdf.Data.EncryptionMethod.Aes256, readable.Method);
-            Assert.IsTrue(readable.Permission.Printing);
-            Assert.IsFalse(readable.Permission.Assembly);
-            Assert.IsFalse(readable.Permission.ModifyContents);
-            Assert.IsFalse(readable.Permission.CopyContents);
-            Assert.IsTrue(readable.Permission.Accessibility);
-            Assert.IsFalse(readable.Permission.ExtractPage);
-            Assert.IsFalse(readable.Permission.ModifyAnnotations);
-            Assert.IsFalse(readable.Permission.InputFormFields);
-            Assert.IsFalse(readable.Permission.Signature);
-            Assert.IsFalse(readable.Permission.TemplatePage);
         }
     }
 }

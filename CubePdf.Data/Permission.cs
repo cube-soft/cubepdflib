@@ -28,14 +28,16 @@ namespace CubePdf.Data
     /// 
     /// <summary>
     /// 暗号化されている PDF ファイルで許可されている権限を表すクラスです。
-    /// 
-    /// NOTE: iTextSharp の現在のバージョンでは、ExtractPage, Signature,
-    /// TemplatePage プロパティに相当するパーミッション設定が存在しません。
-    /// そのため、これらのプロパティの値は無視される可能性が高いです。
     /// </summary>
+    /// 
+    /// <remarks>
+    /// iTextSharp の現在のバージョンでは、ExtractPage, Signature,
+    /// TemplatePage プロパティに相当するパーミッション設定が存在しません。
+    /// そのため、これらのプロパティの値は無視されます。
+    /// </remarks>
     ///
     /* --------------------------------------------------------------------- */
-    public class Permission : IPermission
+    public class Permission
     {
         #region Initialization and Termination
 
@@ -60,7 +62,7 @@ namespace CubePdf.Data
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public Permission(IPermission cp)
+        public Permission(Permission cp)
         {
             this.Printing = cp.Printing;
             this.Assembly = cp.Assembly;
@@ -209,7 +211,7 @@ namespace CubePdf.Data
 
         /* ----------------------------------------------------------------- */
         ///
-        /// FullAccess
+        /// IsFullAccess
         /// 
         /// <summary>
         /// 全ての操作が許可されているかどうか示す値を取得します。
@@ -221,7 +223,7 @@ namespace CubePdf.Data
         /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
-        public bool FullAccess { get
+        public bool IsFullAccess { get
             {
                 return Printing          &&
                        Assembly          &&
