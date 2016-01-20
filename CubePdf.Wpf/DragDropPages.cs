@@ -20,6 +20,7 @@
 /* ------------------------------------------------------------------------- */
 using System;
 using System.Collections.Generic;
+using CubePdf.Data;
 
 namespace CubePdf.Wpf
 {
@@ -49,7 +50,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public DragDropPages(int id)
         {
-            _id = id;
+            ProccessId = id;
         }
 
         #endregion
@@ -65,11 +66,7 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public int ProccessId
-        {
-            get { return _id; }
-            set { _id = value; }
-        }
+        public int ProccessId { get; set; } = -1;
 
         /* ----------------------------------------------------------------- */
         ///
@@ -80,16 +77,8 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        public IList<CubePdf.Data.IPage> Pages
-        {
-            get { return _pages; }
-        }
+        public IList<PageBase> Pages { get; } = new List<PageBase>();
 
-        #endregion
-
-        #region Variables
-        public int _id = -1;
-        IList<CubePdf.Data.IPage> _pages = new List<CubePdf.Data.IPage>();
         #endregion
     }
 }

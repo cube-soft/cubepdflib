@@ -94,7 +94,7 @@ namespace CubePdfTests.Wpf
                 Assert.AreEqual(CubePdf.Wpf.ListViewItemVisibility.Normal, viewmodel.ItemVisibility);
                 Assert.IsNotNullOrEmpty(viewmodel.FilePath);
                 Assert.NotNull(viewmodel.Pages);
-                Assert.IsTrue(viewmodel.PageCount > 0);
+                Assert.IsTrue(viewmodel.Pages.Count > 0);
                 Assert.NotNull(viewmodel.Metadata);
                 Assert.NotNull(viewmodel.Metadata.Version);
                 Assert.NotNull(viewmodel.Encryption);
@@ -168,7 +168,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(8, doc.PageCount);
+                Assert.AreEqual(8, doc.Pages.Count);
             }
 
         }
@@ -191,7 +191,7 @@ namespace CubePdfTests.Wpf
             viewmodel.SaveOnClose(dest);
             Assert.IsTrue(System.IO.File.Exists(dest));
             Assert.IsTrue(String.IsNullOrEmpty(viewmodel.FilePath));
-            Assert.AreEqual(0, viewmodel.PageCount);
+            Assert.AreEqual(0, viewmodel.Pages.Count);
             Assert.AreEqual(0, viewmodel.History.Count);
             Assert.AreEqual(0, viewmodel.UndoHistory.Count);
         }
@@ -304,7 +304,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Insert(2, src);
             Assert.IsTrue(viewmodel.IsModified);
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelInsert.pdf");
             System.IO.File.Delete(dest);
@@ -313,7 +313,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(11,  doc.PageCount);
+                Assert.AreEqual(11,  doc.Pages.Count);
                 Assert.AreEqual(0,   doc.GetPage(1).Rotation);
                 Assert.AreEqual(90,  doc.GetPage(2).Rotation);
                 Assert.AreEqual(0,   doc.GetPage(3).Rotation);
@@ -343,7 +343,7 @@ namespace CubePdfTests.Wpf
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Add(src);
             Assert.IsTrue(viewmodel.IsModified);
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd.pdf");
             System.IO.File.Delete(dest);
@@ -354,7 +354,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(11, doc.PageCount);
+                Assert.AreEqual(11, doc.Pages.Count);
             }
         }
 
@@ -378,7 +378,7 @@ namespace CubePdfTests.Wpf
                 viewmodel.Add(src);
                 viewmodel.Add(src);
                 Assert.IsTrue(viewmodel.IsModified);
-                Assert.AreEqual(13, viewmodel.PageCount);
+                Assert.AreEqual(13, viewmodel.Pages.Count);
 
                 var dest = System.IO.Path.Combine(_dest, "TestListViewModelAdd2.pdf");
                 System.IO.File.Delete(dest);
@@ -389,7 +389,7 @@ namespace CubePdfTests.Wpf
 
                 using (var doc = new CubePdf.Editing.DocumentReader(dest))
                 {
-                    Assert.AreEqual(13, doc.PageCount);
+                    Assert.AreEqual(13, doc.Pages.Count);
                 }
             }
             catch (Exception err) { Assert.Fail(err.ToString()); }
@@ -411,7 +411,7 @@ namespace CubePdfTests.Wpf
             
             viewmodel.RemoveAt(0);
             viewmodel.RemoveAt(2);
-            viewmodel.RemoveAt(viewmodel.PageCount - 1);
+            viewmodel.RemoveAt(viewmodel.Pages.Count - 1);
             Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemoveAt.pdf");
@@ -423,43 +423,11 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(6,   doc.PageCount);
+                Assert.AreEqual(6,   doc.Pages.Count);
                 Assert.AreEqual(90,  doc.GetPage(1).Rotation);
                 Assert.AreEqual(180, doc.GetPage(2).Rotation);
                 Assert.AreEqual(0,   doc.GetPage(3).Rotation);
                 Assert.AreEqual(0,   doc.GetPage(4).Rotation);
-            }
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// TestRemove
-        /// 
-        /// <summary>
-        /// 対象となる PDF ページを対応する画像オブジェクトで指定して
-        /// 削除するテストです。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        [Test]
-        public void TestRemove()
-        {
-            var viewmodel = CreateViewModel();
-
-            viewmodel.Remove(viewmodel.Items[0]);
-            viewmodel.Remove(viewmodel.Items[viewmodel.PageCount - 1]);
-            Assert.IsTrue(viewmodel.IsModified);
-
-            var dest = System.IO.Path.Combine(_dest, "TestListViewModelRemove.pdf");
-            System.IO.File.Delete(dest);
-            viewmodel.Save(dest);
-            Assert.IsTrue(System.IO.File.Exists(dest));
-
-            viewmodel.Close();
-
-            using (var doc = new CubePdf.Editing.DocumentReader(dest))
-            {
-                Assert.AreEqual(7, doc.PageCount);
             }
         }
 
@@ -491,7 +459,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(4,   doc.PageCount);
+                Assert.AreEqual(4,   doc.Pages.Count);
                 Assert.AreEqual(0,   doc.GetPage(1).Rotation);
                 Assert.AreEqual(180, doc.GetPage(2).Rotation);
                 Assert.AreEqual(90,  doc.GetPage(3).Rotation);
@@ -515,7 +483,7 @@ namespace CubePdfTests.Wpf
             var src = System.IO.Path.Combine(_src, "readme.pdf");
             Assert.IsTrue(System.IO.File.Exists(src));
             viewmodel.Add(src);
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
 
             var images = new ArrayList();
             images.Add(viewmodel.Items[0]);
@@ -550,7 +518,7 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Move(1, 0);
             viewmodel.Move(1, 3);
-            viewmodel.Move(2, viewmodel.PageCount - 1);
+            viewmodel.Move(2, viewmodel.Pages.Count - 1);
             Assert.IsTrue(viewmodel.IsModified);
 
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelMove.pdf");
@@ -562,7 +530,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(9,   doc.PageCount);
+                Assert.AreEqual(9,   doc.Pages.Count);
                 Assert.AreEqual(90,  doc.GetPage(1).Rotation);
                 Assert.AreEqual(180, doc.GetPage(2).Rotation);
                 Assert.AreEqual(0,   doc.GetPage(3).Rotation);
@@ -603,7 +571,7 @@ namespace CubePdfTests.Wpf
 
             using (var doc = new CubePdf.Editing.DocumentReader(dest))
             {
-                Assert.AreEqual(9,   doc.PageCount);
+                Assert.AreEqual(9,   doc.Pages.Count);
                 Assert.AreEqual(90,  doc.GetPage(1).Rotation);
                 Assert.AreEqual(270, doc.GetPage(2).Rotation);
                 Assert.AreEqual(90,  doc.GetPage(3).Rotation);
@@ -658,7 +626,7 @@ namespace CubePdfTests.Wpf
             var added = System.IO.Path.Combine(_src, "readme.pdf");
             viewmodel.Insert(0, added);
             Assert.AreEqual(4, viewmodel.History.Count);
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
 
             // 削除
             viewmodel.BeginCommand();
@@ -667,7 +635,7 @@ namespace CubePdfTests.Wpf
             viewmodel.RemoveAt(3);
             viewmodel.EndCommand();
             Assert.AreEqual(5, viewmodel.History.Count);
-            Assert.AreEqual(8, viewmodel.PageCount);
+            Assert.AreEqual(8, viewmodel.Pages.Count);
 
             // 移動
             viewmodel.BeginCommand();
@@ -683,11 +651,11 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Undo();
             Assert.AreEqual(4, viewmodel.History.Count);
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
 
             viewmodel.Undo();
             Assert.AreEqual(3, viewmodel.History.Count);
-            Assert.AreEqual(9, viewmodel.PageCount);
+            Assert.AreEqual(9, viewmodel.Pages.Count);
 
             viewmodel.Undo();
             Assert.AreEqual(2, viewmodel.History.Count);
@@ -768,7 +736,7 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(2, count);
 
             // Remove
-            Assert.AreEqual(11, viewmodel.PageCount);
+            Assert.AreEqual(11, viewmodel.Pages.Count);
             viewmodel.RemoveAt(0);
             Assert.AreEqual(3, count);
             viewmodel.BeginCommand();
@@ -777,7 +745,7 @@ namespace CubePdfTests.Wpf
             viewmodel.RemoveAt(0);
             viewmodel.EndCommand();
             Assert.AreEqual(4, count);
-            Assert.AreEqual(7, viewmodel.PageCount);
+            Assert.AreEqual(7, viewmodel.Pages.Count);
 
             // Move
             viewmodel.Move(0, 1);
@@ -802,7 +770,7 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
 
             // Extract
-            IList<CubePdf.Data.IPage> pages = new List<CubePdf.Data.IPage>();
+            IList<CubePdf.Data.PageBase> pages = new List<CubePdf.Data.PageBase>();
             pages.Add(viewmodel.GetPage(1));
             pages.Add(viewmodel.GetPage(2));
             pages.Add(viewmodel.GetPage(3));
