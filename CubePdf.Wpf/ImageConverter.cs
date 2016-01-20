@@ -52,7 +52,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var src = value as Image;
+            var src = ConvertImage(value);
             if (src == null) return null;
 
             using (var stream = new System.IO.MemoryStream())
@@ -80,6 +80,22 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            return null;
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// ConvertImage
+        /// 
+        /// <summary>
+        /// Image オブジェクトに変換します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        public Image ConvertImage(object src)
+        {
+            if (src is Image) return src as Image;
+            if (src is Icon) return (src as Icon).ToBitmap();
             return null;
         }
     }
