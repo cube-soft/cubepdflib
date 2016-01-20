@@ -91,8 +91,19 @@
     <Compile Include="IDocumentWriter.cs" />
     <Compile Include="IDocumentReader.cs" />
     <Compile Include="ImagePage.cs" />
+    <Compile Include="NativeApis\IImageList.cs" />
+    <Compile Include="NativeApis\ImageInfo.cs" />
+    <Compile Include="NativeApis\Kernel32.cs" />
+    <Compile Include="NativeApis\Point.cs" />
+    <Compile Include="NativeApis\Rect.cs" />
+    <Compile Include="NativeApis\Shell32.cs" />
+    <Compile Include="NativeApis\SHFileInfo.cs" />
+    <Compile Include="NativeApis\SHStockIconInfo.cs" />
     <Compile Include="Porting\DataCancelEventArgs.cs" />
     <Compile Include="Porting\DataEventArgs.cs" />
+    <Compile Include="Porting\FileInfo.cs" />
+    <Compile Include="Porting\IconFactory.cs" />
+    <Compile Include="Porting\IconSize.cs" />
     <Compile Include="Porting\IReadOnlyCollection.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Page.cs" />
@@ -101,6 +112,7 @@
     <Compile Include="PageType.cs" />
     <Compile Include="Permission.cs" />
     <Compile Include="Porting\ProgressEventArgs.cs" />
+    <Compile Include="Porting\StockIcons.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
