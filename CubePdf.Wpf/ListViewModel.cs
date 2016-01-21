@@ -636,26 +636,6 @@ namespace CubePdf.Wpf
         /// Extract
         /// 
         /// <summary>
-        /// 引数に指定された PDF ファイルの各ページを新しい PDF ファイル
-        /// として path に保存します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Extract(IList<PageBase> pages, string path)
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-            foreach (var page in pages) binder.Pages.Add(page);
-            var tmp = System.IO.Path.GetTempFileName();
-            binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, path, true);
-            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Extract
-        /// 
-        /// <summary>
         /// 引数に指定されたオブジェクトい対応する各 PDF ページを新しい
         /// PDF ファイルとして path に保存します。
         /// </summary>
@@ -663,43 +643,17 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Extract(IList items, string path)
         {
-            IList<PageBase> list = new List<PageBase>();
+            var binder = new CubePdf.Editing.PageBinder();
             foreach (var item in items)
             {
                 var index = IndexOf(item);
-                if (index >= 0 && index < _pages.Count) list.Add(_pages[index]);
+                if (index >= 0 && index < _pages.Count) binder.Pages.Add(_pages[index]);
             }
-            Extract(list, path);
-        }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ExtractImage
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルの各ページに含まれる画像を
-        /// direcotry 下に保存します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void ExtractImage(IList<PageBase> pages, string directory)
-        {
-            var worker = new BackgroundImageExtractor();
-            worker.Completed += (s, e) => OnRunCompleted(new EventArgs());
-            worker.ProgressChanged += (s, e) =>
-            {
-                var page     = e.Value.Page;
-                var basename = System.IO.Path.GetFileNameWithoutExtension(page.FilePath);
-                var count    = e.Value.Images.Count;
-                for (var i = 0; i < count; ++i)
-                {
-                    var dest = Unique(directory, basename, page.PageNumber, i, count);
-                    e.Value.Images[i].Save(dest, System.Drawing.Imaging.ImageFormat.Png);
-                }
-            };
-
-            foreach (var page in pages) worker.Pages.Add(page);
-            worker.RunAsync();
+            var tmp = System.IO.Path.GetTempFileName();
+            binder.Save(tmp);
+            CubePdf.Misc.File.Move(tmp, path, true);
+            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
         /* ----------------------------------------------------------------- */
@@ -714,13 +668,26 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void ExtractImage(IList items, string directory)
         {
-            IList<PageBase> list = new List<PageBase>();
+            var worker = new BackgroundImageExtractor();
+            worker.Completed += (s, e) => OnRunCompleted(new EventArgs());
+            worker.ProgressChanged += (s, e) =>
+            {
+                var page = e.Value.Page;
+                var basename = System.IO.Path.GetFileNameWithoutExtension(page.FilePath);
+                var count = e.Value.Images.Count;
+                for (var i = 0; i < count; ++i)
+                {
+                    var dest = Unique(directory, basename, page.PageNumber, i, count);
+                    e.Value.Images[i].Save(dest, System.Drawing.Imaging.ImageFormat.Png);
+                }
+            };
+
             foreach (var item in items)
             {
                 var index = IndexOf(item);
-                if (index >= 0 && index < _pages.Count) list.Add(_pages[index]);
+                if (index >= 0 && index < _pages.Count) worker.Pages.Add(_pages[index]);
             }
-            ExtractImage(list, directory);
+            worker.RunAsync();
         }
 
         /* ----------------------------------------------------------------- */
