@@ -666,8 +666,8 @@ namespace CubePdf.Wpf
             IList<PageBase> list = new List<PageBase>();
             foreach (var item in items)
             {
-                var page = ToPage(item);
-                if (page != null) list.Add(page);
+                var index = IndexOf(item);
+                if (index >= 0 && index < _pages.Count) list.Add(_pages[index]);
             }
             Extract(list, path);
         }
@@ -717,30 +717,10 @@ namespace CubePdf.Wpf
             IList<PageBase> list = new List<PageBase>();
             foreach (var item in items)
             {
-                var page = ToPage(item);
-                if (page != null) list.Add(page);
+                var index = IndexOf(item);
+                if (index >= 0 && index < _pages.Count) list.Add(_pages[index]);
             }
             ExtractImage(list, directory);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Split
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルの各ページを direcotry 下に
-        /// 1 ページずつ別ファイルとして保存します。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: 処理内容が間違っている可能性があるので要調査。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Split(IList<PageBase> pages, string directory)
-        {
-            foreach (var page in pages) SaveDocument(directory, page);
-            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
         /* ----------------------------------------------------------------- */
@@ -755,7 +735,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList items, string directory)
         {
-            foreach (var obj in items) SaveDocument(directory, ToPage(obj));
+            foreach (var obj in items) SaveDocument(directory, IndexOf(obj));
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1036,30 +1016,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
         public int IndexOf(CubePdf.Drawing.ImageContainer item) { return _images.IndexOf(item); }
-        public int IndexOf(PageBase page) { return _pages.IndexOf(page); }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ToPage
-        /// 
-        /// <summary>
-        /// ListView で表示されているサムネイルに対応する PDF ページの情報を
-        /// 取得します。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: IndexOf を使用せずに実装したい。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        public PageBase ToPage(object item)
-        {
-            var image = item as CubePdf.Drawing.ImageContainer;
-            if (image == null) return null;
-
-            var index = _images.IndexOf(image);
-            return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
-        }
 
         #endregion
 
@@ -1535,11 +1491,11 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void SaveDocument(string directory, PageBase page)
+        private void SaveDocument(string directory, int index)
         {
-            var index = _pages.IndexOf(page);
             if (index < 0 || index >= _pages.Count) return;
 
+            var page = _pages[index];
             var binder = new CubePdf.Editing.PageBinder();
             binder.Pages.Add(page);
 

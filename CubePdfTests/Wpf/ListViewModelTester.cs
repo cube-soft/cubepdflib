@@ -617,10 +617,10 @@ namespace CubePdfTests.Wpf
             viewmodel.RotateAt(3, 90);
             viewmodel.EndCommand();
             Assert.AreEqual(3, viewmodel.History.Count);
-            Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[0]).Rotation);
-            Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[1]).Rotation);
-            Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
-            Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[3]).Rotation);
+            Assert.AreEqual(90,  viewmodel.GetPage(1).Rotation);
+            Assert.AreEqual(180, viewmodel.GetPage(2).Rotation);
+            Assert.AreEqual(270, viewmodel.GetPage(3).Rotation);
+            Assert.AreEqual(0,   viewmodel.GetPage(4).Rotation);
 
             // 挿入
             var added = System.IO.Path.Combine(_src, "readme.pdf");
@@ -659,10 +659,10 @@ namespace CubePdfTests.Wpf
 
             viewmodel.Undo();
             Assert.AreEqual(2, viewmodel.History.Count);
-            Assert.AreEqual(0,   viewmodel.ToPage(viewmodel.Items[0]).Rotation);
-            Assert.AreEqual(90,  viewmodel.ToPage(viewmodel.Items[1]).Rotation);
-            Assert.AreEqual(180, viewmodel.ToPage(viewmodel.Items[2]).Rotation);
-            Assert.AreEqual(270, viewmodel.ToPage(viewmodel.Items[3]).Rotation);
+            Assert.AreEqual(0,   viewmodel.GetPage(1).Rotation);
+            Assert.AreEqual(90,  viewmodel.GetPage(2).Rotation);
+            Assert.AreEqual(180, viewmodel.GetPage(3).Rotation);
+            Assert.AreEqual(270, viewmodel.GetPage(4).Rotation);
 
             viewmodel.Undo();
             Assert.AreEqual(1, viewmodel.History.Count);
@@ -770,18 +770,18 @@ namespace CubePdfTests.Wpf
             Assert.AreEqual(90, viewmodel.GetPage(1).Rotation);
 
             // Extract
-            IList<CubePdf.Data.PageBase> pages = new List<CubePdf.Data.PageBase>();
-            pages.Add(viewmodel.GetPage(1));
-            pages.Add(viewmodel.GetPage(2));
-            pages.Add(viewmodel.GetPage(3));
+            var items = new ArrayList();
+            items.Add(viewmodel.Items[0]);
+            items.Add(viewmodel.Items[1]);
+            items.Add(viewmodel.Items[2]);
             var dest = System.IO.Path.Combine(_dest, "TestListViewModelRunCompletedExtract.pdf");
             System.IO.File.Delete(dest);
-            viewmodel.Extract(pages, dest);
+            viewmodel.Extract(items, dest);
             Assert.AreEqual(9, count);
             Assert.IsTrue(System.IO.File.Exists(dest)); 
 
             // Split
-            viewmodel.Split(pages, _dest);
+            viewmodel.Split(items, _dest);
             Assert.AreEqual(10, count);
 
             // Reset
