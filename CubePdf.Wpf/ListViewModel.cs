@@ -739,7 +739,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList<PageBase> pages, string directory)
         {
-            for (var i = 0; i < pages.Count; ++i) SaveDocument(directory, i);
+            foreach (var page in pages) SaveDocument(directory, page);
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -755,7 +755,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList items, string directory)
         {
-            for (var i = 0; i < items.Count; ++i) SaveDocument(directory, i);
+            foreach (var obj in items) SaveDocument(directory, ToPage(obj));
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1535,11 +1535,11 @@ namespace CubePdf.Wpf
         /// </summary>
         ///
         /* ----------------------------------------------------------------- */
-        private void SaveDocument(string directory, int index)
+        private void SaveDocument(string directory, PageBase page)
         {
+            var index = _pages.IndexOf(page);
             if (index < 0 || index >= _pages.Count) return;
 
-            var page = _pages[index];
             var binder = new CubePdf.Editing.PageBinder();
             binder.Pages.Add(page);
 
