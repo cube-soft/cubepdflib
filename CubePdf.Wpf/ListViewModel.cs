@@ -1581,6 +1581,7 @@ namespace CubePdf.Wpf
                 foreach (var image in _images) image.Dispose();
                 _images.Clear();
             }
+            CubePdf.Drawing.BitmapEnginePool.Clear();
         }
 
         /* ----------------------------------------------------------------- */
