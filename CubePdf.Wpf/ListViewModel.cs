@@ -636,26 +636,6 @@ namespace CubePdf.Wpf
         /// Extract
         /// 
         /// <summary>
-        /// 引数に指定された PDF ファイルの各ページを新しい PDF ファイル
-        /// として path に保存します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Extract(IList<PageBase> pages, string path)
-        {
-            var binder = new CubePdf.Editing.PageBinder();
-            foreach (var page in pages) binder.Pages.Add(page);
-            var tmp = System.IO.Path.GetTempFileName();
-            binder.Save(tmp);
-            CubePdf.Misc.File.Move(tmp, path, true);
-            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Extract
-        /// 
-        /// <summary>
         /// 引数に指定されたオブジェクトい対応する各 PDF ページを新しい
         /// PDF ファイルとして path に保存します。
         /// </summary>
@@ -663,43 +643,17 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Extract(IList items, string path)
         {
-            IList<PageBase> list = new List<PageBase>();
+            var binder = new CubePdf.Editing.PageBinder();
             foreach (var item in items)
             {
-                var page = ToPage(item);
-                if (page != null) list.Add(page);
+                var index = IndexOf(item);
+                if (index >= 0 && index < _pages.Count) binder.Pages.Add(_pages[index]);
             }
-            Extract(list, path);
-        }
 
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ExtractImage
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルの各ページに含まれる画像を
-        /// direcotry 下に保存します。
-        /// </summary>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void ExtractImage(IList<PageBase> pages, string directory)
-        {
-            var worker = new BackgroundImageExtractor();
-            worker.Completed += (s, e) => OnRunCompleted(new EventArgs());
-            worker.ProgressChanged += (s, e) =>
-            {
-                var page     = e.Value.Page;
-                var basename = System.IO.Path.GetFileNameWithoutExtension(page.FilePath);
-                var count    = e.Value.Images.Count;
-                for (var i = 0; i < count; ++i)
-                {
-                    var dest = Unique(directory, basename, page.PageNumber, i, count);
-                    e.Value.Images[i].Save(dest, System.Drawing.Imaging.ImageFormat.Png);
-                }
-            };
-
-            foreach (var page in pages) worker.Pages.Add(page);
-            worker.RunAsync();
+            var tmp = System.IO.Path.GetTempFileName();
+            binder.Save(tmp);
+            CubePdf.Misc.File.Move(tmp, path, true);
+            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
         /* ----------------------------------------------------------------- */
@@ -714,33 +668,26 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void ExtractImage(IList items, string directory)
         {
-            IList<PageBase> list = new List<PageBase>();
+            var worker = new BackgroundImageExtractor();
+            worker.Completed += (s, e) => OnRunCompleted(new EventArgs());
+            worker.ProgressChanged += (s, e) =>
+            {
+                var page = e.Value.Page;
+                var basename = System.IO.Path.GetFileNameWithoutExtension(page.FilePath);
+                var count = e.Value.Images.Count;
+                for (var i = 0; i < count; ++i)
+                {
+                    var dest = Unique(directory, basename, page.PageNumber, i, count);
+                    e.Value.Images[i].Save(dest, System.Drawing.Imaging.ImageFormat.Png);
+                }
+            };
+
             foreach (var item in items)
             {
-                var page = ToPage(item);
-                if (page != null) list.Add(page);
+                var index = IndexOf(item);
+                if (index >= 0 && index < _pages.Count) worker.Pages.Add(_pages[index]);
             }
-            ExtractImage(list, directory);
-        }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// Split
-        /// 
-        /// <summary>
-        /// 引数に指定された PDF ファイルの各ページを direcotry 下に
-        /// 1 ページずつ別ファイルとして保存します。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: 処理内容が間違っている可能性があるので要調査。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        public void Split(IList<PageBase> pages, string directory)
-        {
-            for (var i = 0; i < pages.Count; ++i) SaveDocument(directory, i);
-            if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
+            worker.RunAsync();
         }
 
         /* ----------------------------------------------------------------- */
@@ -755,7 +702,7 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public void Split(IList items, string directory)
         {
-            for (var i = 0; i < items.Count; ++i) SaveDocument(directory, i);
+            foreach (var obj in items) SaveDocument(directory, IndexOf(obj));
             if (_status == CommandStatus.End) OnRunCompleted(new EventArgs());
         }
 
@@ -1036,30 +983,6 @@ namespace CubePdf.Wpf
         /* ----------------------------------------------------------------- */
         public int IndexOf(object item) { return IndexOf(item as CubePdf.Drawing.ImageContainer); }
         public int IndexOf(CubePdf.Drawing.ImageContainer item) { return _images.IndexOf(item); }
-        public int IndexOf(PageBase page) { return _pages.IndexOf(page); }
-
-        /* ----------------------------------------------------------------- */
-        ///
-        /// ToPage
-        /// 
-        /// <summary>
-        /// ListView で表示されているサムネイルに対応する PDF ページの情報を
-        /// 取得します。
-        /// </summary>
-        /// 
-        /// <remarks>
-        /// TODO: IndexOf を使用せずに実装したい。
-        /// </remarks>
-        ///
-        /* ----------------------------------------------------------------- */
-        public PageBase ToPage(object item)
-        {
-            var image = item as CubePdf.Drawing.ImageContainer;
-            if (image == null) return null;
-
-            var index = _images.IndexOf(image);
-            return (index >= 0 && index < _pages.Count) ? _pages[index] : null;
-        }
 
         #endregion
 
