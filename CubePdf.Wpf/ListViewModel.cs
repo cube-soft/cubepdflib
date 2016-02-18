@@ -1404,13 +1404,16 @@ namespace CubePdf.Wpf
             {
                 for (var i = 0; i < _pages.Count; ++i)
                 {
-                    var size = _pages[i].OriginalSize;
+                    var size     = _pages[i].OriginalSize;
+                    var rotation = _pages[i].Rotation;
+
                     _pages[i] = new Page
                     {
                         FilePath     = path,
                         Password     = password,
                         PageNumber   = i + 1,
-                        OriginalSize = size
+                        OriginalSize = size,
+                        Rotation     = rotation
                     };
                 }
             }

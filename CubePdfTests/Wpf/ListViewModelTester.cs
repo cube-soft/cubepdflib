@@ -166,6 +166,33 @@ namespace CubePdfTests.Wpf
 
         /* ----------------------------------------------------------------- */
         ///
+        /// TestSaveTwice
+        /// 
+        /// <summary>
+        /// 2 回続けて保存を実行した時のテストを行います。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        [Test]
+        public void TestSaveTwice()
+        {
+            var dest = System.IO.Path.Combine(_dest, "TestListViewModelSaveTwice.pdf");
+            System.IO.File.Delete(dest);
+
+            var viewmodel = CreateViewModel();
+            viewmodel.GetPage(1).Rotation = 90;
+            viewmodel.Save(dest);
+            viewmodel.Save(dest);
+            viewmodel.Close();
+
+            using (var doc = new CubePdf.Editing.DocumentReader(dest))
+            {
+                Assert.That(doc.GetPage(1).Rotation, Is.EqualTo(90));
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
         /// TestSaveOnClose
         /// 
         /// <summary>
