@@ -47,7 +47,8 @@ namespace CubePdfTests.Settings
             var subkey = Registry.CurrentUser.CreateSubKey(_root);
             if (subkey == null) throw new ArgumentException("setup");
 
-            var current = System.Environment.CurrentDirectory;
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            var current = System.IO.Path.GetDirectoryName(asm.Location);
             _src = System.IO.Path.Combine(current, "Examples");
             _dest = System.IO.Path.Combine(current, "Results");
             if (!System.IO.Directory.Exists(_dest)) System.IO.Directory.CreateDirectory(_dest);

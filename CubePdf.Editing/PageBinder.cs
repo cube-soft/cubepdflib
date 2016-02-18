@@ -248,6 +248,11 @@ namespace CubePdf.Editing
         /// <summary>
         /// PDF ページを追加します。
         /// </summary>
+        /// 
+        /// <remarks>
+        /// PdfCopy.PageNumber (dest) は、AddPage を実行した段階で値が
+        /// 自動的に増加するので注意。
+        /// </remarks>
         ///
         /* ----------------------------------------------------------------- */
         private void AddPage(Page src, PdfCopy dest, Dictionary<string, PdfReader> readers)
@@ -267,8 +272,9 @@ namespace CubePdf.Editing
             var dic = reader.GetPageN(src.PageNumber);
             if (rot != src.Rotation) dic.Put(PdfName.ROTATE, new PdfNumber(src.Rotation));
 
+            var pagenum = dest.PageNumber; // see remarks
+            StockBookmarks(reader, src.PageNumber, pagenum);
             dest.AddPage(dest.GetImportedPage(reader, src.PageNumber));
-            StockBookmarks(reader, src.PageNumber, dest.PageNumber);
         }
 
         /* ----------------------------------------------------------------- */
