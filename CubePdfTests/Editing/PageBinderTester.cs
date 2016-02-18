@@ -40,22 +40,13 @@ namespace CubePdfTests.Editing
         #region Setup and TearDown
 
         /* ----------------------------------------------------------------- */
-        ///
         /// Setup
-        /// 
-        /// <summary>
-        /// NOTE: テストに使用するサンプルファイル群は、テスト用プロジェクト
-        /// フォルダ直下にある Examples と言うフォルダに存在します。
-        /// テストを実行する際には、実行ファイルをテスト用プロジェクトに
-        /// コピーしてから行う必要があります（ビルド後イベントで、自動的に
-        /// コピーされるように設定されてある）。
-        /// </summary>
-        ///
         /* ----------------------------------------------------------------- */
         [SetUp]
         public void Setup()
         {
-            var current = System.Environment.CurrentDirectory;
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            var current = System.IO.Path.GetDirectoryName(asm.Location);
             _src = System.IO.Path.Combine(current, "Examples");
             _dest = System.IO.Path.Combine(current, "Results");
             if (!System.IO.Directory.Exists(_dest)) System.IO.Directory.CreateDirectory(_dest);

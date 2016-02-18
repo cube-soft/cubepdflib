@@ -42,22 +42,13 @@ namespace CubePdfTests.Wpf
         #region Setup and TearDown
 
         /* ----------------------------------------------------------------- */
-        ///
         /// Setup
-        /// 
-        /// <summary>
-        /// NOTE: テストに使用するサンプルファイル群は、テスト用プロジェクト
-        /// フォルダ直下にある Examples と言うフォルダに存在します。
-        /// テストを実行する際には、実行ファイルをテスト用プロジェクトに
-        /// コピーしてから行う必要があります（ビルド後イベントで、自動的に
-        /// コピーされるように設定されてある）。
-        /// </summary>
-        ///
         /* ----------------------------------------------------------------- */
         [SetUp]
         public void Setup()
         {
-            var current = System.Environment.CurrentDirectory;
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            var current = System.IO.Path.GetDirectoryName(asm.Location);
             _src = System.IO.Path.Combine(current, "Examples");
             _dest = System.IO.Path.Combine(current, "Results");
             if (!System.IO.Directory.Exists(_dest)) System.IO.Directory.CreateDirectory(_dest);
@@ -92,7 +83,7 @@ namespace CubePdfTests.Wpf
                 var viewmodel = CreateViewModel(System.IO.Path.Combine(_src, filename), password);
                 Assert.IsFalse(viewmodel.IsModified);
                 Assert.AreEqual(CubePdf.Wpf.ListViewItemVisibility.Normal, viewmodel.ItemVisibility);
-                Assert.IsNotNullOrEmpty(viewmodel.FilePath);
+                Assert.That(viewmodel.FilePath, Is.Not.Null.Or.Empty);
                 Assert.NotNull(viewmodel.Pages);
                 Assert.IsTrue(viewmodel.Pages.Count > 0);
                 Assert.NotNull(viewmodel.Metadata);
@@ -667,7 +658,7 @@ namespace CubePdfTests.Wpf
             viewmodel.Undo();
             Assert.AreEqual(1, viewmodel.History.Count);
             Assert.IsFalse(viewmodel.Encryption.IsEnabled);
-            Assert.IsNullOrEmpty(viewmodel.Encryption.OwnerPassword);
+            Assert.That(viewmodel.Encryption.OwnerPassword, Is.Null.Or.Empty);
 
             viewmodel.Undo();
             Assert.AreEqual(0, viewmodel.History.Count);

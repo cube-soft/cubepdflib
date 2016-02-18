@@ -39,22 +39,13 @@ namespace CubePdfTests.Editing
         #region Setup and TearDown
 
         /* ----------------------------------------------------------------- */
-        ///
         /// Setup
-        /// 
-        /// <summary>
-        /// NOTE: テストに使用するサンプルファイル群は、テスト用プロジェクト
-        /// フォルダ直下にある Examples と言うフォルダに存在します。
-        /// テストを実行する際には、実行ファイルをテスト用プロジェクトに
-        /// コピーしてから行う必要があります（ビルド後イベントで、自動的に
-        /// コピーされるように設定されてある）。
-        /// </summary>
-        ///
         /* ----------------------------------------------------------------- */
         [SetUp]
         public void Setup()
         {
-            var current = System.Environment.CurrentDirectory;
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            var current = System.IO.Path.GetDirectoryName(asm.Location);
             _src = System.IO.Path.Combine(current, "Examples");
             _dest = System.IO.Path.Combine(current, "Results");
             if (!System.IO.Directory.Exists(_dest)) System.IO.Directory.CreateDirectory(_dest);
@@ -123,9 +114,9 @@ namespace CubePdfTests.Editing
                     Assert.AreEqual("CubeSoft,PDF,Test", doc.Metadata.Keywords);
 
                     Assert.IsFalse(doc.Encryption.IsEnabled);
-                    Assert.IsNullOrEmpty(doc.Encryption.OwnerPassword);
+                    Assert.That(doc.Encryption.OwnerPassword, Is.Null.Or.Empty);
                     Assert.IsFalse(doc.Encryption.IsUserPasswordEnabled);
-                    Assert.IsNullOrEmpty(doc.Encryption.UserPassword);
+                    Assert.That(doc.Encryption.UserPassword, Is.Null.Or.Empty);
                     Assert.AreEqual(CubePdf.Data.EncryptionMethod.Unknown, doc.Encryption.Method);
                     Assert.NotNull(doc.Encryption.Permission);
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.NotEncrypted, doc.EncryptionStatus);
@@ -266,7 +257,7 @@ namespace CubePdfTests.Editing
                 {
                     Assert.AreEqual(CubePdf.Data.EncryptionStatus.RestrictedAccess, doc.EncryptionStatus, "EncryptionStatus");
                     Assert.IsTrue(doc.Encryption.IsEnabled, "IsEnabled");
-                    Assert.IsNullOrEmpty(doc.Encryption.OwnerPassword, "OwnerPassword");
+                    Assert.That(doc.Encryption.OwnerPassword, Is.Null.Or.Empty);
                     Assert.IsTrue(doc.Encryption.IsUserPasswordEnabled, "IsUserPasswordEnabled");
                     Assert.AreEqual(password, doc.Encryption.UserPassword, "UserPassword");
                     Assert.AreEqual(CubePdf.Data.EncryptionMethod.Standard128, doc.Encryption.Method, "Method");
