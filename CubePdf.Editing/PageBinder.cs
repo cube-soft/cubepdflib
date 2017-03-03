@@ -217,6 +217,9 @@ namespace CubePdf.Editing
                 }
             }
 
+            try { AddAttachments(readers, writer); }
+            catch (Exception /* err */) { /* pending */ }
+
             document.Close();
             writer.Close();
             foreach (var reader in readers.Values) reader.Close();
@@ -360,6 +363,49 @@ namespace CubePdf.Editing
                                  GetUserPassword(Encryption.UserPassword, Encryption.OwnerPassword) :
                                  string.Empty;
                 writer.Writer.SetEncryption(method, userpass, Encryption.OwnerPassword, permission);
+            }
+        }
+
+        /* ----------------------------------------------------------------- */
+        ///
+        /// AddAttachments
+        /// 
+        /// <summary>
+        /// 添付ファイルを追加します。
+        /// </summary>
+        ///
+        /* ----------------------------------------------------------------- */
+        private void AddAttachments(Dictionary<string, PdfReader> src, PdfCopy dest)
+        {
+            foreach (var kv in src)
+            {
+                var names = PdfReader.GetPdfObject(kv.Value.Catalog.Get(PdfName.NAMES)) as PdfDictionary;
+                if (names == null) continue;
+
+                var files = PdfReader.GetPdfObject(names.Get(PdfName.EMBEDDEDFILES)) as PdfDictionary;
+                if (files == null) continue;
+
+                var specs = files.GetAsArray(PdfName.NAMES);
+                var index = 0;
+                while (index < specs.Size)
+                {
+                    ++index;
+
+                    var array = specs.GetAsDict(index);
+                    var file = array.GetAsDict(PdfName.EF);
+
+                    foreach (var key in file.Keys)
+                    {
+                        var stream = PdfReader.GetPdfObject(file.GetAsIndirectObject(key)) as PRStream;
+                        var name = array.GetAsString(key).ToString();
+                        var content = PdfReader.GetStreamBytes(stream);
+
+                        var pfs = PdfFileSpecification.FileEmbedded(dest, null, name, content);
+                        dest.AddFileAttachment(pfs);
+                    }
+
+                    ++index;
+                }
             }
         }
 
