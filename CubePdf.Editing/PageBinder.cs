@@ -377,6 +377,8 @@ namespace CubePdf.Editing
         /* ----------------------------------------------------------------- */
         private void AddAttachments(Dictionary<string, PdfReader> src, PdfCopy dest)
         {
+            var added = new List<string>();
+
             foreach (var kv in src)
             {
                 var names = PdfReader.GetPdfObject(kv.Value.Catalog.Get(PdfName.NAMES)) as PdfDictionary;
@@ -398,10 +400,12 @@ namespace CubePdf.Editing
                     {
                         var stream = PdfReader.GetPdfObject(file.GetAsIndirectObject(key)) as PRStream;
                         var name = array.GetAsString(key).ToString();
-                        var content = PdfReader.GetStreamBytes(stream);
+                        if (added.Contains(name)) continue;
 
+                        var content = PdfReader.GetStreamBytes(stream);
                         var pfs = PdfFileSpecification.FileEmbedded(dest, null, name, content);
                         dest.AddFileAttachment(pfs);
+                        added.Add(name);
                     }
 
                     ++index;
