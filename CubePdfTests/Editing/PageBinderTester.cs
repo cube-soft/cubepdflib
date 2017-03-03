@@ -176,6 +176,7 @@ namespace CubePdfTests.Editing
         [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBookmark4.pdf",   false)]
         [TestCase("bookmark2.pdf",  "bookmark3.pdf",   "TestMergeBookmark5.pdf",   false)]
         [TestCase("bookmark.pdf",   "bookmark2.pdf",   "TestMergeBkSmart.pdf",      true)]
+        [TestCase("attachment.pdf", "readme.pdf",      "TestMergeAttachment.pdf",   true)]
         public void TestMerge(string head, string tail, string filename, bool smart)
         {
             var binder = new CubePdf.Editing.PageBinder();
