@@ -5,7 +5,6 @@
 #Visual Studio files
 *.[Oo]bj
 *.exe
-*.dll
 *.pdb
 *.user
 *.aps
@@ -25,18 +24,28 @@
 *.lib
 *.sbr
 *.sdf
+*.dll
+*.sh
+*.VisualState.xml
 ipch/
 obj/
 [Bb]in
 [Dd]ebug*/
+[Rr]elease/
+[Dd]ocument/
+[Cc]ustomize/
+[Aa]rchive/
+[Rr]esults/
+[Tt]mp/
+[Tt]emp/
+CubePdfEngineTests/Ghostscript/
 Ankh.NoLoad
+.vs
 
 #Tooling
 _ReSharper*/
 *.resharper
 [Tt]est[Rr]esult*
-[Rr]esults/
-!CubePdfTests/Examples/*.*
 
 #Project files
 [Bb]uild/
